@@ -1,67 +1,108 @@
-# CommCoach AI Platform
+# CommCoach Backend API
 
-Communication coaching platform powered by Google Gemini AI.
-
-## 📁 Project Structure
-
-```
-commcoach/
-├── backend/              # Backend API (Phase 1 ✅)
-│   ├── routes/          # API endpoints
-│   ├── services/        # Business logic
-│   ├── .env            # ⚠️ CONFIGURE THIS with your API key
-│   ├── server.js       # Main server
-│   └── README.md       # Backend documentation
-├── old_files_backup/    # Previous test files (can be deleted)
-└── README.md           # This file
-```
+Backend API server for CommCoach AI communication coaching platform.
 
 ## 🚀 Quick Start
 
-### 1. Configure the Backend
+### Prerequisites
+- Node.js 18+ installed
+- Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 
+### Installation
+
+1. Install dependencies:
 ```bash
-cd backend
+npm install
 ```
 
-Edit `backend/.env` and add your Gemini API key:
-```env
-GEMINI_API_KEY=your_actual_api_key_here
+2. Set up environment variables:
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit .env and add your Gemini API key
+# GEMINI_API_KEY=your_actual_api_key_here
 ```
 
-Get your API key: https://aistudio.google.com/app/apikey
-
-### 2. Start the Server
-
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-### 3. Test the API
+The server will start on `http://localhost:3001`
 
+## 📋 API Endpoints
+
+### Health Check
+- **GET** `/health` - Server health status
+
+### Antigravity Analysis
+- **GET** `/api/antigravity/test` - Test endpoint
+- **POST** `/api/antigravity/analyze-session` - Analyze communication transcript
+
+### Gemini Proxy
+- **GET** `/api/gemini/models` - List available models
+- **POST** `/api/gemini/generate` - Generate text content
+- **POST** `/api/gemini/structured` - Generate structured JSON
+
+## 🧪 Testing
+
+### Test Health Check
 ```bash
-# PowerShell
-.\test-api.ps1
-
-# Or manually
 curl http://localhost:3001/health
 ```
 
-## 📚 Documentation
+### Test Antigravity Analysis
+```bash
+curl -X POST http://localhost:3001/api/antigravity/analyze-session \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "test_user_1",
+    "timestamp": "2025-01-12T00:00:00Z",
+    "transcript": "USER: I struggle with public speaking. I get nervous.\nCOACH: Tell me more about when this happens.\nUSER: Mainly in meetings with executives."
+  }'
+```
 
-- **Backend**: See `backend/README.md`
-- **Setup Guide**: See `backend/SETUP.md`
-- **Quick Start**: See `backend/QUICKSTART.md`
+### Test Gemini Models
+```bash
+curl http://localhost:3001/api/gemini/models
+```
 
-## 🎯 Current Status
+## 📁 Project Structure
 
-- ✅ **Phase 1**: Backend API (Complete, needs API key)
-- ⏳ **Phase 2**: Frontend (Coming next)
-- ⏳ **Phase 3**: Database integration
-- ⏳ **Phase 4**: Real-time features
+```
+backend/
+├── config/          # Configuration files
+├── middleware/      # Express middleware
+├── routes/          # API route handlers
+│   ├── antigravity.js
+│   └── gemini.js
+├── services/        # Business logic
+│   └── geminiService.js
+├── .env            # Environment variables (not in git)
+├── .env.example    # Environment template
+├── .gitignore      # Git ignore rules
+├── package.json    # Dependencies
+└── server.js       # Main entry point
+```
 
-## 🔧 Important
+## 🔒 Environment Variables
 
-**ALL backend work is in the `backend/` folder.**
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Server port | `3001` |
+| `NODE_ENV` | Environment | `development` |
+| `GEMINI_API_KEY` | Google Gemini API key | *Required* |
+| `ALLOWED_ORIGINS` | CORS allowed origins | `http://localhost:3000,http://localhost:5173` |
 
-The `.env` file you need to edit is: `backend/.env` (NOT the root directory)
+## 🛠️ Development
+
+- `npm run dev` - Start with hot reload (nodemon)
+- `npm start` - Start production server
+
+## 📝 Notes
+
+- CORS is configured to allow requests from localhost:3000 and localhost:5173
+- API key is kept server-side for security
+- All routes support JSON request/response
+- Error handling includes development mode stack traces
