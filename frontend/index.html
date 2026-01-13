@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>CommCoach AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100svh;
+        overflow: hidden;
+        background: #000000;
+        font-family: 'Inter', sans-serif;
+        overscroll-behavior-y: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #root {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Global Smooth Scrolling and Touch Behavior */
+      .scroll-container {
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-gutter: stable;
+      }
+
+      /* Base Webkit Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      /* Custom Light Scrollbar (Default) */
+      .custom-scrollbar::-webkit-scrollbar-track,
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      .custom-scrollbar::-webkit-scrollbar-thumb,
+      ::-webkit-scrollbar-thumb {
+        background: rgba(15, 23, 42, 0.1);
+        border-radius: 20px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(15, 23, 42, 0.25);
+        background-clip: content-box;
+      }
+
+      /* Custom Dark Scrollbar (For Sidebar/Meeting Agent) */
+      .custom-scrollbar-dark::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      .custom-scrollbar-dark::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+
+      .custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+        background-clip: content-box;
+      }
+
+      /* Hide default scrollbars for specific containers if needed */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .scroll-smooth {
+        scroll-behavior: smooth;
+      }
+
+      /* Typography Polish */
+      .prose-sm p { margin-bottom: 0.75rem; }
+      .prose-sm p:last-child { margin-bottom: 0; }
+      .prose-sm h1, .prose-sm h2, .prose-sm h3 { font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #0f172a; }
+
+      /* Animation keyframes for smoother transitions */
+      @keyframes slideUp {
+        from { transform: translateY(10px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .animate-slide-up {
+        animation: slideUp 0.4s ease-out forwards;
+      }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "react": "https://esm.sh/react@^19.2.3",
+        "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "marked": "https://esm.sh/marked@^12.0.0",
+        "lucide-react": "https://esm.sh/lucide-react@^0.460.0"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

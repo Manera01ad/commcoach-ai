@@ -1,0 +1,1 @@
+// This file is no longer required as GoogleGenAI is used directly in App.tsx
