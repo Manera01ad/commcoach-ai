@@ -93,8 +93,8 @@ Write-Host "vercel login" -ForegroundColor Yellow
 Write-Host "2. Authenticate with Railway: " -NoNewline -ForegroundColor White
 Write-Host "railway login" -ForegroundColor Yellow
 Write-Host "3. Deploy frontend: " -NoNewline -ForegroundColor White
-Write-Host "cd frontend && vercel" -ForegroundColor Yellow
+Write-Host "cd frontend; vercel" -ForegroundColor Yellow
 Write-Host "4. Deploy backend: " -NoNewline -ForegroundColor White
-Write-Host "cd backend && railway up" -ForegroundColor Yellow
+Write-Host "cd backend; railway up" -ForegroundColor Yellow
 
 Write-Host "`n✨ Setup complete!`n" -ForegroundColor Green
