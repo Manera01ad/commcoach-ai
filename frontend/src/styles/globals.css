@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  
+  body {
+    @apply bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50;
+    @apply transition-colors duration-300;
+  }
+  
+  * {
+    @apply border-neutral-200 dark:border-neutral-800;
+  }
+}
+
+@layer components {
+  /* Button Variants */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white;
+    @apply focus:ring-primary-500;
+    @apply shadow-sm hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700;
+    @apply text-neutral-900 dark:text-neutral-100;
+    @apply focus:ring-neutral-500;
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800;
+    @apply text-neutral-700 dark:text-neutral-300;
+    @apply focus:ring-neutral-500;
+  }
+  
+  .btn-danger {
+    @apply bg-danger-500 hover:bg-danger-600 text-white;
+    @apply focus:ring-danger-500;
+  }
+  
+  .btn-social {
+    @apply bg-white dark:bg-neutral-800 border-2 border-neutral-300 dark:border-neutral-700;
+    @apply hover:bg-neutral-50 dark:hover:bg-neutral-750 text-neutral-900 dark:text-neutral-100;
+    @apply focus:ring-neutral-500;
+    @apply flex items-center justify-center gap-3 w-full;
+  }
+  
+  /* Input Fields */
+  .input {
+    @apply w-full px-4 py-2.5 rounded-lg border-2;
+    @apply bg-white dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700;
+    @apply text-neutral-900 dark:text-neutral-100;
+    @apply placeholder:text-neutral-400 dark:placeholder:text-neutral-500;
+    @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20;
+    @apply transition-all duration-200;
+    @apply disabled:bg-neutral-100 dark:disabled:bg-neutral-800 disabled:cursor-not-allowed;
+  }
+  
+  .input-error {
+    @apply border-danger-500 focus:border-danger-500 focus:ring-danger-500/20;
+  }
+  
+  /* Cards */
+  .card {
+    @apply bg-white dark:bg-neutral-900 rounded-xl shadow-soft;
+    @apply border border-neutral-200 dark:border-neutral-800;
+    @apply p-6 transition-all duration-200;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-medium hover:border-primary-300 dark:hover:border-primary-700;
+  }
+  
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300;
+  }
+  
+  .badge-success {
+    @apply bg-success-100 dark:bg-success-900 text-success-700 dark:text-success-300;
+  }
+  
+  .badge-contributor {
+    @apply bg-gradient-to-r from-primary-500 to-primary-700 text-white;
+    @apply shadow-glow;
+  }
+  
+  /* Scrollbar Styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-neutral-300 dark:bg-neutral-700 rounded-full;
+    @apply hover:bg-neutral-400 dark:hover:bg-neutral-600;
+  }
+  
+  /* Loading Spinner */
+  .spinner {
+    @apply animate-spin rounded-full border-2 border-neutral-200 dark:border-neutral-700;
+    @apply border-t-primary-600;
+  }
+  
+  /* Form Group */
+  .form-group {
+    @apply space-y-2;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-neutral-700 dark:text-neutral-300;
+  }
+  
+  .form-error {
+    @apply text-sm text-danger-600 dark:text-danger-400 mt-1;
+  }
+  
+  .form-hint {
+    @apply text-sm text-neutral-500 dark:text-neutral-400 mt-1;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+  }
+  
+  @keyframes gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+}
