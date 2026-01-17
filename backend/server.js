@@ -10,6 +10,8 @@ import { dirname, join } from 'path';
 import antigravityRoutes from './routes/antigravity.js';
 import geminiRoutes from './routes/gemini.js';
 
+import rateLimit from 'express-rate-limit';
+
 // ES Module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,6 +23,18 @@ const PORT = process.env.PORT || 3001;
 // ========================================
 // MIDDLEWARE
 // ========================================
+
+// Rate Limiter (Security)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: { error: 'Too many requests, please try again later.' }
+});
+
+// Apply rate limiting to all requests (or just API)
+app.use('/api', apiLimiter);
 
 // CORS Configuration
 const corsOptions = {
