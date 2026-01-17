@@ -8,7 +8,8 @@ import MentorsLab from './components/MentorsLab';
 import MeetingAgent from './components/MeetingAgent';
 import ProfileDashboard from './components/ProfileDashboard';
 import VisionLab from './components/VisionLab';
-import { GoogleGenAI } from "@google/genai";
+// import { GoogleGenAI } from "@google/genai"; // Removed for security
+import { geminiApi } from './services/api';
 import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './constants';
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -19,19 +20,19 @@ const DEFAULT_PROFILE: UserProfile = {
   eloScore: 1450,
   skills: { clarity: 82, persuasion: 65, empathy: 74, publicSpeaking: 58 },
   cloneConfig: {
-    assertiveness: 70, 
-    empathy: 85, 
-    openness: 60, 
-    stability: 90, 
-    vocabularyComplexity: 60, 
-    vocalPitch: 'medium', 
-    pacing: 80, 
-    fillerTolerance: 5, 
-    idealPersona: 'Executive Leader', 
-    directness: 80, 
-    riskAppetite: 40, 
-    structurePreference: 90, 
-    visualArchetype: 'Professional', 
+    assertiveness: 70,
+    empathy: 85,
+    openness: 60,
+    stability: 90,
+    vocabularyComplexity: 60,
+    vocalPitch: 'medium',
+    pacing: 80,
+    fillerTolerance: 5,
+    idealPersona: 'Executive Leader',
+    directness: 80,
+    riskAppetite: 40,
+    structurePreference: 90,
+    visualArchetype: 'Professional',
     visualTheme: 'Indigo',
     humorLevel: 40,
     analyticalDepth: 70,
@@ -51,22 +52,22 @@ const App: React.FC = () => {
     userProfile: DEFAULT_PROFILE,
     historyTrends: { previousClarity: [65, 72, 68, 75, 70], previousConfidence: [2, 3, 3, 4, 3], pacingHistory: [120, 140, 135, 145, 138], fillerHistory: [8, 6, 9, 5, 4] }
   });
-  
+
   const [isThinking, setIsThinking] = useState(false);
 
   const switchPhase = (newPhase: SessionPhase) => {
     if (newPhase === SessionPhase.CHAT) {
-      setSession(prev => ({ 
-        ...prev, 
-        phase: newPhase, 
+      setSession(prev => ({
+        ...prev,
+        phase: newPhase,
         messages: [],
-        assessmentStep: 0 
+        assessmentStep: 0
       }));
       return;
     }
 
     setSession(prev => ({ ...prev, phase: newPhase }));
-    
+
     if (newPhase === SessionPhase.ASSESSMENT) {
       const firstQuestion = ASSESSMENT_QUESTIONS[0];
       setSession(prev => ({
@@ -85,45 +86,39 @@ const App: React.FC = () => {
   const generateAIResponse = async (userText: string, instruction: string, useThinking: boolean = false, useSearch: boolean = false) => {
     setIsThinking(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const modelName = useThinking ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
-      
-      const config: any = { 
+      const modelName = useThinking ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
+
+      const config: any = {
         systemInstruction: instruction.replace('{{sessionId}}', session.sessionId).replace('{{timestamp}}', new Date().toISOString()),
         temperature: 0.7
       };
-      
-      if (useThinking) {
-        config.thinkingConfig = { thinkingBudget: 32768 };
-      }
-      
-      // Force search tool when in Mentors lab to fetch YouTube video details
-      if (useSearch || session.phase === SessionPhase.MENTORS) {
-        config.tools = [{ googleSearch: {} }];
-      }
 
-      const response = await ai.models.generateContent({
-        model: modelName,
-        contents: userText,
-        config
-      });
-      
-      const grounding = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => ({
-        title: chunk.web?.title || 'Resource',
-        uri: chunk.web?.uri || '#'
-      }));
+      // Note: Backend currently handles tool logic if needed, but for now passing config object
+      // Thinking and Search tools logic will need to be exposed in backend config handling
 
-      const aiMsg: Message = { 
-        id: Date.now().toString(), 
-        role: 'assistant', 
-        content: response.text || "", 
-        timestamp: new Date(),
-        groundingUrls: grounding
+      const text = await geminiApi.generateContent(modelName, userText, config);
+
+      const aiMsg: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: text || "",
+        timestamp: new Date()
+        // Grounding URLs handling moved to backend response parsing if applicable
       };
-      
+
       setSession(prev => ({ ...prev, messages: [...prev.messages, aiMsg] }));
-    } catch (err) { 
+    } catch (err) {
       console.error(err);
+      // Add error message to chat so user knows something went wrong
+      setSession(prev => ({
+        ...prev,
+        messages: [...prev.messages, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: "⚠️ Connection Error: I couldn't reach the backend server. Please make sure the backend is running on port 3001.",
+          timestamp: new Date()
+        }]
+      }));
     } finally {
       setIsThinking(false);
     }
@@ -131,11 +126,11 @@ const App: React.FC = () => {
 
   const handleSendMessage = (text: string) => {
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: text, timestamp: new Date() };
-    
+
     if (session.phase === SessionPhase.ASSESSMENT) {
       const nextStep = session.assessmentStep + 1;
       const isComplete = nextStep >= ASSESSMENT_QUESTIONS.length;
-      
+
       setSession(prev => ({
         ...prev,
         messages: [...prev.messages, userMsg],
@@ -160,24 +155,24 @@ const App: React.FC = () => {
       }
     } else {
       setSession(prev => ({ ...prev, messages: [...prev.messages, userMsg] }));
-      
+
       // If message is a library search, we use a specific instruction for searching the channel
       let currentInstruction = SYSTEM_INSTRUCTION;
       if (text.includes('[LIBRARY SEARCH')) {
         currentInstruction += "\n\nYou are helping the user find specific training videos from the mentioned YouTube channel. Use Google Search to find direct video links, titles, and brief descriptions from that channel. Focus on Aleena Rais Live content if requested.";
       }
-      
+
       generateAIResponse(text, currentInstruction);
     }
   };
 
   return (
     <div className="flex flex-col h-full w-full bg-[#f8fafc] text-slate-900 font-['Inter'] overflow-hidden">
-      <Header 
-        phase={session.phase} 
-        isVoiceMode={false} 
-        onReset={() => switchPhase(SessionPhase.CHAT)} 
-        onSwitchPhase={switchPhase} 
+      <Header
+        phase={session.phase}
+        isVoiceMode={false}
+        onReset={() => switchPhase(SessionPhase.CHAT)}
+        onSwitchPhase={switchPhase}
       />
       <div className="flex flex-1 min-h-0 overflow-hidden relative">
         <main className="flex-1 flex flex-col min-h-0 relative h-full">
@@ -185,11 +180,11 @@ const App: React.FC = () => {
             <RecapScreen session={session} onDone={() => switchPhase(SessionPhase.CHAT)} />
           )}
           {session.phase === SessionPhase.MENTORS && (
-            <MentorsLab 
-              messages={session.messages} 
-              onSendMessage={handleSendMessage} 
-              onAddManualMessage={(r, c) => setSession(p => ({ ...p, messages: [...p.messages, { id: Date.now().toString(), role: r, content: c, timestamp: new Date() }] }))} 
-              isThinking={isThinking} 
+            <MentorsLab
+              messages={session.messages}
+              onSendMessage={handleSendMessage}
+              onAddManualMessage={(r, c) => setSession(p => ({ ...p, messages: [...p.messages, { id: Date.now().toString(), role: r, content: c, timestamp: new Date() }] }))}
+              isThinking={isThinking}
             />
           )}
           {session.phase === SessionPhase.AGENT && (
@@ -199,19 +194,19 @@ const App: React.FC = () => {
             <VisionLab />
           )}
           {session.phase === SessionPhase.PROFILE && (
-            <ProfileDashboard 
-              profile={session.userProfile} 
-              onUpdateProfile={(p) => setSession(prev => ({ ...prev, userProfile: p }))} 
+            <ProfileDashboard
+              profile={session.userProfile}
+              onUpdateProfile={(p) => setSession(prev => ({ ...prev, userProfile: p }))}
             />
           )}
           {(session.phase === SessionPhase.CHAT || session.phase === SessionPhase.ASSESSMENT) && (
-            <ChatWindow 
-              messages={session.messages} 
-              onSend={handleSendMessage} 
-              onAddManualMessage={(r, c) => setSession(p => ({ ...p, messages: [...p.messages, { id: Date.now().toString(), role: r, content: c, timestamp: new Date() }] }))} 
-              isVoiceMode={false} 
-              phase={session.phase} 
-              isThinking={isThinking} 
+            <ChatWindow
+              messages={session.messages}
+              onSend={handleSendMessage}
+              onAddManualMessage={(r, c) => setSession(p => ({ ...p, messages: [...p.messages, { id: Date.now().toString(), role: r, content: c, timestamp: new Date() }] }))}
+              isVoiceMode={false}
+              phase={session.phase}
+              isThinking={isThinking}
               onStartAssessment={() => switchPhase(SessionPhase.ASSESSMENT)}
               onStartMentorsLab={() => switchPhase(SessionPhase.MENTORS)}
               onStartMeetingAgent={() => switchPhase(SessionPhase.AGENT)}

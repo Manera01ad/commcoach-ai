@@ -1,7 +1,0 @@
-{
-  "name": "CommCoach AI_v101",
-  "description": "An AI-powered communication skills coach that combines structured assessment with real-time natural practice to improve your speaking and writing skills.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
-}

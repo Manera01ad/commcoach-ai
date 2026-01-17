@@ -47,6 +47,122 @@
 
 ---
 
+## Nexus Orchestrator System
+
+**Added**: 2026-01-14
+
+CommCoach-AI now employs a multi-agent orchestration system for project management and code quality assurance.
+
+### Architecture Pattern: Hub-and-Spoke
+
+```
+┌─────────────────────────────────────────────────┐
+│         NEXUS (Mission Control)                 │
+│  - Strategic planning                           │
+│  - Task delegation                              │
+│  - Health monitoring                            │
+│  - Dashboard management                         │
+└─────────────┬───────────────────────────────────┘
+              │
+    ┌─────────┼─────────┬─────────┬─────────┐
+    │         │         │         │         │
+┌───▼───┐ ┌──▼───┐ ┌──▼───┐ ┌──▼───┐ ┌──▼───┐
+│Frontend│ │Backend│ │ QA   │ │Red   │ │ UX   │
+│Builder │ │ Dev   │ │Tester│ │Team  │ │Tester│
+└────────┘ └───────┘ └──────┘ └──────┘ └──────┘
+  (Sub-Agents in separate conversation threads)
+```
+
+### Components
+
+#### 1. Nexus (Orchestrator)
+- **Location**: Main conversation thread (Mission Control)
+- **Role**: Strategic oversight, not code implementation
+- **Responsibilities**:
+  - Analyze requests and create implementation specs
+  - Delegate tasks to specialized Sub-Agents
+  - Monitor progress and health metrics
+  - Maintain GLOBAL_DASHBOARD.md
+  - Coordinate quality gates (SENTINEL, UX_PROXY, AUDITOR modes)
+
+#### 2. Sub-Agents (Tactical Workers)
+- **Location**: Separate conversation threads (Workspaces)
+- **Role**: Hands-on code implementation
+- **Types**:
+  - Frontend Builder (React/TypeScript)
+  - Backend Developer (Node.js/Express)
+  - Database Architect (Firebase/SQL)
+  - QA Tester (Testing/Debugging)
+  - Red Team (Security review)
+  - UX Tester (Usability validation)
+  - Documentation Agent (Docs sync)
+
+#### 3. Operational Modes (Quality Gates)
+
+**🛡️ SENTINEL MODE** - Pre-implementation security review
+- Spawns Red Team Agent to attack design before coding
+- Identifies vulnerabilities, logic flaws, architecture issues
+- Required for critical/complex tasks
+
+**👁️ UX PROXY MODE** - Post-implementation UX testing
+- Spawns UX Tester Agent to playtest after build
+- Validates usability, accessibility, responsiveness
+- Required for frontend/UI tasks
+
+**📝 AUDITOR MODE** - Session-end documentation sync
+- Scans completed tasks and updates all docs
+- Ensures documentation matches codebase
+- Triggered at session wrap-up
+
+#### 4. Artifacts
+
+**GLOBAL_DASHBOARD.md** (Root)
+- Real-time project health status
+- Active incidents tracking
+- System metrics
+- Deployment status
+- Risk assessment
+
+**.agent/NEXUS_MODE_SELECTOR.md**
+- Operational modes guide
+- Workflow documentation
+- Agent prompt templates
+- Command reference
+
+### Workflow Example
+
+```
+Creator: "Build login page [SENTINEL] [UX_PROXY]"
+         ↓
+Nexus: Creates spec → Spawns Red Team review
+         ↓
+Red Team: Attacks design, finds vulnerabilities
+         ↓
+Nexus: Updates spec → Delegates to Frontend Builder
+         ↓
+Frontend Builder: Implements LoginPage.tsx
+         ↓
+Nexus: Spawns UX Tester → Validates usability
+         ↓
+UX Tester: Reports grade B+, 2 issues found
+         ↓
+Nexus: Creates refinement tasks → Updates Dashboard
+```
+
+### Supervisor Suite V3.0
+
+**Action Log Approval System**:
+- All strategic actions presented for explicit approval
+- Risk assessment included (LOW/MEDIUM/HIGH)
+- No auto-execution without Creator's "Run" command
+
+**Self-Correction Protocol**:
+- Automatic repair plans generated on Sub-Agent failures
+- Multiple strategies presented with risk/time estimates
+- Incident tracking and resolution monitoring
+
+---
+
 ## Architecture Diagram
 
 See the comprehensive architecture diagram above showing:
@@ -194,6 +310,29 @@ See the comprehensive architecture diagram above showing:
 - Application constants
 - Configuration values
 - Default settings
+
+---
+
+### Global Orchestration Layer
+
+####  GLOBAL_DASHBOARD.md
+- **Purpose**: Central monitoring and status tracking
+- **Contents**: 
+  - System health metrics
+  - Active incidents log
+  - Deployment status matrix
+  - Risk assessment
+  - Tactical execution queue
+  - Change log
+- **Updated By**: Nexus Orchestrator (automated)
+- **Location**: Root directory
+
+#### .agent/ Directory
+- **Purpose**: Nexus system configuration and guides
+- **Contents**:
+  - NEXUS_MODE_SELECTOR.md - Operational modes documentation
+  - AUDITOR_PROMPT_[DATE].md - Session documentation prompts
+- **Updated By**: Nexus system installation
 
 ---
 

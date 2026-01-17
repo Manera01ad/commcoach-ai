@@ -51,6 +51,48 @@ GitHub        → Version Control & CI/CD
 
 ---
 
+## 🌐 Nexus Orchestrator Commands
+
+### Operational Modes
+Tag tasks to activate quality gates:
+
+```bash
+# Security review before implementation
+"Build authentication [SENTINEL]"
+
+# UX testing after implementation
+"Create dashboard [UX_PROXY]"
+
+# Combined quality gates
+"Build admin panel [SENTINEL] [UX_PROXY]"
+
+# Documentation sync at session end
+"Session Wrap-up [AUDITOR]"
+```
+
+### Quick Commands
+```bash
+# Check project health
+"Health check"
+
+# View current status
+"Status"
+
+# View incidents
+"Incident report"
+
+# Onboard new project
+"Onboard [project_path]"
+```
+
+### Mode Selector Guide
+Full documentation: `.agent/NEXUS_MODE_SELECTOR.md`
+
+### Dashboard Location
+Real-time status: `GLOBAL_DASHBOARD.md`
+
+---
+
 ## 📂 Project Structure
 
 ```

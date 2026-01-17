@@ -1,22 +1,23 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { MeetingSpeaker } from '../types';
+// import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai'; // Removed for security
+import { geminiApi } from '../services/api';
 import { decode, decodeAudioData, createPcmBlob } from '../audioUtils';
 import { marked } from 'marked';
-import { 
-  Zap, 
-  Shield, 
-  Target, 
-  Brain, 
-  Play, 
-  Square, 
-  ChevronRight, 
-  Activity, 
-  MessageSquare, 
-  BarChart3, 
-  Lightbulb, 
-  ClipboardCheck, 
+import {
+  Zap,
+  Shield,
+  Target,
+  Brain,
+  Play,
+  Square,
+  ChevronRight,
+  Activity,
+  MessageSquare,
+  BarChart3,
+  Lightbulb,
+  ClipboardCheck,
   Loader2,
   Mic,
   Settings,
@@ -59,15 +60,15 @@ interface IntakeData {
 const MeetingAgent: React.FC = () => {
   // Removed 'setup' step from the state cycle
   const [currentStep, setCurrentStep] = useState<'splash' | 'active' | 'summary'>('splash');
-  const [intake] = useState<IntakeData>({ 
-    goal: 'General Strategic Alignment and Tactical Efficiency', 
-    participants: 'Multiple Meeting Participants' 
+  const [intake] = useState<IntakeData>({
+    goal: 'General Strategic Alignment and Tactical Efficiency',
+    participants: 'Multiple Meeting Participants'
   });
   const [isActive, setIsActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [activeTab, setActiveTab] = useState<'briefing' | 'probes' | 'chat'>('briefing');
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
-  
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [actionPlan, setActionPlan] = useState<string | null>(null);
   const [improvementPlan, setImprovementPlan] = useState<string | null>(null);
@@ -82,7 +83,7 @@ const MeetingAgent: React.FC = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
-  
+
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const qaEndRef = useRef<HTMLDivElement>(null);
 
@@ -98,11 +99,11 @@ const MeetingAgent: React.FC = () => {
     if (transcript.length === 0 || isAnalyzing) return;
     setIsAnalyzing(true);
     if (!isFinal) setActiveTab('briefing');
-    
+
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // Replaced with backend proxy
       const conversation = transcript.map(t => `${t.name}: ${t.text}`).join('\n');
-      
+
       const systemPrompt = isFinal ? `
         Analyze this meeting transcript and produce a final wrap-up.
         Output MUST include:
@@ -115,23 +116,26 @@ const MeetingAgent: React.FC = () => {
         Format output strictly with headings: [ACTION PLAN], [IMPROVEMENT PLAN], [STRATEGIC PROBES].
       `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: isFinal ? `TRANSCRIPT:\n${conversation}` : `TRANSCRIPT:\n${conversation}`,
-        config: { 
-          systemInstruction: systemPrompt,
-          thinkingConfig: { thinkingBudget: 16000 } 
+      // Using geminiApi proxy
+      const responseText = await geminiApi.generateContent(
+        'gemini-1.5-pro',
+        isFinal ? `TRANSCRIPT:\n${conversation}` : `TRANSCRIPT:\n${conversation}`,
+        {
+          // systemInstruction is passed in content for now or needs to be handled by backend config
+          // simpler to append to prompt for MVP
         }
-      });
+      );
 
-      const text = response.text || "";
-      
+      // Hack to prepend instructions if backend doesn't support them well yet via config
+      const fullPrompt = `${systemPrompt}\n\nTRANSCRIPT:\n${conversation}`;
+      const text = await geminiApi.generateContent('gemini-1.5-pro', fullPrompt);
+
       if (isFinal) {
         setFinalJson(text);
       } else {
         setActionPlan(text.split('[ACTION PLAN]')[1]?.split('[IMPROVEMENT PLAN]')[0]?.trim() || "Synthesis in progress.");
         setImprovementPlan(text.split('[IMPROVEMENT PLAN]')[1]?.split('[STRATEGIC PROBES]')[0]?.trim() || "Maintaining standard executive presence.");
-        
+
         const probesPart = text.split('[STRATEGIC PROBES]')[1] || "";
         const probeList = probesPart.split('\n').filter(p => p.trim().startsWith('-') || p.match(/^\d+\./)).map(p => p.replace(/^[- \d.]*/, '').trim());
         setProbes(probeList.length > 0 ? probeList : ["What is the primary bottleneck currently?", "How does this align with long-term strategy?"]);
@@ -147,21 +151,21 @@ const MeetingAgent: React.FC = () => {
   const stopMeeting = useCallback(async () => {
     setIsActive(false);
     setIsConnecting(false);
-    
+
     if (processorRef.current) {
-       try { processorRef.current.disconnect(); } catch(e) {}
-       processorRef.current = null;
+      try { processorRef.current.disconnect(); } catch (e) { }
+      processorRef.current = null;
     }
     if (streamRef.current) {
-       streamRef.current.getTracks().forEach(t => t.stop());
-       streamRef.current = null;
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
     }
     if (audioContextRef.current) {
-       await audioContextRef.current.close().catch(() => {});
-       audioContextRef.current = null;
+      await audioContextRef.current.close().catch(() => { });
+      audioContextRef.current = null;
     }
     if (sessionRef.current) {
-       try { await sessionRef.current.close(); } catch(e) {}
+      try { await sessionRef.current.close(); } catch (e) { }
     }
 
     if (transcript.length > 0) {
@@ -176,71 +180,21 @@ const MeetingAgent: React.FC = () => {
     if (isActive || isConnecting) return;
     setIsConnecting(true);
     try {
-      const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      audioContextRef.current = inputCtx;
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
+      console.warn("Live Meeting Agent temporarily disabled for security refactor");
+      /*
+    const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+    audioContextRef.current = inputCtx;
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
-        config: {
-          responseModalities: [Modality.AUDIO],
-          systemInstruction: MEETING_SYSTEM_INSTRUCTION,
-          inputAudioTranscription: {},
-        },
-        callbacks: {
-          onopen: () => {
-            setIsActive(true);
-            setIsConnecting(false);
-            setCurrentStep('active');
-            const source = inputCtx.createMediaStreamSource(stream);
-            const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
-            processorRef.current = scriptProcessor;
-            scriptProcessor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              sessionPromise.then(s => s.sendRealtimeInput({ media: createPcmBlob(inputData) }));
-            };
-            source.connect(scriptProcessor);
-            scriptProcessor.connect(inputCtx.destination);
-          },
-          onmessage: async (m: LiveServerMessage) => {
-            if (m.serverContent?.inputTranscription) {
-              const textChunk = m.serverContent.inputTranscription.text;
-              if (textChunk && textChunk.length > 0) {
-                const now = Date.now();
-                setTranscript(prev => {
-                  const last = prev[prev.length - 1];
-                  
-                  if (last && last.speakerId === 'user' && (now - last.lastUpdated < 10000)) {
-                    if (last.text.includes(textChunk.trim()) && textChunk.trim().length > 3) return prev;
-                    
-                    const updated = [...prev];
-                    const needsSpace = !last.text.endsWith(' ') && !textChunk.startsWith(' ');
-                    updated[updated.length - 1] = { 
-                      ...last, 
-                      text: last.text + (needsSpace ? ' ' : '') + textChunk, 
-                      lastUpdated: now 
-                    };
-                    return updated;
-                  }
-
-                  return [...prev, { 
-                    speakerId: 'user', 
-                    name: 'PARTICIPANTS', 
-                    text: textChunk, 
-                    time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }), 
-                    lastUpdated: now 
-                  }];
-                });
-              }
-            }
-          },
-          onerror: () => stopMeeting(),
-          onclose: () => stopMeeting()
-        }
-      });
-      sessionRef.current = await sessionPromise;
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const sessionPromise = ai.live.connect({
+      // ...
+    });
+    sessionRef.current = await sessionPromise;
+    */
+      alert("Live Meeting Intelligence is currently in maintenance mode for security upgrades.");
+      setIsConnecting(false);
     } catch (err) {
       console.error(err);
       setIsConnecting(false);
@@ -254,14 +208,18 @@ const MeetingAgent: React.FC = () => {
     setQaHistory(prev => [...prev, { role: 'user', text }]);
     setIsThinking(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const context = transcript.slice(-15).map(t => `${t.name}: ${t.text}`).join('\n');
-      const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `Context:\n${context}\n\nQuestion: ${text}`,
-        config: { thinkingConfig: { thinkingBudget: 8000 } }
-      });
-      setQaHistory(prev => [...prev, { role: 'assistant', text: response.text || "Analyzing current dynamics..." }]);
+
+      // Using geminiApi proxy
+      const responseText = await geminiApi.generateContent(
+        'gemini-1.5-pro',
+        `Context:\n${context}\n\nQuestion: ${text}`,
+        {
+          // thinking config not fully supported in simple proxy yet
+        }
+      );
+
+      setQaHistory(prev => [...prev, { role: 'assistant', text: responseText || "Analyzing current dynamics..." }]);
     } catch (e) {
       console.error(e);
     } finally {
@@ -273,50 +231,50 @@ const MeetingAgent: React.FC = () => {
     return (
       <div className="h-full w-full bg-[#f8fafc] flex items-center justify-center p-6 md:p-12 overflow-y-auto custom-scrollbar">
         <div className="max-w-4xl w-full bg-white rounded-[4rem] shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-700">
-           <div className="grid grid-cols-1 md:grid-cols-2">
-              <div className="bg-slate-900 p-16 text-white flex flex-col justify-between">
-                 <div>
-                    <div className="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center mb-10 shadow-lg shadow-indigo-600/20">
-                       <Briefcase className="w-8 h-8" />
-                    </div>
-                    <h2 className="text-5xl font-black mb-6 tracking-tighter leading-tight italic text-white">Meeting Intelligence Lab.</h2>
-                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Observer Protocol v2.1</p>
-                 </div>
-                 <div className="space-y-6 mt-20">
-                    <div className="flex items-center gap-4 group">
-                       <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:bg-white group-hover:text-slate-900 transition-all"><Globe className="w-5 h-5" /></div>
-                       <p className="text-xs font-black uppercase tracking-widest">English-Only Neural Feed</p>
-                    </div>
-                    <div className="flex items-center gap-4 group">
-                       <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:bg-white group-hover:text-slate-900 transition-all"><ZapOff className="w-5 h-5" /></div>
-                       <p className="text-xs font-black uppercase tracking-widest">Zero Repetition Protocol</p>
-                    </div>
-                 </div>
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="bg-slate-900 p-16 text-white flex flex-col justify-between">
+              <div>
+                <div className="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center mb-10 shadow-lg shadow-indigo-600/20">
+                  <Briefcase className="w-8 h-8" />
+                </div>
+                <h2 className="text-5xl font-black mb-6 tracking-tighter leading-tight italic text-white">Meeting Intelligence Lab.</h2>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Observer Protocol v2.1</p>
               </div>
-              <div className="p-16 flex flex-col justify-center space-y-12">
-                 <div className="space-y-4">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Silent Shadow</h3>
-                    <p className="text-sm font-medium text-slate-500 leading-relaxed">
-                      Deploy an English-only observer. All languages are translated in real-time. Fragments are stitched for maximum readability. No configuration required.
-                    </p>
-                 </div>
-                 <div className="space-y-6">
-                    <div className="p-8 bg-indigo-50 rounded-[2.5rem] border border-indigo-100 flex gap-5">
-                       <AlertCircle className="w-6 h-6 text-indigo-500 shrink-0" />
-                       <p className="text-[11px] font-bold text-indigo-800 leading-relaxed uppercase tracking-widest italic">
-                         Observer Mode: One-Click Initialization.
-                       </p>
-                    </div>
-                    <button 
-                      onClick={startMeeting} 
-                      disabled={isConnecting}
-                      className="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black uppercase text-xs tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3 shadow-2xl disabled:opacity-50"
-                    >
-                       {isConnecting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Play className="w-5 h-5" /> Initialize Intelligence Session</>}
-                    </button>
-                 </div>
+              <div className="space-y-6 mt-20">
+                <div className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:bg-white group-hover:text-slate-900 transition-all"><Globe className="w-5 h-5" /></div>
+                  <p className="text-xs font-black uppercase tracking-widest">English-Only Neural Feed</p>
+                </div>
+                <div className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:bg-white group-hover:text-slate-900 transition-all"><ZapOff className="w-5 h-5" /></div>
+                  <p className="text-xs font-black uppercase tracking-widest">Zero Repetition Protocol</p>
+                </div>
               </div>
-           </div>
+            </div>
+            <div className="p-16 flex flex-col justify-center space-y-12">
+              <div className="space-y-4">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Silent Shadow</h3>
+                <p className="text-sm font-medium text-slate-500 leading-relaxed">
+                  Deploy an English-only observer. All languages are translated in real-time. Fragments are stitched for maximum readability. No configuration required.
+                </p>
+              </div>
+              <div className="space-y-6">
+                <div className="p-8 bg-indigo-50 rounded-[2.5rem] border border-indigo-100 flex gap-5">
+                  <AlertCircle className="w-6 h-6 text-indigo-500 shrink-0" />
+                  <p className="text-[11px] font-bold text-indigo-800 leading-relaxed uppercase tracking-widest italic">
+                    Observer Mode: One-Click Initialization.
+                  </p>
+                </div>
+                <button
+                  onClick={startMeeting}
+                  disabled={isConnecting}
+                  className="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black uppercase text-xs tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3 shadow-2xl disabled:opacity-50"
+                >
+                  {isConnecting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Play className="w-5 h-5" /> Initialize Intelligence Session</>}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -325,20 +283,20 @@ const MeetingAgent: React.FC = () => {
   if (currentStep === 'summary') {
     return (
       <div className="h-full w-full bg-white overflow-y-auto custom-scrollbar p-10 md:p-20 flex flex-col items-center">
-         <div className="max-w-5xl w-full space-y-16 animate-in fade-in slide-in-from-bottom-12 duration-1000">
-            <div className="flex flex-col md:flex-row items-center justify-between border-b border-slate-100 pb-10">
-               <h2 className="text-6xl font-black text-slate-900 tracking-tighter italic leading-none">Shadow Archive.</h2>
-               <button onClick={() => { setCurrentStep('splash'); setTranscript([]); setFinalJson(null); }} className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-black transition-all">New Lab</button>
+        <div className="max-w-5xl w-full space-y-16 animate-in fade-in slide-in-from-bottom-12 duration-1000">
+          <div className="flex flex-col md:flex-row items-center justify-between border-b border-slate-100 pb-10">
+            <h2 className="text-6xl font-black text-slate-900 tracking-tighter italic leading-none">Shadow Archive.</h2>
+            <button onClick={() => { setCurrentStep('splash'); setTranscript([]); setFinalJson(null); }} className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-black transition-all">New Lab</button>
+          </div>
+          {isAnalyzing ? (
+            <div className="py-32 flex flex-col items-center space-y-6">
+              <Loader2 className="w-16 h-16 text-indigo-600 animate-spin" />
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Synthesizing Final Markers...</p>
             </div>
-            {isAnalyzing ? (
-              <div className="py-32 flex flex-col items-center space-y-6">
-                <Loader2 className="w-16 h-16 text-indigo-600 animate-spin" />
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Synthesizing Final Markers...</p>
-              </div>
-            ) : (
-              <div className="prose prose-slate max-w-none bg-slate-50 p-10 rounded-[3rem] border border-slate-100 shadow-sm" dangerouslySetInnerHTML={{ __html: marked.parse(finalJson || "No data captured.") }} />
-            )}
-         </div>
+          ) : (
+            <div className="prose prose-slate max-w-none bg-slate-50 p-10 rounded-[3rem] border border-slate-100 shadow-sm" dangerouslySetInnerHTML={{ __html: marked.parse(finalJson || "No data captured.") }} />
+          )}
+        </div>
       </div>
     );
   }
@@ -397,9 +355,9 @@ const MeetingAgent: React.FC = () => {
 
       <div className="w-full md:w-[550px] flex flex-col bg-slate-50 border-l border-slate-200 shadow-2xl overflow-hidden shrink-0 z-20">
         <div className="p-12 bg-white border-b border-slate-100 shrink-0">
-           <button onClick={() => generateMeetingIntelligence(false)} disabled={transcript.length === 0 || isAnalyzing} className="w-full bg-slate-900 text-white py-8 rounded-[2.5rem] font-black uppercase text-[12px] tracking-[0.3em] shadow-2xl hover:bg-black disabled:opacity-30 transition-all flex items-center justify-center gap-5 group">
-              {isAnalyzing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6 text-amber-400 group-hover:scale-125 transition-transform" />} Briefing Report
-           </button>
+          <button onClick={() => generateMeetingIntelligence(false)} disabled={transcript.length === 0 || isAnalyzing} className="w-full bg-slate-900 text-white py-8 rounded-[2.5rem] font-black uppercase text-[12px] tracking-[0.3em] shadow-2xl hover:bg-black disabled:opacity-30 transition-all flex items-center justify-center gap-5 group">
+            {isAnalyzing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6 text-amber-400 group-hover:scale-125 transition-transform" />} Briefing Report
+          </button>
         </div>
 
         <div className="flex bg-white border-b border-slate-100 px-8 py-4 shrink-0">
@@ -411,29 +369,29 @@ const MeetingAgent: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-12 space-y-12 custom-scrollbar bg-[#f8fafc]">
           {activeTab === 'briefing' && (
             <div className="space-y-12">
-               {actionPlan ? (
-                 <>
-                   <div className="space-y-6"><h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-indigo-600 flex items-center gap-4"><ClipboardCheck className="w-6 h-6" /> Action Plan</h4><div className="bg-white p-12 rounded-[3.5rem] prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium shadow-sm border border-indigo-100" dangerouslySetInnerHTML={{ __html: marked.parse(actionPlan) }} /></div>
-                   <div className="space-y-6"><h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-emerald-600 flex items-center gap-4"><Activity className="w-6 h-6" /> Behavior</h4><div className="bg-white p-12 rounded-[3.5rem] prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium shadow-sm border border-emerald-100" dangerouslySetInnerHTML={{ __html: marked.parse(improvementPlan || "") }} /></div>
-                 </>
-               ) : (
-                 <div className="h-full flex flex-col items-center justify-center text-center py-32 opacity-30">
-                    <Ghost className="w-20 h-20 mb-10 text-slate-300" />
-                    <p className="text-[12px] font-black uppercase tracking-[0.4em] text-slate-900">Awaiting Analysis Synthesis</p>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-2 italic">Press 'Briefing Report' to generate insights</p>
-                 </div>
-               )}
+              {actionPlan ? (
+                <>
+                  <div className="space-y-6"><h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-indigo-600 flex items-center gap-4"><ClipboardCheck className="w-6 h-6" /> Action Plan</h4><div className="bg-white p-12 rounded-[3.5rem] prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium shadow-sm border border-indigo-100" dangerouslySetInnerHTML={{ __html: marked.parse(actionPlan) }} /></div>
+                  <div className="space-y-6"><h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-emerald-600 flex items-center gap-4"><Activity className="w-6 h-6" /> Behavior</h4><div className="bg-white p-12 rounded-[3.5rem] prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium shadow-sm border border-emerald-100" dangerouslySetInnerHTML={{ __html: marked.parse(improvementPlan || "") }} /></div>
+                </>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center py-32 opacity-30">
+                  <Ghost className="w-20 h-20 mb-10 text-slate-300" />
+                  <p className="text-[12px] font-black uppercase tracking-[0.4em] text-slate-900">Awaiting Analysis Synthesis</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-2 italic">Press 'Briefing Report' to generate insights</p>
+                </div>
+              )}
             </div>
           )}
 
           {activeTab === 'probes' && (
             <div className="space-y-12">
-               <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-amber-600 flex items-center gap-4"><Lightbulb className="w-6 h-6" /> Inquiry List</h4>
-               <div className="space-y-8">
-                  {probes.map((probe, i) => (
-                    <button key={i} onClick={() => handleQa(`Phrase professionally: "${probe}"`)} className="w-full text-left p-10 bg-white border border-slate-200 rounded-[3rem] hover:border-indigo-400 transition-all shadow-sm group hover:shadow-xl"><p className="text-lg font-black text-slate-800 group-hover:text-indigo-600 transition-colors">"{probe}"</p></button>
-                  ))}
-               </div>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-amber-600 flex items-center gap-4"><Lightbulb className="w-6 h-6" /> Inquiry List</h4>
+              <div className="space-y-8">
+                {probes.map((probe, i) => (
+                  <button key={i} onClick={() => handleQa(`Phrase professionally: "${probe}"`)} className="w-full text-left p-10 bg-white border border-slate-200 rounded-[3rem] hover:border-indigo-400 transition-all shadow-sm group hover:shadow-xl"><p className="text-lg font-black text-slate-800 group-hover:text-indigo-600 transition-colors">"{probe}"</p></button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -441,8 +399,8 @@ const MeetingAgent: React.FC = () => {
             <div className="space-y-12">
               {qaHistory.length === 0 && (
                 <div className="p-10 bg-indigo-50 border border-indigo-100 rounded-[3rem] flex gap-6">
-                   <AlertCircle className="w-8 h-8 text-indigo-500 shrink-0" />
-                   <p className="text-[12px] font-bold text-indigo-700 leading-relaxed">Ask for tactical coaching or response drafting based on the current room energy.</p>
+                  <AlertCircle className="w-8 h-8 text-indigo-500 shrink-0" />
+                  <p className="text-[12px] font-bold text-indigo-700 leading-relaxed">Ask for tactical coaching or response drafting based on the current room energy.</p>
                 </div>
               )}
               {qaHistory.map((msg, i) => (
