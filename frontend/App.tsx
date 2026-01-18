@@ -1,5 +1,6 @@
-
 import React, { useState } from 'react';
+import { useAuth } from './src/contexts/AuthContext';
+import AuthRouter from './src/pages/auth/AuthRouter';
 import { SessionPhase, Message, SessionState, UserProfile } from './types';
 import ChatWindow from './components/ChatWindow';
 import Header from './components/Header';
@@ -8,7 +9,6 @@ import MentorsLab from './components/MentorsLab';
 import MeetingAgent from './components/MeetingAgent';
 import ProfileDashboard from './components/ProfileDashboard';
 import VisionLab from './components/VisionLab';
-// import { GoogleGenAI } from "@google/genai"; // Removed for security
 import { geminiApi } from './services/api';
 import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './constants';
 
@@ -42,6 +42,8 @@ const DEFAULT_PROFILE: UserProfile = {
 };
 
 const App: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
   const [session, setSession] = useState<SessionState>({
     sessionId: `sess_${Math.random().toString(36).substring(2, 11)}`,
     phase: SessionPhase.CHAT,
@@ -54,6 +56,23 @@ const App: React.FC = () => {
   });
 
   const [isThinking, setIsThinking] = useState(false);
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
+        <div className="text-center">
+          <div className="spinner w-12 h-12 mx-auto mb-4"></div>
+          <p className="text-neutral-600 dark:text-neutral-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth pages if not authenticated
+  if (!isAuthenticated) {
+    return <AuthRouter />;
+  }
 
   const switchPhase = (newPhase: SessionPhase) => {
     if (newPhase === SessionPhase.CHAT) {
@@ -93,9 +112,6 @@ const App: React.FC = () => {
         temperature: 0.7
       };
 
-      // Note: Backend currently handles tool logic if needed, but for now passing config object
-      // Thinking and Search tools logic will need to be exposed in backend config handling
-
       const text = await geminiApi.generateContent(modelName, userText, config);
 
       const aiMsg: Message = {
@@ -103,13 +119,11 @@ const App: React.FC = () => {
         role: 'assistant',
         content: text || "",
         timestamp: new Date()
-        // Grounding URLs handling moved to backend response parsing if applicable
       };
 
       setSession(prev => ({ ...prev, messages: [...prev.messages, aiMsg] }));
     } catch (err) {
       console.error(err);
-      // Add error message to chat so user knows something went wrong
       setSession(prev => ({
         ...prev,
         messages: [...prev.messages, {
@@ -156,7 +170,6 @@ const App: React.FC = () => {
     } else {
       setSession(prev => ({ ...prev, messages: [...prev.messages, userMsg] }));
 
-      // If message is a library search, we use a specific instruction for searching the channel
       let currentInstruction = SYSTEM_INSTRUCTION;
       if (text.includes('[LIBRARY SEARCH')) {
         currentInstruction += "\n\nYou are helping the user find specific training videos from the mentioned YouTube channel. Use Google Search to find direct video links, titles, and brief descriptions from that channel. Focus on Aleena Rais Live content if requested.";
@@ -167,7 +180,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#f8fafc] text-slate-900 font-['Inter'] overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 font-['Inter'] overflow-hidden transition-colors duration-300">
       <Header
         phase={session.phase}
         isVoiceMode={false}
