@@ -99,7 +99,7 @@ app.use('/api/agents', strictLimiter, agentRoutes);
 app.get('/api', (req, res) => {
   res.json({
     message: 'CommCoach AI Backend API',
-    version: '1.0.0',
+    version: '1.0.1',
     endpoints: {
       health: '/health',
       auth: '/api/auth',
