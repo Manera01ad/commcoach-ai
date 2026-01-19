@@ -14,6 +14,7 @@ import antigravityRoutes from './routes/antigravity.js';
 import geminiRoutes from './routes/gemini.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
+import agentRoutes from './routes/agents.js';
 
 // Security Middleware
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter.js';
@@ -41,7 +42,9 @@ app.use('/api', apiLimiter);
 // CORS Configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'https://commcoach-ai.vercel.app'];
+    const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(o => o.trim()) || ['http://localhost:3000', 'https://commcoach-ai.vercel.app'];
+    if (!allowedOrigins.length) allowedOrigins.push('http://localhost:3000', 'https://commcoach-ai.vercel.app');
+
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -81,6 +84,7 @@ app.use('/api/antigravity', strictLimiter, antigravityRoutes);
 app.use('/api/gemini', strictLimiter, geminiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/agents', strictLimiter, agentRoutes);
 
 app.get('/api', (req, res) => {
   res.json({
@@ -90,6 +94,7 @@ app.get('/api', (req, res) => {
       health: '/health',
       auth: '/api/auth',
       admin: '/api/admin',
+      agents: '/api/agents',
       antigravity: '/api/antigravity',
       gemini: '/api/gemini'
     }

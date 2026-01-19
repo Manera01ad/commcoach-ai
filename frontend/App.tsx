@@ -9,8 +9,12 @@ import MentorsLab from './components/MentorsLab';
 import MeetingAgent from './components/MeetingAgent';
 import ProfileDashboard from './components/ProfileDashboard';
 import VisionLab from './components/VisionLab';
-import { geminiApi } from './services/api';
-import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './constants';
+import BrowserWindow from './src/components/AgentBrowser/BrowserWindow'; // Import Browser Window
+import { getGenerativeModelProxy } from './src/services/apiClient'; // Updated import
+import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './src/constants'; // This file needs to exist
+
+// Adapter for legacy geminiApi usage
+const geminiApi = getGenerativeModelProxy();
 
 const DEFAULT_PROFILE: UserProfile = {
   name: 'User One',
@@ -42,7 +46,7 @@ const DEFAULT_PROFILE: UserProfile = {
 };
 
 const App: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   const [session, setSession] = useState<SessionState>({
     sessionId: `sess_${Math.random().toString(36).substring(2, 11)}`,
@@ -57,8 +61,13 @@ const App: React.FC = () => {
 
   const [isThinking, setIsThinking] = useState(false);
 
+  // New State for Agent Browser
+  const [showBrowser, setShowBrowser] = useState(false);
+  const [browserStep, setBrowserStep] = useState<any>(null);
+  const [browserLogs, setBrowserLogs] = useState<string[]>([]);
+
   // Show loading screen while checking authentication
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
         <div className="text-center">
@@ -104,24 +113,47 @@ const App: React.FC = () => {
 
   const generateAIResponse = async (userText: string, instruction: string, useThinking: boolean = false, useSearch: boolean = false) => {
     setIsThinking(true);
+    // Create a placeholder message for the stream
+    const messageId = Date.now().toString();
+    setSession(prev => ({
+      ...prev,
+      messages: [...prev.messages, { id: messageId, role: 'assistant', content: '', timestamp: new Date() }]
+    }));
+
     try {
-      const modelName = useThinking ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
+      let fullContent = "";
 
-      const config: any = {
-        systemInstruction: instruction.replace('{{sessionId}}', session.sessionId).replace('{{timestamp}}', new Date().toISOString()),
-        temperature: 0.7
-      };
+      // Use Streaming API
+      await geminiApi.streamContent(userText, (chunk: string) => {
+        // Check for Browser Events
+        if (chunk.startsWith('[BROWSER_EVENT]')) {
+          try {
+            const eventData = JSON.parse(chunk.replace('[BROWSER_EVENT]', ''));
+            setShowBrowser(true);
+            setBrowserStep(eventData);
+            if (eventData.description) {
+              setBrowserLogs(prev => [...prev, eventData.description]);
+            }
 
-      const text = await geminiApi.generateContent(modelName, userText, config);
+            // Auto-hide browser after 'think' event (logic can be refined)
+            if (eventData.type === 'think' && eventData.description.includes('Synthesizing')) {
+              setTimeout(() => setShowBrowser(false), 5000);
+            }
+          } catch (e) {
+            console.error("Failed to parse browser event", e);
+          }
+        } else {
+          // Normal Text Content
+          fullContent += chunk;
+          setSession(prev => ({
+            ...prev,
+            messages: prev.messages.map(m =>
+              m.id === messageId ? { ...m, content: fullContent } : m
+            )
+          }));
+        }
+      });
 
-      const aiMsg: Message = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: text || "",
-        timestamp: new Date()
-      };
-
-      setSession(prev => ({ ...prev, messages: [...prev.messages, aiMsg] }));
     } catch (err) {
       console.error(err);
       setSession(prev => ({
@@ -129,7 +161,7 @@ const App: React.FC = () => {
         messages: [...prev.messages, {
           id: Date.now().toString(),
           role: 'assistant',
-          content: "⚠️ Connection Error: I couldn't reach the backend server. Please make sure the backend is running on port 3001.",
+          content: "⚠️ Connection Error: Please make sure the backend is running.",
           timestamp: new Date()
         }]
       }));
@@ -170,6 +202,7 @@ const App: React.FC = () => {
     } else {
       setSession(prev => ({ ...prev, messages: [...prev.messages, userMsg] }));
 
+      // We rely on backend intent classification for research now
       let currentInstruction = SYSTEM_INSTRUCTION;
       if (text.includes('[LIBRARY SEARCH')) {
         currentInstruction += "\n\nYou are helping the user find specific training videos from the mentioned YouTube channel. Use Google Search to find direct video links, titles, and brief descriptions from that channel. Focus on Aleena Rais Live content if requested.";
@@ -225,6 +258,15 @@ const App: React.FC = () => {
               onStartMeetingAgent={() => switchPhase(SessionPhase.AGENT)}
             />
           )}
+
+          {/* Agent Browser Overlay */}
+          <BrowserWindow
+            isVisible={showBrowser}
+            onClose={() => setShowBrowser(false)}
+            currentStep={browserStep}
+            logs={browserLogs}
+          />
+
         </main>
       </div>
     </div>

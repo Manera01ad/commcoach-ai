@@ -1,18 +1,85 @@
-import { GoogleGenerativeAI } from "@google/genai";
 
 // Environment detection
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:3001";
 
 /**
- * Securely generates content using the backend proxy.
- * Replaces direct client-side Gemini calls.
+ * Securely generates content using the backend proxy (Streaming Support).
  */
-export const generateContent = async (prompt: string): Promise<string> => {
+export const streamContent = async (prompt: string, onChunk: (chunk: string) => void): Promise<string> => {
     try {
-        const response = await fetch(`${API_URL}/api/gemini/generate`, {
+        const token = localStorage.getItem('supabase.auth.token');
+        const accessToken = token ? JSON.parse(token).access_token : '';
+
+        const response = await fetch(`${API_URL}/agents/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({ message: prompt, stream: true }),
+        });
+
+        if (!response.ok) throw new Error(`Stream Error: ${response.status}`);
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+
+        if (!reader) return "";
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') continue;
+
+                    try {
+                        const parsed = JSON.parse(data);
+                        // Handle standard chat content
+                        if (parsed.content) {
+                            onChunk(parsed.content);
+                            fullText += parsed.content;
+                        }
+                        // Handle raw text fallback
+                        else if (typeof parsed === 'string') {
+                            onChunk(parsed);
+                            fullText += parsed;
+                        }
+                    } catch (e) {
+                        // Fallback for plain text data
+                        onChunk(data);
+                        fullText += data;
+                    }
+                }
+            }
+        }
+        return fullText;
+
+    } catch (error) {
+        console.error("Stream Error:", error);
+        throw error;
+    }
+};
+
+/**
+ * Securely generates content using the backend proxy (Standard).
+ */
+export const generateContent = async (prompt: string): Promise<string> => {
+    try {
+        const token = localStorage.getItem('supabase.auth.token');
+        const accessToken = token ? JSON.parse(token).access_token : '';
+
+        const response = await fetch(`${API_URL}/gemini/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
             },
             body: JSON.stringify({ prompt }),
         });
@@ -23,7 +90,6 @@ export const generateContent = async (prompt: string): Promise<string> => {
         }
 
         const data = await response.json();
-        // Handle different response shapes from backend if necessary
         return data.text || data.response || data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     } catch (error) {
         console.error("AI Generation Error:", error);
@@ -32,20 +98,19 @@ export const generateContent = async (prompt: string): Promise<string> => {
 };
 
 /**
- * Legacy support wrapper if components expect the GoogleGenerativeAI interface.
- * Can be used to inject the proxy into existing code with minimal changes.
+ * Legacy support wrapper
  */
 export const getGenerativeModelProxy = () => {
     return {
         generateContent: async (prompt: string | any) => {
             const textPrompt = typeof prompt === 'string' ? prompt : JSON.stringify(prompt);
             const textResponse = await generateContent(textPrompt);
-            // Return shape matching Gemini SDK response
             return {
                 response: {
                     text: () => textResponse
                 }
             };
-        }
+        },
+        streamContent: streamContent
     };
 };
