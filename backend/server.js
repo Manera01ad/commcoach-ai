@@ -4,6 +4,7 @@ dotenv.config();
 
 // Now import other modules that may use environment variables
 import express from 'express';
+// Forced restart to load new .env: 2026-01-19T13:46:00
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

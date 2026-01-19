@@ -1,14 +1,12 @@
-import jwt from 'jsonwebtoken';
+import { supabase, getUserById } from '../config/supabase.js';
 
 /**
- * JWT Authentication Middleware
- * Verifies JWT tokens and attaches user data to request
+ * Supabase Authentication Middleware
+ * Verifies Supabase JWT tokens and attaches user data to request
  */
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-
 /**
- * Verify JWT token and attach user to request
+ * Verify Supabase token and attach user to request
  * Optional: if requireAuth is false, continues even without valid token
  */
 export const authenticateToken = (requireAuth = true) => {
@@ -28,33 +26,37 @@ export const authenticateToken = (requireAuth = true) => {
                 return next(); // Continue without auth if not required
             }
 
-            // Verify token
-            const decoded = jwt.verify(token, JWT_SECRET);
+            // Verify token with Supabase
+            const { data: { user }, error } = await supabase.auth.getUser(token);
+
+            if (error || !user) {
+                if (requireAuth) {
+                    return res.status(401).json({
+                        error: 'Invalid token',
+                        message: 'Authentication failed'
+                    });
+                }
+                return next();
+            }
+
+            // Fetch full profile to get roles/subscription
+            // Note: In a high-traffic app, you might want to cache this or encode it in custom claims
+            const profile = await getUserById(user.id).catch(() => null);
 
             // Attach user data to request
             req.user = {
-                id: decoded.userId,
-                email: decoded.email,
-                subscription_tier: decoded.subscription_tier || 'free',
-                admin: decoded.admin || false
+                id: user.id,
+                email: user.email,
+                ...profile, // includes admin, subscription_tier, status
+                auth_user: user // keep original auth user object if needed
             };
 
             next();
         } catch (error) {
-            if (error.name === 'TokenExpiredError') {
-                return res.status(401).json({
-                    error: 'Token expired',
-                    message: 'Please sign in again'
-                });
+            console.error('Auth Middleware Error:', error);
+            if (requireAuth) {
+                return res.status(500).json({ error: 'Internal server error during authentication' });
             }
-
-            if (error.name === 'JsonWebTokenError') {
-                return res.status(403).json({
-                    error: 'Invalid token',
-                    message: 'Authentication failed'
-                });
-            }
-
             next(error);
         }
     };
@@ -99,45 +101,19 @@ export const requireTier = (minTier) => {
             });
         }
 
-        const userTierLevel = tierLevels[req.user.subscription_tier] || 0;
+        const userTier = req.user.subscription_tier || 'free';
+        const userTierLevel = tierLevels[userTier] || 0;
         const requiredTierLevel = tierLevels[minTier] || 0;
 
         if (userTierLevel < requiredTierLevel) {
             return res.status(403).json({
                 error: 'Subscription upgrade required',
                 message: `This feature requires ${minTier} tier or higher`,
-                currentTier: req.user.subscription_tier,
+                currentTier: userTier,
                 requiredTier: minTier
             });
         }
 
         next();
     };
-};
-
-/**
- * Generate JWT token
- */
-export const generateToken = (user) => {
-    return jwt.sign(
-        {
-            userId: user.id,
-            email: user.email,
-            subscription_tier: user.subscription_tier || 'free',
-            admin: user.admin || false
-        },
-        JWT_SECRET,
-        { expiresIn: '7d' } // Token expires in 7 days
-    );
-};
-
-/**
- * Verify and decode token without middleware
- */
-export const verifyToken = (token) => {
-    try {
-        return jwt.verify(token, JWT_SECRET);
-    } catch (error) {
-        return null;
-    }
 };
