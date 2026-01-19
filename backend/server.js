@@ -42,8 +42,10 @@ app.use('/api', apiLimiter);
 // CORS Configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(o => o.trim()) || ['http://localhost:3000', 'https://commcoach-ai.vercel.app'];
-    if (!allowedOrigins.length) allowedOrigins.push('http://localhost:3000', 'https://commcoach-ai.vercel.app');
+    const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(o => o.trim()) || ['http://localhost:3000', 'http://localhost:5173', 'https://commcoach-ai.vercel.app'];
+
+    if (!allowedOrigins.length) allowedOrigins.push('http://localhost:3000', 'http://localhost:5173', 'https://commcoach-ai.vercel.app');
+
 
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
