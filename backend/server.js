@@ -38,21 +38,19 @@ app.set('trust proxy', 1);
 // MIDDLEWARE
 // ========================================
 
-// Rate Limiter (Security)
-app.use('/api', apiLimiter);
-
-// CORS Configuration
+// 1. CORS Configuration (MUST BE FIRST)
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(o => o.trim()) || ['http://localhost:3000', 'http://localhost:5173', 'https://commcoach-ai.vercel.app'];
+    // Explicitly allow common origins
+    const defaultOrigins = ['http://localhost:3000', 'http://localhost:5173', 'https://commcoach-ai.vercel.app'];
+    const envOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+    const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
-    if (!allowedOrigins.length) allowedOrigins.push('http://localhost:3000', 'http://localhost:5173', 'https://commcoach-ai.vercel.app');
-
-
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`[CORS] Rejected origin: ${origin}`);
+      console.warn(`[CORS] Allowed: ${allowedOrigins.join(', ')}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -63,6 +61,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// 2. Rate Limiter (Security)
+app.use('/api', apiLimiter);
+
 
 // Request logging
 app.use((req, res, next) => {
