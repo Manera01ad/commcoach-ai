@@ -17,6 +17,7 @@ import geminiRoutes from './routes/gemini.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import agentRoutes from './routes/agents.js';
+import streakRoutes from './routes/streak.js';
 
 // Security Middleware
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter.js';
@@ -85,6 +86,7 @@ app.use('/api/gemini', strictLimiter, geminiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/agents', strictLimiter, agentRoutes);
+app.use('/api/streak', streakRoutes);
 
 app.get('/api', (req, res) => {
   res.json({
@@ -96,7 +98,8 @@ app.get('/api', (req, res) => {
       admin: '/api/admin',
       agents: '/api/agents',
       antigravity: '/api/antigravity',
-      gemini: '/api/gemini'
+      gemini: '/api/gemini',
+      streak: '/api/streak'
     }
   });
 });
