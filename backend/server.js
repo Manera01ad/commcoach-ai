@@ -62,8 +62,9 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 2. Rate Limiter (Security)
-app.use('/api', apiLimiter);
+// 2. Rate Limiter (Security) - Disabled temporarily for debugging
+// app.use('/api', apiLimiter);
+
 
 
 // Request logging
