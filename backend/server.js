@@ -40,7 +40,11 @@ app.set('trust proxy', 1);
 
 // 1. CORS Configuration (MUST BE FIRST)
 const corsOptions = {
-  origin: true,
+  origin: function (origin, callback) {
+    console.log(`[CORS DEBUG] Incoming Origin: ${origin}`);
+    callback(null, true);
+  },
+
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -85,7 +89,7 @@ app.use('/api/agents', strictLimiter, agentRoutes);
 app.get('/api', (req, res) => {
   res.json({
     message: 'CommCoach AI Backend API',
-    version: '1.0.1',
+    version: '1.0.2',
     endpoints: {
       health: '/health',
       auth: '/api/auth',
