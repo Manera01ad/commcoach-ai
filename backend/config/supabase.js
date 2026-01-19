@@ -12,40 +12,37 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     console.warn('⚠️  Supabase credentials not configured. Set SUPABASE_URL and SUPABASE_SERVICE_KEY in .env');
 }
 
+const isUrl = (url) => {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 /**
  * Supabase Admin Client (Service Role)
- * - Has full access to database
- * - Bypasses Row Level Security
- * - Use for server-side operations only
- * - NEVER expose to frontend
  */
-export const supabaseAdmin = createClient(
-    SUPABASE_URL || '',
-    SUPABASE_SERVICE_KEY || '',
-    {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
-    }
-);
+export const supabaseAdmin = (SUPABASE_URL && isUrl(SUPABASE_URL) && SUPABASE_SERVICE_KEY)
+    ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false }
+    })
+    : null;
 
 /**
  * Supabase Client (Anon Key)
- * - Respects Row Level Security
- * - Safe for frontend use
- * - Use for user-specific operations
  */
-export const supabase = createClient(
-    SUPABASE_URL || '',
-    SUPABASE_ANON_KEY || '',
-    {
-        auth: {
-            autoRefreshToken: true,
-            persistSession: true
-        }
-    }
-);
+export const supabase = (SUPABASE_URL && isUrl(SUPABASE_URL) && SUPABASE_ANON_KEY)
+    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { autoRefreshToken: true, persistSession: true }
+    })
+    : null;
+
+if (!supabase || !supabaseAdmin) {
+    console.error('❌ CRITICAL: Supabase clients failed to initialize. Check your URL and keys.');
+}
+
 
 /**
  * Test database connection
@@ -71,6 +68,7 @@ export async function testConnection() {
  * Get user by ID
  */
 export async function getUserById(userId) {
+    if (!supabaseAdmin) throw new Error('Supabase client not initialized');
     const { data, error } = await supabaseAdmin
         .from('profiles')
         .select('*')
@@ -85,6 +83,7 @@ export async function getUserById(userId) {
  * Get user by email
  */
 export async function getUserByEmail(email) {
+    if (!supabaseAdmin) throw new Error('Supabase client not initialized');
     const { data, error } = await supabaseAdmin
         .from('profiles')
         .select('*')
@@ -99,6 +98,7 @@ export async function getUserByEmail(email) {
  * Create user profile
  */
 export async function createUserProfile(userId, email, fullName = null) {
+    if (!supabaseAdmin) throw new Error('Supabase client not initialized');
     const { data, error } = await supabaseAdmin
         .from('profiles')
         .insert({

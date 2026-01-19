@@ -8,8 +8,19 @@ import { ChatOpenAI } from "@langchain/openai";
 class AgentService {
     constructor(config = {}) {
         this.config = config;
-        this.model = this.initializeModel(config);
+        this.model = null; // Lazy initialization
     }
+
+    /**
+     * Get the model instance, initializing it if necessary
+     */
+    async getModel() {
+        if (!this.model) {
+            this.model = this.initializeModel(this.config);
+        }
+        return this.model;
+    }
+
 
     /**
      * Initialize the LLM based on configuration
@@ -58,7 +69,8 @@ class AgentService {
             });
 
             // 2. Invoke Model
-            const response = await this.model.invoke(formattedMessages);
+            const model = await this.getModel();
+            const response = await model.invoke(formattedMessages);
 
             // 3. Return Content
             return {
@@ -83,7 +95,8 @@ class AgentService {
                 return ["system", msg.content];
             });
 
-            const stream = await this.model.stream(formattedMessages);
+            const model = await this.getModel();
+            const stream = await model.stream(formattedMessages);
 
             for await (const chunk of stream) {
                 if (chunk.content) {
