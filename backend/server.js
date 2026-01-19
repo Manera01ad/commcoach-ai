@@ -41,21 +41,17 @@ app.set('trust proxy', 1);
 // 1. CORS Configuration (MUST BE FIRST)
 const corsOptions = {
   origin: function (origin, callback) {
-    const normalizedOrigin = origin ? origin.toLowerCase().replace(/\/$/, '') : null;
-    const defaultOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://commcoach-ai.vercel.app'
-    ];
-    const envOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim().toLowerCase().replace(/\/$/, '')).filter(Boolean);
-    const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
+    const normalizedOrigin = (origin || '').toLowerCase().trim();
+    const isVercel = normalizedOrigin.includes('vercel.app');
+    const isLocal = normalizedOrigin.includes('localhost') || normalizedOrigin.includes('127.0.0.1');
 
-    if (!origin || allowedOrigins.includes(normalizedOrigin) || normalizedOrigin.includes('vercel.app')) {
+    if (!origin || isVercel || isLocal) {
       callback(null, true);
     } else {
-      console.warn(`[CORS] Rejected: ${origin}`);
+      console.warn(`[CORS] Blocking: ${origin}`);
       callback(null, false);
     }
+
 
   },
   credentials: true,
