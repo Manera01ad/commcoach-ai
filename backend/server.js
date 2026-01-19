@@ -40,23 +40,12 @@ app.set('trust proxy', 1);
 
 // 1. CORS Configuration (MUST BE FIRST)
 const corsOptions = {
-  origin: function (origin, callback) {
-    const normalizedOrigin = (origin || '').toLowerCase().trim();
-    const isVercel = normalizedOrigin.includes('vercel.app');
-    const isLocal = normalizedOrigin.includes('localhost') || normalizedOrigin.includes('127.0.0.1');
-
-    if (!origin || isVercel || isLocal) {
-      callback(null, true);
-    } else {
-      console.warn(`[CORS] Blocking: ${origin}`);
-      callback(null, false);
-    }
-
-
-  },
+  origin: true,
   credentials: true,
   optionsSuccessStatus: 200
 };
+
+
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
