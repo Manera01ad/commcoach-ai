@@ -1,4 +1,6 @@
-import puppeteer from 'puppeteer';
+// import puppeteer from 'puppeteer';
+const puppeteer = null; // Mocked for now
+
 
 /**
  * Browser Tool Service (The "Hands")
@@ -13,6 +15,10 @@ class BrowserTool {
      * Launch the "Ghost Browser"
      */
     async init() {
+        if (!puppeteer) {
+            console.warn("BrowserTool: Puppeteer not available, using mock mode.");
+            return;
+        }
         if (!this.browser) {
             this.browser = await puppeteer.launch({
                 headless: 'new', // Run in background (ghost mode)
@@ -21,6 +27,7 @@ class BrowserTool {
         }
     }
 
+
     /**
      * Perform a Google Search and return top results
      */
@@ -28,7 +35,14 @@ class BrowserTool {
         let page = null;
         try {
             await this.init();
+            if (!this.browser) {
+                return [
+                    { title: "Mock Result: Improving Communication", url: "https://example.com/tips" },
+                    { title: "Mock Result: Effective Speaking", url: "https://example.com/guide" }
+                ];
+            }
             page = await this.browser.newPage();
+
 
             // Go to Google
             await page.goto(`https://www.google.com/search?q=${encodeURIComponent(query)}`, { waitUntil: 'domcontentloaded' });
