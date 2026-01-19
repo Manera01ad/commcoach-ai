@@ -41,18 +41,22 @@ app.set('trust proxy', 1);
 // 1. CORS Configuration (MUST BE FIRST)
 const corsOptions = {
   origin: function (origin, callback) {
-    // Explicitly allow common origins
-    const defaultOrigins = ['http://localhost:3000', 'http://localhost:5173', 'https://commcoach-ai.vercel.app'];
-    const envOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+    const normalizedOrigin = origin ? origin.toLowerCase().replace(/\/$/, '') : null;
+    const defaultOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://commcoach-ai.vercel.app'
+    ];
+    const envOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim().toLowerCase().replace(/\/$/, '')).filter(Boolean);
     const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(normalizedOrigin) || normalizedOrigin.includes('vercel.app')) {
       callback(null, true);
     } else {
-      console.warn(`[CORS] Rejected origin: ${origin}`);
-      console.warn(`[CORS] Allowed: ${allowedOrigins.join(', ')}`);
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`[CORS] Rejected: ${origin}`);
+      callback(null, false);
     }
+
   },
   credentials: true,
   optionsSuccessStatus: 200
