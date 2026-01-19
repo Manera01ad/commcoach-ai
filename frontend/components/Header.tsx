@@ -12,13 +12,13 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPhase }) => {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const getUserInitials = () => {
-    if (!user) return 'U';
-    return user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (!user || !user.full_name) return 'U';
+    return user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -40,11 +40,10 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
             <button
               key={item.id}
               onClick={() => onSwitchPhase(item.id)}
-              className={`px-3 lg:px-5 py-1.5 lg:py-2 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all flex items-center space-x-1 lg:space-x-2 shrink-0 ${
-                phase === item.id 
-                  ? 'bg-white dark:bg-neutral-900 text-primary-600 dark:text-primary-400 shadow-sm border border-neutral-200 dark:border-neutral-700' 
-                  : 'text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300'
-              }`}
+              className={`px-3 lg:px-5 py-1.5 lg:py-2 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all flex items-center space-x-1 lg:space-x-2 shrink-0 ${phase === item.id
+                ? 'bg-white dark:bg-neutral-900 text-primary-600 dark:text-primary-400 shadow-sm border border-neutral-200 dark:border-neutral-700'
+                : 'text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300'
+                }`}
             >
               {item.icon}
               <span className="hidden sm:inline">{item.label}</span>
@@ -69,23 +68,17 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
 
         {/* User Menu */}
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className={`group flex items-center space-x-2 lg:space-x-3 p-1.5 lg:p-2 rounded-xl lg:rounded-2xl transition-all ${
-              phase === SessionPhase.PROFILE || showUserMenu
-                ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800' 
-                : 'hover:bg-neutral-50 dark:hover:bg-neutral-800 border border-transparent'
-            }`}
+            className={`group flex items-center space-x-2 lg:space-x-3 p-1.5 lg:p-2 rounded-xl lg:rounded-2xl transition-all ${phase === SessionPhase.PROFILE || showUserMenu
+              ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800'
+              : 'hover:bg-neutral-50 dark:hover:bg-neutral-800 border border-transparent'
+              }`}
           >
             <div className="hidden sm:block text-right">
               <div className="text-[8px] lg:text-[9px] font-black text-neutral-800 dark:text-white uppercase tracking-widest leading-none">
-                {user?.name || 'User'}
+                {user?.full_name || 'User'}
               </div>
-              {user?.isContributor && (
-                <div className="text-[7px] lg:text-[8px] font-bold text-primary-500 dark:text-primary-400 uppercase tracking-[0.2em]">
-                  Contributor
-                </div>
-              )}
             </div>
             <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-lg lg:rounded-xl bg-primary-600 dark:bg-primary-500 flex items-center justify-center text-[9px] lg:text-[11px] font-black text-white">
               {getUserInitials()}
@@ -95,21 +88,16 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
           {/* Dropdown Menu */}
           {showUserMenu && (
             <>
-              <div 
-                className="fixed inset-0 z-40" 
+              <div
+                className="fixed inset-0 z-40"
                 onClick={() => setShowUserMenu(false)}
               ></div>
               <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-strong z-50 overflow-hidden">
                 <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
-                  <p className="font-semibold text-neutral-900 dark:text-white">{user?.name}</p>
+                  <p className="font-semibold text-neutral-900 dark:text-white">{user?.full_name}</p>
                   <p className="text-sm text-neutral-500 dark:text-neutral-400">{user?.email}</p>
-                  {user?.isContributor && (
-                    <span className="badge badge-contributor mt-2">
-                      {user.contributorType} Contributor
-                    </span>
-                  )}
                 </div>
-                
+
                 <div className="py-2">
                   <button
                     onClick={() => {
@@ -121,7 +109,7 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
                     <User className="w-4 h-4" />
                     Profile Dashboard
                   </button>
-                  
+
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
@@ -133,12 +121,12 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
                     Settings
                   </button>
                 </div>
-                
+
                 <div className="border-t border-neutral-200 dark:border-neutral-800 py-2">
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
-                      signOut();
+                      logout();
                     }}
                     className="w-full px-4 py-2 text-left text-sm text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 flex items-center gap-3 transition-colors"
                   >

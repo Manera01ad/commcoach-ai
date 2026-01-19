@@ -51,10 +51,6 @@ export const apiLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    // Use user ID for rate limiting if authenticated, otherwise IP
-    keyGenerator: (req) => {
-        return req.user?.id || req.ip;
-    }
 });
 
 // Strict rate limiter for expensive operations (AI generation, voice synthesis)
@@ -79,5 +75,4 @@ export const strictLimiter = rateLimit({
         error: 'AI generation rate limit exceeded',
         retryAfter: '1 minute'
     },
-    keyGenerator: (req) => req.user?.id || req.ip
 });
