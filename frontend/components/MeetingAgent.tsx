@@ -180,20 +180,11 @@ const MeetingAgent: React.FC = () => {
     if (isActive || isConnecting) return;
     setIsConnecting(true);
     try {
-      console.warn("Live Meeting Agent temporarily disabled for security refactor");
-      /*
-    const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-    audioContextRef.current = inputCtx;
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    streamRef.current = stream;
-
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const sessionPromise = ai.live.connect({
-      // ...
-    });
-    sessionRef.current = await sessionPromise;
-    */
-      alert("Live Meeting Intelligence is currently in maintenance mode for security upgrades.");
+      // SECURITY: Removed direct API key usage - moving to backend proxy
+      // const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // TODO: Replace with backend API call to /api/meeting/live-session
+      console.warn("Live Meeting Agent temporarily disabled - migrating to backend proxy");
+      alert("Live Meeting Agent is being migrated to backend for security. Coming soon!");
       setIsConnecting(false);
     } catch (err) {
       console.error(err);
