@@ -37,6 +37,8 @@ export interface UserProfile {
   avatarUrl?: string;
   level: number;
   streak: number;
+  currentXP: number;
+  nextLevelXP: number;
   totalSessions: number;
   eloScore: number;
   skills: {
