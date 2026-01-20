@@ -2,9 +2,8 @@
     "name": "commcoach-ai-root",
     "private": true,
     "scripts": {
-        "install": "npm install --prefix frontend",
-        "build": "npm run build --prefix frontend",
-        "vercel-build": "npm install --prefix frontend && npm run build --prefix frontend"
+        "postinstall": "cd frontend && npm install",
+        "build": "cd frontend && npm run build"
     },
     "engines": {
         "node": "18.x"
