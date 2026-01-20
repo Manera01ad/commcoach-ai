@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Target, Users, Settings, LogOut, Menu, X, BookOpen, Crown } from 'lucide-react';
 
 // Components
 import StreakCounter from '../components/StreakCounter';
 import LevelProgress from '../components/LevelProgress';
 import DailyMission from '../components/DailyMission';
+import CommDNAAssessment from '../components/CommDNAAssessment';
+import CommDNAProfile from '../components/CommDNAProfile';
 import FounderDashboard from '../components/FounderDashboard';
 import Leaderboard from '../components/Leaderboard';
+import { LayoutDashboard, Target, Users, Settings, LogOut, Menu, X, BookOpen, Crown, BrainCircuit } from 'lucide-react';
 
 // Context
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +17,9 @@ import { useAuth } from '../contexts/AuthContext';
 const Dashboard: React.FC = () => {
     const { user, logout } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'overview' | 'missions' | 'founders' | 'settings' | 'library' | 'community' | 'meetings'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'missions' | 'founders' | 'settings' | 'library' | 'community' | 'meetings' | 'profile'>('overview');
+    const [dnaProfile, setDnaProfile] = useState<any>(null); // Ideally fetch from DB
+    const [isAssessmentActive, setIsAssessmentActive] = useState(false);
 
     // Stats (Mock for now, would come from Context/API)
     const userStats = {
@@ -91,6 +95,13 @@ const Dashboard: React.FC = () => {
                                 label="Dashboard"
                                 active={activeTab === 'overview'}
                                 onClick={() => { setActiveTab('overview'); setSidebarOpen(false); }}
+                            />
+                            <MenuLink
+                                id="profile"
+                                icon={BrainCircuit}
+                                label="CommDNA Profile"
+                                active={activeTab === 'profile'}
+                                onClick={() => { setActiveTab('profile'); setSidebarOpen(false); }}
                             />
                             <MenuLink
                                 id="missions"
@@ -224,6 +235,41 @@ const Dashboard: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'profile' && (
+                        <div className="max-w-4xl mx-auto">
+                            {isAssessmentActive ? (
+                                <CommDNAAssessment
+                                    onComplete={(result) => {
+                                        setDnaProfile(result);
+                                        setIsAssessmentActive(false);
+                                    }}
+                                    onCancel={() => setIsAssessmentActive(false)}
+                                />
+                            ) : dnaProfile ? (
+                                <CommDNAProfile
+                                    data={dnaProfile}
+                                    onRetake={() => setIsAssessmentActive(true)}
+                                />
+                            ) : (
+                                <div className="text-center py-16 bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
+                                    <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <BrainCircuit className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+                                    </div>
+                                    <h2 className="text-3xl font-bold mb-4">Discover Your CommDNA</h2>
+                                    <p className="text-neutral-500 max-w-lg mx-auto mb-8 text-lg">
+                                        Unlock a detailed analysis of your communication style, strengths, and recommended AI coaching tones.
+                                    </p>
+                                    <button
+                                        onClick={() => setIsAssessmentActive(true)}
+                                        className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/30 transition-all hover:scale-105"
+                                    >
+                                        Start Assessment
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 

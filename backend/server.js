@@ -22,6 +22,7 @@ import missionsRoutes from './routes/missions.js';
 import personasRoutes from './routes/personas.js';
 import foundersRoutes from './routes/founders.js';
 import gamificationRoutes from './routes/gamification.js';
+import assessmentRoutes from './routes/assessment.js';
 
 // Security Middleware
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter.js';
@@ -94,6 +95,7 @@ app.use('/api/missions', missionsRoutes);
 app.use('/api/personas', personasRoutes);
 app.use('/api/founders', foundersRoutes);
 app.use('/api/gamification', gamificationRoutes);
+app.use('/api/assessment', assessmentRoutes);
 
 app.get('/api', (req, res) => {
   res.json({
