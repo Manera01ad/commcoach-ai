@@ -87,6 +87,12 @@ export const signin = async (req, res) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
+        // Check if Supabase is configured
+        if (!supabase) {
+            console.error('[SIGNIN] Supabase not configured');
+            return res.status(500).json({ error: 'System configuration error: Database not connected.' });
+        }
+
         // 1. Sign in with Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
             email,
@@ -129,6 +135,8 @@ export const signin = async (req, res) => {
  */
 export const signout = async (req, res) => {
     try {
+        if (!supabase) return res.status(500).json({ error: 'Database configuration error' });
+
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
 
@@ -149,6 +157,9 @@ export const getSession = async (req, res) => {
         if (!authHeader) return res.status(401).json({ error: 'No token provided' });
 
         const token = authHeader.replace('Bearer ', '');
+
+        if (!supabase) return res.status(500).json({ error: 'Database configuration error' });
+
         const { data: { user }, error } = await supabase.auth.getUser(token);
 
         if (error) throw error;
