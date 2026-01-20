@@ -57,11 +57,19 @@ const Dashboard: React.FC = () => {
                 </button>
             </div>
 
-            <div className="flex max-w-7xl mx-auto">
+            <div className="flex max-w-7xl mx-auto relative">
+
+                {/* Mobile Sidebar Overlay */}
+                {sidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm transition-opacity"
+                        onClick={() => setSidebarOpen(false)}
+                    />
+                )}
 
                 {/* Sidebar Navigation */}
                 <aside className={`
-                    fixed lg:sticky top-0 left-0 z-20 h-screen w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 p-6 flex flex-col justify-between transition-transform duration-300 transform
+                    fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 p-6 flex flex-col justify-between transition-transform duration-300 transform
                     ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     lg:h-screen lg:top-0
                 `}>

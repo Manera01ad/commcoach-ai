@@ -103,7 +103,7 @@ const FounderDashboard: React.FC = () => {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl p-8 text-white relative overflow-hidden shadow-2xl"
+                className="w-full bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden shadow-2xl"
             >
                 {/* Background Glow */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
