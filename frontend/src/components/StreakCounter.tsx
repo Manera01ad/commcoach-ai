@@ -13,14 +13,27 @@ interface StreakStats {
     nextMilestone: number;
 }
 
-export const StreakCounter: React.FC = () => {
-    const [stats, setStats] = useState<StreakStats | null>(null);
-    const [loading, setLoading] = useState(true);
+interface StreakProps {
+    currentStreak?: number;
+    longestStreak?: number;
+    frozen?: boolean;
+}
+
+export const StreakCounter: React.FC<StreakProps> = ({ currentStreak, longestStreak }) => {
+    const [stats, setStats] = useState<StreakStats | null>(currentStreak !== undefined ? {
+        currentStreak,
+        longestStreak: longestStreak || currentStreak,
+        totalPoints: 0,
+        nextMilestone: 7
+    } : null);
+    const [loading, setLoading] = useState(currentStreak === undefined);
     const [celebrating, setCelebrating] = useState(false);
 
     useEffect(() => {
-        fetchStreakStats();
-    }, []);
+        if (currentStreak === undefined) {
+            fetchStreakStats();
+        }
+    }, [currentStreak]);
 
     const fetchStreakStats = async () => {
         try {

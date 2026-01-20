@@ -25,16 +25,48 @@ interface Mission {
     drill: MicroDrill;
 }
 
-export const DailyMission: React.FC = () => {
+// Update interface to match usage in Dashboard.tsx
+export interface DailyMissionProps {
+    id?: string;
+    title?: string;
+    description?: string;
+    xpReward?: number;
+    category?: string;
+    difficulty?: string;
+    status?: string;
+}
+
+export const DailyMission: React.FC<DailyMissionProps> = (props) => {
     const [mission, setMission] = useState<Mission | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!props.title);
     const [practicing, setPracticing] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
     const [score, setScore] = useState(75);
 
     useEffect(() => {
-        fetchTodaysMission();
-    }, []);
+        if (props.title) {
+            // Construct mission object from props
+            setMission({
+                id: props.id || 'mock',
+                date: new Date().toISOString(),
+                completed: props.status === 'completed',
+                xp_earned: 0,
+                drill: {
+                    id: props.id || 'mock',
+                    title: props.title,
+                    description: props.description || '',
+                    scenario: 'Practice Scenario',
+                    category: props.category || 'general',
+                    difficulty: props.difficulty === 'hard' ? 7 : props.difficulty === 'medium' ? 5 : 3,
+                    duration_seconds: 60,
+                    xp_reward: props.xpReward || 100
+                }
+            });
+            setLoading(false);
+        } else {
+            fetchTodaysMission();
+        }
+    }, [props.title]);
 
     useEffect(() => {
         if (practicing && timeLeft > 0) {

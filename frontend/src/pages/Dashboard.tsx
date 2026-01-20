@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
                         <div>
                             <h2 className="text-2xl font-bold mb-1">
-                                {activeTab === 'overview' && `Welcome back, ${user?.user_metadata?.full_name || 'Champion'} 👋`}
+                                {activeTab === 'overview' && `Welcome back, ${user?.full_name || 'Champion'} 👋`}
                                 {activeTab === 'meetings' && 'Mission Control'}
                                 {activeTab === 'founders' && 'Founder\'s Lounge'}
                             </h2>
