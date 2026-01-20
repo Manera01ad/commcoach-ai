@@ -44,7 +44,6 @@ const FounderDashboard: React.FC = () => {
 
             // 1. Create Checkout Session
             const data = await paymentService.createCheckout();
-            console.log('Checkout Data:', data);
 
             if (data.gateway === 'stripe') {
                 // Redirect to Stripe

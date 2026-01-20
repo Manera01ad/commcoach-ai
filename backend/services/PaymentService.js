@@ -88,8 +88,6 @@ class PaymentService {
             // Get pricing
             const pricing = this.getPricing(location.country);
 
-            console.log(`[PaymentService] User from ${location.country} → ${gateway} (${reason})`);
-
             // Create checkout based on gateway
             let checkout;
             if (gateway === 'razorpay') {

@@ -46,7 +46,6 @@ app.set('trust proxy', 1);
 // 1. CORS Configuration (MUST BE FIRST)
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log(`[CORS DEBUG] Incoming Origin: ${origin}`);
     callback(null, true);
   },
 
