@@ -80,4 +80,6 @@ class ResearchAgent extends AgentService {
     }
 }
 
-export default new ResearchAgent();
+// Export the class, not an instance (lazy initialization)
+// This prevents crashes when GEMINI_API_KEY is not configured
+export default ResearchAgent;

@@ -5,7 +5,7 @@
 
 import express from 'express';
 import StreakEngine from '../services/StreakEngine.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -17,7 +17,7 @@ const router = express.Router();
  * - activityWeight: number (1 = normal, 2 = extended session)
  * - timezone: string (user's timezone, default: Asia/Kolkata)
  */
-router.post('/activity', authenticate, async (req, res) => {
+router.post('/activity', authenticateToken(), async (req, res) => {
     try {
         const { activityWeight = 1, timezone = 'Asia/Kolkata' } = req.body;
         const userId = req.user.id;
@@ -41,7 +41,7 @@ router.post('/activity', authenticate, async (req, res) => {
  * GET /api/streak/stats
  * Get user's streak statistics
  */
-router.get('/stats', authenticate, async (req, res) => {
+router.get('/stats', authenticateToken(), async (req, res) => {
     try {
         const userId = req.user.id;
         const stats = await StreakEngine.getStreakStats(userId);
@@ -66,7 +66,7 @@ router.get('/stats', authenticate, async (req, res) => {
  * Query:
  * - limit: number (default: 10)
  */
-router.get('/leaderboard', authenticate, async (req, res) => {
+router.get('/leaderboard', authenticateToken(), async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
 
@@ -92,7 +92,7 @@ router.get('/leaderboard', authenticate, async (req, res) => {
  * GET /api/streak/inventory
  * Get user's inventory (streak shields, power-ups)
  */
-router.get('/inventory', authenticate, async (req, res) => {
+router.get('/inventory', authenticateToken(), async (req, res) => {
     try {
         const userId = req.user.id;
 
@@ -120,7 +120,7 @@ router.get('/inventory', authenticate, async (req, res) => {
  * POST /api/streak/shield/use
  * Use a streak shield (admin/testing only - normally auto-used)
  */
-router.post('/shield/use', authenticate, async (req, res) => {
+router.post('/shield/use', authenticateToken(), async (req, res) => {
     try {
         const userId = req.user.id;
 
@@ -155,7 +155,7 @@ router.post('/shield/use', authenticate, async (req, res) => {
  * Query:
  * - limit: number (default: 50)
  */
-router.get('/history', authenticate, async (req, res) => {
+router.get('/history', authenticateToken(), async (req, res) => {
     try {
         const userId = req.user.id;
         const limit = parseInt(req.query.limit) || 50;

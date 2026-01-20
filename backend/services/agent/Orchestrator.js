@@ -14,7 +14,7 @@ class AgentOrchestrator {
             default: new AgentService({ modelName: 'gemini-1.5-flash', temperature: 0.7 }),
             coach: new AgentService({ modelName: 'gemini-1.5-pro', temperature: 0.8 }), // "Drill Sergeant" capability
             analyst: new AgentService({ modelName: 'gemini-1.5-flash', temperature: 0.2 }), // "Metrics" capability
-            research: ResearchAgent // The new Action Agent
+            research: new ResearchAgent() // Instantiate the Action Agent
         };
     }
 
