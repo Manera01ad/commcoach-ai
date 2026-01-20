@@ -18,6 +18,8 @@ import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import agentRoutes from './routes/agents.js';
 import streakRoutes from './routes/streak.js';
+import missionsRoutes from './routes/missions.js';
+import personasRoutes from './routes/personas.js';
 
 // Security Middleware
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter.js';
@@ -87,11 +89,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/agents', strictLimiter, agentRoutes);
 app.use('/api/streak', streakRoutes);
+app.use('/api/missions', missionsRoutes);
+app.use('/api/personas', personasRoutes);
 
 app.get('/api', (req, res) => {
   res.json({
     message: 'CommCoach AI Backend API',
-    version: '1.0.2',
+    version: '1.0.3',
     endpoints: {
       health: '/health',
       auth: '/api/auth',
@@ -99,7 +103,9 @@ app.get('/api', (req, res) => {
       agents: '/api/agents',
       antigravity: '/api/antigravity',
       gemini: '/api/gemini',
-      streak: '/api/streak'
+      streak: '/api/streak',
+      missions: '/api/missions',
+      personas: '/api/personas'
     }
   });
 });

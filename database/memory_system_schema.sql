@@ -1,77 +1,152 @@
 -- ==========================================
--- MEMORY SYSTEM DATABASE SCHEMA
+-- MEMORY SYSTEM DATABASE SCHEMA (SIMPLIFIED)
 -- ==========================================
 -- Vector-based memory for intelligent agents
--- Enables context-aware conversations
+-- Compatible with existing schema
+-- No RLS policies (add later if needed)
 -- ==========================================
 
 -- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- ========================================
--- PART 1: Agent Memories Table
+-- PART 1: Chat Sessions Table
 -- ========================================
 
-CREATE TABLE IF NOT EXISTS agent_memories (
+CREATE TABLE IF NOT EXISTS chat_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  agent_id UUID REFERENCES agent_configs(id) ON DELETE CASCADE,
-  session_id UUID REFERENCES chat_sessions(id) ON DELETE SET NULL,
-  
-  -- Memory content
-  content TEXT NOT NULL,
-  summary TEXT,
-  
-  -- Vector embedding (OpenAI text-embedding-3-small = 1536 dimensions)
-  embedding VECTOR(1536),
-  
-  -- Metadata
-  memory_type TEXT CHECK (memory_type IN ('conversation', 'insight', 'preference', 'goal')),
-  importance REAL DEFAULT 0.5 CHECK (importance BETWEEN 0 AND 1),
+  agent_id UUID REFERENCES agent_configs(id) ON DELETE SET NULL,
+  title TEXT,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
   metadata JSONB DEFAULT '{}'::jsonb,
-  
-  -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  last_accessed_at TIMESTAMPTZ DEFAULT NOW(),
-  access_count INTEGER DEFAULT 0,
-  
-  -- Indexes for performance
-  CONSTRAINT agent_memories_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create indexes
-CREATE INDEX IF NOT EXISTS idx_agent_memories_user_id ON agent_memories(user_id);
-CREATE INDEX IF NOT EXISTS idx_agent_memories_agent_id ON agent_memories(agent_id);
-CREATE INDEX IF NOT EXISTS idx_agent_memories_session_id ON agent_memories(session_id);
-CREATE INDEX IF NOT EXISTS idx_agent_memories_created_at ON agent_memories(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_agent_memories_importance ON agent_memories(importance DESC);
-
--- Vector similarity search index (IVFFlat for speed)
-CREATE INDEX IF NOT EXISTS idx_agent_memories_embedding 
-  ON agent_memories 
-  USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
-
-COMMENT ON TABLE agent_memories IS 'Vector-based memory storage for intelligent agents';
-COMMENT ON COLUMN agent_memories.embedding IS 'Vector embedding for semantic similarity search';
-COMMENT ON COLUMN agent_memories.importance IS 'Memory importance score (0-1) for retrieval ranking';
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_agent_id ON chat_sessions(agent_id);
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_created_at ON chat_sessions(created_at DESC);
 
 -- ========================================
--- PART 2: Context Windows Table
+-- PART 2: Messages Table
+-- ========================================
+
+CREATE TABLE IF NOT EXISTS messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES chat_sessions(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
+  content TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at DESC);
+
+-- ========================================
+-- PART 3: Update agent_memories Table
+-- ========================================
+
+-- Add session_id column
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'agent_memories' AND column_name = 'session_id'
+  ) THEN
+    ALTER TABLE agent_memories 
+    ADD COLUMN session_id UUID REFERENCES chat_sessions(id) ON DELETE SET NULL;
+    
+    CREATE INDEX idx_agent_memories_session_id ON agent_memories(session_id);
+  END IF;
+END $$;
+
+-- Add summary column
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'agent_memories' AND column_name = 'summary'
+  ) THEN
+    ALTER TABLE agent_memories ADD COLUMN summary TEXT;
+  END IF;
+END $$;
+
+-- Add memory_type column
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'agent_memories' AND column_name = 'memory_type'
+  ) THEN
+    ALTER TABLE agent_memories 
+    ADD COLUMN memory_type TEXT CHECK (memory_type IN ('conversation', 'insight', 'preference', 'goal'));
+  END IF;
+END $$;
+
+-- Add importance column
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'agent_memories' AND column_name = 'importance'
+  ) THEN
+    ALTER TABLE agent_memories 
+    ADD COLUMN importance REAL DEFAULT 0.5 CHECK (importance BETWEEN 0 AND 1);
+    
+    CREATE INDEX idx_agent_memories_importance ON agent_memories(importance DESC);
+  END IF;
+END $$;
+
+-- Add access tracking columns
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'agent_memories' AND column_name = 'last_accessed_at'
+  ) THEN
+    ALTER TABLE agent_memories ADD COLUMN last_accessed_at TIMESTAMPTZ DEFAULT NOW();
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'agent_memories' AND column_name = 'access_count'
+  ) THEN
+    ALTER TABLE agent_memories ADD COLUMN access_count INTEGER DEFAULT 0;
+  END IF;
+END $$;
+
+-- Create vector similarity search index
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes 
+    WHERE indexname = 'idx_agent_memories_embedding'
+  ) THEN
+    CREATE INDEX idx_agent_memories_embedding 
+      ON agent_memories 
+      USING ivfflat (embedding vector_cosine_ops)
+      WITH (lists = 100);
+  END IF;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'Could not create vector index (pgvector may need more data): %', SQLERRM;
+END $$;
+
+-- ========================================
+-- PART 4: Context Windows Table
 -- ========================================
 
 CREATE TABLE IF NOT EXISTS context_windows (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   session_id UUID REFERENCES chat_sessions(id) ON DELETE CASCADE,
-  
-  -- Context data
   messages JSONB NOT NULL DEFAULT '[]'::jsonb,
   retrieved_memories JSONB DEFAULT '[]'::jsonb,
   token_count INTEGER DEFAULT 0,
   max_tokens INTEGER DEFAULT 4000,
-  
-  -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -79,10 +154,8 @@ CREATE TABLE IF NOT EXISTS context_windows (
 CREATE INDEX IF NOT EXISTS idx_context_windows_user_id ON context_windows(user_id);
 CREATE INDEX IF NOT EXISTS idx_context_windows_session_id ON context_windows(session_id);
 
-COMMENT ON TABLE context_windows IS 'Active conversation context with token management';
-
 -- ========================================
--- PART 3: Helper Functions
+-- PART 5: Helper Functions
 -- ========================================
 
 -- Function to search similar memories
@@ -115,6 +188,7 @@ BEGIN
     am.created_at
   FROM agent_memories am
   WHERE am.user_id = p_user_id
+    AND am.embedding IS NOT NULL
     AND 1 - (am.embedding <=> p_query_embedding) >= p_min_similarity
   ORDER BY 
     am.embedding <=> p_query_embedding,
@@ -122,8 +196,6 @@ BEGIN
   LIMIT p_limit;
 END;
 $$;
-
-COMMENT ON FUNCTION search_similar_memories IS 'Search for semantically similar memories using vector similarity';
 
 -- Function to update memory access
 CREATE OR REPLACE FUNCTION update_memory_access(p_memory_id UUID)
@@ -140,8 +212,6 @@ BEGIN
   WHERE id = p_memory_id;
 END;
 $$;
-
-COMMENT ON FUNCTION update_memory_access IS 'Update memory access timestamp and count';
 
 -- Function to prune old memories
 CREATE OR REPLACE FUNCTION prune_old_memories(
@@ -168,78 +238,28 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION prune_old_memories IS 'Delete old, low-importance, rarely accessed memories';
-
 -- ========================================
--- PART 4: RLS Policies
+-- PART 6: Grant Permissions
 -- ========================================
 
-ALTER TABLE agent_memories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE context_windows ENABLE ROW LEVEL SECURITY;
-
--- Users can only access their own memories
-CREATE POLICY "Users can view own memories"
-  ON agent_memories FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own memories"
-  ON agent_memories FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own memories"
-  ON agent_memories FOR UPDATE
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own memories"
-  ON agent_memories FOR DELETE
-  USING (auth.uid() = user_id);
-
--- Context windows policies
-CREATE POLICY "Users can view own context"
-  ON context_windows FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can manage own context"
-  ON context_windows FOR ALL
-  USING (auth.uid() = user_id);
-
--- Admins can view all
-CREATE POLICY "Admins can view all memories"
-  ON agent_memories FOR SELECT
-  USING (is_admin());
-
-CREATE POLICY "Admins can view all context"
-  ON context_windows FOR SELECT
-  USING (is_admin());
-
--- ========================================
--- PART 5: Grant Permissions
--- ========================================
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON agent_memories TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON chat_sessions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON messages TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON context_windows TO authenticated;
 GRANT EXECUTE ON FUNCTION search_similar_memories TO authenticated;
 GRANT EXECUTE ON FUNCTION update_memory_access TO authenticated;
 GRANT EXECUTE ON FUNCTION prune_old_memories TO authenticated;
 
 -- ========================================
--- VERIFICATION & SUCCESS MESSAGE
+-- SUCCESS MESSAGE
 -- ========================================
 
 DO $$
 DECLARE
-  memory_count INTEGER;
-  context_count INTEGER;
   extension_exists BOOLEAN;
 BEGIN
-  -- Check extension
   SELECT EXISTS (
     SELECT 1 FROM pg_extension WHERE extname = 'vector'
   ) INTO extension_exists;
-  
-  -- Count tables
-  SELECT COUNT(*) INTO memory_count FROM agent_memories;
-  SELECT COUNT(*) INTO context_count FROM context_windows;
   
   RAISE NOTICE '';
   RAISE NOTICE '========================================';
@@ -247,30 +267,28 @@ BEGIN
   RAISE NOTICE '========================================';
   RAISE NOTICE '';
   RAISE NOTICE '🧠 Vector-Based Memory System';
-  RAISE NOTICE '✅ pgvector extension: %', CASE WHEN extension_exists THEN 'ENABLED' ELSE 'NOT FOUND' END;
-  RAISE NOTICE '✅ agent_memories table created';
-  RAISE NOTICE '✅ context_windows table created';
-  RAISE NOTICE '✅ Vector similarity search enabled';
+  RAISE NOTICE '✅ pgvector: %', CASE WHEN extension_exists THEN 'ENABLED' ELSE 'NOT FOUND' END;
+  RAISE NOTICE '✅ chat_sessions table created';
+  RAISE NOTICE '✅ messages table created';
+  RAISE NOTICE '✅ agent_memories enhanced';
+  RAISE NOTICE '✅ context_windows created';
   RAISE NOTICE '';
-  RAISE NOTICE '📊 Tables Created:';
-  RAISE NOTICE '   - agent_memories (vector storage)';
-  RAISE NOTICE '   - context_windows (active context)';
+  RAISE NOTICE '📊 New Columns in agent_memories:';
+  RAISE NOTICE '   - session_id (link to conversations)';
+  RAISE NOTICE '   - summary (memory summary)';
+  RAISE NOTICE '   - memory_type (conversation/insight/preference/goal)';
+  RAISE NOTICE '   - importance (0-1 score)';
+  RAISE NOTICE '   - last_accessed_at (usage tracking)';
+  RAISE NOTICE '   - access_count (popularity)';
   RAISE NOTICE '';
-  RAISE NOTICE '🔧 Functions Created:';
-  RAISE NOTICE '   - search_similar_memories() - Semantic search';
-  RAISE NOTICE '   - update_memory_access() - Track usage';
-  RAISE NOTICE '   - prune_old_memories() - Cleanup';
+  RAISE NOTICE '🔧 Functions Available:';
+  RAISE NOTICE '   - search_similar_memories()';
+  RAISE NOTICE '   - update_memory_access()';
+  RAISE NOTICE '   - prune_old_memories()';
   RAISE NOTICE '';
-  RAISE NOTICE '🔒 Security:';
-  RAISE NOTICE '   - RLS policies enabled';
-  RAISE NOTICE '   - Users can only access own memories';
-  RAISE NOTICE '   - Admins have read access';
+  RAISE NOTICE '⚠️  Note: RLS policies not added (use existing policies)';
   RAISE NOTICE '';
-  RAISE NOTICE 'Next Steps:';
-  RAISE NOTICE '1. Create EmbeddingService.js';
-  RAISE NOTICE '2. Create VectorStore.js';
-  RAISE NOTICE '3. Create ContextManager.js';
-  RAISE NOTICE '4. Test memory storage and retrieval';
+  RAISE NOTICE '✅ Track B: Memory System Ready!';
   RAISE NOTICE '';
   RAISE NOTICE '========================================';
 END $$;
