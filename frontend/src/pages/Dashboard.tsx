@@ -251,6 +251,12 @@ const Dashboard: React.FC = () => {
                             ) : dnaProfile ? (
                                 <CommDNAProfile
                                     data={dnaProfile}
+                                    user={{ name: user?.full_name || 'Champion' }}
+                                    stats={{
+                                        level: userStats.level,
+                                        streak: userStats.streak,
+                                        xp: userStats.currentXP
+                                    }}
                                     onRetake={() => setIsAssessmentActive(true)}
                                 />
                             ) : (

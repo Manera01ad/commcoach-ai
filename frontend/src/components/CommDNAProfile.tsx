@@ -3,6 +3,14 @@ import { motion } from 'framer-motion';
 import { Share2, Settings, Zap, Activity, Target, MessageSquare, Brain } from 'lucide-react';
 
 interface DNAProfileProps {
+    user: {
+        name: string;
+    };
+    stats: {
+        level: number;
+        streak: number;
+        xp: number;
+    };
     data: {
         archetype: string;
         traits: {
@@ -82,7 +90,7 @@ const RadarChart = ({ traits }: { traits: number[] }) => {
     );
 };
 
-const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake }) => {
+const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake, user, stats }) => {
     // Map existing core traits to the UI's expanded trait set
     // Directness ~ Clarity
     // Empathy ~ Empathy
@@ -109,19 +117,22 @@ const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake }) => {
     const [complexity, setComplexity] = useState(60);
     const [vocalSig, setVocalSig] = useState('MEDIUM');
 
+    // Calculate ELO Power (Base 1000 + XP/2)
+    const eloPower = 1000 + Math.floor(stats.xp / 2);
+
     return (
         <div className="space-y-6 font-sans">
             {/* 1. Header Card */}
             <div className="bg-white dark:bg-neutral-900 rounded-3xl p-8 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-6">
-                    <div className="w-20 h-20 rounded-full bg-neutral-900 text-white flex items-center justify-center text-3xl font-bold pb-1 relative">
-                        U
+                    <div className="w-20 h-20 rounded-full bg-neutral-900 text-white flex items-center justify-center text-3xl font-bold pb-1 relative uppercase">
+                        {user.name.charAt(0)}
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-500 rounded-full border-4 border-white dark:border-neutral-900" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-extrabold text-neutral-900 dark:text-white mb-1">User One.</h1>
+                        <h1 className="text-3xl font-extrabold text-neutral-900 dark:text-white mb-1 capitalize">{user.name}.</h1>
                         <div className="flex items-center gap-2 text-xs font-semibold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-full w-fit">
-                            <Zap className="w-3 h-3" /> LEVEL 12 COMMUNICATOR
+                            <Zap className="w-3 h-3" /> LEVEL {stats.level} COMMUNICATOR
                         </div>
                     </div>
                 </div>
@@ -129,12 +140,12 @@ const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake }) => {
                 <div className="flex items-center gap-8 bg-neutral-50 dark:bg-neutral-800/50 px-8 py-4 rounded-2xl">
                     <div className="text-center">
                         <div className="text-xs font-bold text-neutral-400 tracking-wider mb-1">ELO POWER</div>
-                        <div className="text-2xl font-extrabold text-neutral-900 dark:text-white">1450</div>
+                        <div className="text-2xl font-extrabold text-neutral-900 dark:text-white">{eloPower}</div>
                     </div>
                     <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-700" />
                     <div className="text-center">
                         <div className="text-xs font-bold text-neutral-400 tracking-wider mb-1">SYNCH STREAK</div>
-                        <div className="text-2xl font-extrabold text-indigo-500">5d</div>
+                        <div className="text-2xl font-extrabold text-indigo-500">{stats.streak}d</div>
                     </div>
                 </div>
             </div>
