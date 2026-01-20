@@ -246,23 +246,33 @@ const Dashboard: React.FC = () => {
                                     <div className="h-px bg-neutral-200 dark:bg-neutral-800 flex-1" />
                                 </div>
 
-                                <CommDNAProfile
-                                    minimal={true}
-                                    data={dnaProfile || {
-                                        archetype: 'The Diplomat',
-                                        traits: { clarity: 65, empathy: 90, confidence: 60, persuasion: 75 },
-                                        strengths: ['Empathetic', 'Calm'],
-                                        weaknesses: ['Assertiveness'],
-                                        recommendedTone: 'Assertive'
-                                    }}
-                                    user={{ name: user?.full_name || 'Champion' }}
-                                    stats={{
-                                        level: userStats.level,
-                                        streak: userStats.streak,
-                                        xp: userStats.currentXP
-                                    }}
-                                    onRetake={() => setIsAssessmentActive(true)}
-                                />
+                                {isAssessmentActive ? (
+                                    <CommDNAAssessment
+                                        onComplete={(result) => {
+                                            setDnaProfile(result);
+                                            setIsAssessmentActive(false);
+                                        }}
+                                        onCancel={() => setIsAssessmentActive(false)}
+                                    />
+                                ) : (
+                                    <CommDNAProfile
+                                        minimal={true}
+                                        data={dnaProfile || {
+                                            archetype: 'The Diplomat',
+                                            traits: { clarity: 65, empathy: 90, confidence: 60, persuasion: 75 },
+                                            strengths: ['Empathetic', 'Calm'],
+                                            weaknesses: ['Assertiveness'],
+                                            recommendedTone: 'Assertive'
+                                        }}
+                                        user={{ name: user?.full_name || 'Champion' }}
+                                        stats={{
+                                            level: userStats.level,
+                                            streak: userStats.streak,
+                                            xp: userStats.currentXP
+                                        }}
+                                        onRetake={() => setIsAssessmentActive(true)}
+                                    />
+                                )}
                             </div>
                         </>
                     )}

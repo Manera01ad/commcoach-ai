@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Share2, Settings, Zap, Activity, Target, MessageSquare, Brain } from 'lucide-react';
+import { Share2, Settings, Zap, Activity, Target, MessageSquare, Brain, RotateCcw } from 'lucide-react';
 
 interface DNAProfileProps {
     user: {
@@ -169,14 +169,23 @@ const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake, user, stats
                             </div>
                             <p className="text-xs text-neutral-400 tracking-wider font-semibold">CONFIGURE THE SHADOW PERSONALITY</p>
                         </div>
-                        {/* Audio mixer icon visual */}
-                        <div className="flex gap-1">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="flex flex-col gap-1">
-                                    <div className={`w-1 h-3 rounded-full ${i === 2 ? 'bg-indigo-500' : 'bg-neutral-200 dark:bg-neutral-700'}`} />
-                                    <div className={`w-1 h-6 rounded-full ${i === 1 ? 'bg-indigo-500' : 'bg-neutral-200 dark:bg-neutral-700'}`} />
-                                </div>
-                            ))}
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={onRetake}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-xs font-bold text-neutral-500 hover:bg-indigo-50 hover:text-indigo-600 transition-all"
+                            >
+                                <RotateCcw className="w-3 h-3" />
+                                <span className="hidden sm:inline">RECALIBRATE</span>
+                            </button>
+                            {/* Audio mixer icon visual */}
+                            <div className="hidden sm:flex gap-1">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="flex flex-col gap-1">
+                                        <div className={`w-1 h-3 rounded-full ${i === 2 ? 'bg-indigo-500' : 'bg-neutral-200 dark:bg-neutral-700'}`} />
+                                        <div className={`w-1 h-6 rounded-full ${i === 1 ? 'bg-indigo-500' : 'bg-neutral-200 dark:bg-neutral-700'}`} />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
