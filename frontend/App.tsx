@@ -11,6 +11,7 @@ import ProfileDashboard from './components/ProfileDashboard';
 import VisionLab from './components/VisionLab';
 import BrowserWindow from './src/components/AgentBrowser/BrowserWindow'; // Import Browser Window
 import { getGenerativeModelProxy } from './src/services/apiClient'; // Updated import
+import Dashboard from './src/pages/Dashboard';
 import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './src/constants'; // This file needs to exist
 
 // Adapter for legacy geminiApi usage
@@ -19,6 +20,8 @@ const geminiApi = getGenerativeModelProxy();
 const DEFAULT_PROFILE: UserProfile = {
   name: 'User One',
   level: 12,
+  currentXP: 4500,
+  nextLevelXP: 5000,
   streak: 5,
   totalSessions: 42,
   eloScore: 1450,
@@ -240,10 +243,7 @@ const App: React.FC = () => {
             <VisionLab />
           )}
           {session.phase === SessionPhase.PROFILE && (
-            <ProfileDashboard
-              profile={session.userProfile}
-              onUpdateProfile={(p) => setSession(prev => ({ ...prev, userProfile: p }))}
-            />
+            <Dashboard />
           )}
           {(session.phase === SessionPhase.CHAT || session.phase === SessionPhase.ASSESSMENT) && (
             <ChatWindow
