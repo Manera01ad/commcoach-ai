@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Crown, DollarSign, Users, Award, TrendingUp, Copy, Check } from 'lucide-react';
 
 const FounderDashboard: React.FC = () => {
+    const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
 
     // Mock data - In real app, fetch from /api/founders/stats
@@ -19,6 +20,78 @@ const FounderDashboard: React.FC = () => {
         navigator.clipboard.writeText(`https://commcoach.ai/join?ref=${stats.referralCode}`);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    // Dynamic load Razorpay
+    const loadRazorpay = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
+    const handleCheckout = async () => {
+        setLoading(true);
+        try {
+            // Import dynamically to avoid circular deps if any
+            const { paymentService } = await import('../services/paymentService');
+
+            // 1. Create Checkout Session
+            const data = await paymentService.createCheckout();
+            console.log('Checkout Data:', data);
+
+            if (data.gateway === 'stripe') {
+                // Redirect to Stripe
+                window.location.href = data.checkout.url;
+            } else if (data.gateway === 'razorpay') {
+                // Open Razorpay Modal
+                const res = await loadRazorpay();
+                if (!res) {
+                    alert('Razorpay SDK failed to load. Are you online?');
+                    return;
+                }
+
+                const options = {
+                    key: data.checkout.key,
+                    amount: data.checkout.amount,
+                    currency: data.checkout.currency,
+                    name: "CommCoach AI",
+                    description: "Founder's Circle Membership",
+                    order_id: data.checkout.id,
+                    handler: async function (response: any) {
+                        try {
+                            const verifyRes = await paymentService.verifyRazorpay({
+                                orderId: response.razorpay_order_id,
+                                paymentId: response.razorpay_payment_id,
+                                signature: response.razorpay_signature
+                            });
+
+                            if (verifyRes.success) {
+                                window.location.reload(); // Refresh to show Founder dashboard
+                            }
+                        } catch (err) {
+                            alert('Payment verification failed.');
+                            console.error(err);
+                        }
+                    },
+                    theme: {
+                        color: "#F59E0B"
+                    }
+                };
+
+                const paymentObject = new (window as any).Razorpay(options);
+                paymentObject.open();
+            }
+
+        } catch (error) {
+            console.error('Checkout error:', error);
+            alert('Failed to start checkout. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (!stats.isFounder) {
@@ -45,10 +118,15 @@ const FounderDashboard: React.FC = () => {
                     </p>
 
                     <button
-                        className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-amber-500/25 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto"
-                        onClick={() => console.log('Open checkout')}
+                        className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-amber-500/25 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto disabled:opacity-70 disabled:cursor-not-allowed"
+                        onClick={handleCheckout}
+                        disabled={loading}
                     >
-                        Become a Founder <TrendingUp className="w-5 h-5" />
+                        {loading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        ) : (
+                            <>Become a Founder <TrendingUp className="w-5 h-5" /></>
+                        )}
                     </button>
 
                     <p className="mt-4 text-sm text-neutral-500">
