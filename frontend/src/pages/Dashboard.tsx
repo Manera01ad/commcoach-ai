@@ -180,62 +180,91 @@ const Dashboard: React.FC = () => {
 
                     {/* Content Switcher */}
                     {activeTab === 'overview' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                            {/* Left Column (Main) */}
-                            <div className="lg:col-span-2 space-y-6">
-                                {/* Level Progress */}
-                                <LevelProgress
-                                    currentLevel={userStats.level}
-                                    currentXP={userStats.currentXP}
-                                    nextLevelXP={userStats.nextLevelXP}
-                                    recentXP={userStats.xpHistory}
+                                {/* Left Column (Main) */}
+                                <div className="lg:col-span-2 space-y-6">
+                                    {/* Level Progress */}
+                                    <LevelProgress
+                                        currentLevel={userStats.level}
+                                        currentXP={userStats.currentXP}
+                                        nextLevelXP={userStats.nextLevelXP}
+                                        recentXP={userStats.xpHistory}
+                                    />
+
+                                    {/* Active Missions */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="font-bold text-lg">Today's Missions</h3>
+                                            <button className="text-sm text-indigo-600 font-medium hover:underline">View All</button>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <DailyMission
+                                                id="1"
+                                                title="Pacing Drill"
+                                                description="Speak for 1 min at 130-150wpm"
+                                                xpReward={100}
+                                                category="delivery"
+                                                difficulty="easy"
+                                                status="pending"
+                                            />
+                                            <DailyMission
+                                                id="2"
+                                                title="Filler Word Hunt"
+                                                description="Use <2 filler words in a story"
+                                                xpReward={150}
+                                                category="clarity"
+                                                difficulty="medium"
+                                                status="pending"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Column (Sidebar) */}
+                                <div className="space-y-6">
+                                    <Leaderboard />
+
+                                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white text-center relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
+                                        <Crown className="w-8 h-8 mx-auto mb-3" />
+                                        <h3 className="font-bold text-lg mb-2">Upgrade to Pro</h3>
+                                        <p className="text-white/80 text-sm mb-4">Unlock unlimited AI coaching sessions and advanced analytics.</p>
+                                        <button className="w-full py-2 bg-white text-indigo-600 font-bold rounded-lg hover:bg-indigo-50 transition-colors">
+                                            View Plans
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* DNA Profile Integration */}
+                            <div className="mt-12">
+                                <div className="mb-6 flex items-center gap-3">
+                                    <div className="h-px bg-neutral-200 dark:bg-neutral-800 flex-1" />
+                                    <h2 className="text-xl font-bold text-neutral-400 uppercase tracking-widest text-sm text-center">Neural Architecture</h2>
+                                    <div className="h-px bg-neutral-200 dark:bg-neutral-800 flex-1" />
+                                </div>
+
+                                <CommDNAProfile
+                                    minimal={true}
+                                    data={dnaProfile || {
+                                        archetype: 'The Diplomat',
+                                        traits: { clarity: 65, empathy: 90, confidence: 60, persuasion: 75 },
+                                        strengths: ['Empathetic', 'Calm'],
+                                        weaknesses: ['Assertiveness'],
+                                        recommendedTone: 'Assertive'
+                                    }}
+                                    user={{ name: user?.full_name || 'Champion' }}
+                                    stats={{
+                                        level: userStats.level,
+                                        streak: userStats.streak,
+                                        xp: userStats.currentXP
+                                    }}
+                                    onRetake={() => setIsAssessmentActive(true)}
                                 />
-
-                                {/* Active Missions */}
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="font-bold text-lg">Today's Missions</h3>
-                                        <button className="text-sm text-indigo-600 font-medium hover:underline">View All</button>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <DailyMission
-                                            id="1"
-                                            title="Pacing Drill"
-                                            description="Speak for 1 min at 130-150wpm"
-                                            xpReward={100}
-                                            category="delivery"
-                                            difficulty="easy"
-                                            status="pending"
-                                        />
-                                        <DailyMission
-                                            id="2"
-                                            title="Filler Word Hunt"
-                                            description="Use <2 filler words in a story"
-                                            xpReward={150}
-                                            category="clarity"
-                                            difficulty="medium"
-                                            status="pending"
-                                        />
-                                    </div>
-                                </div>
                             </div>
-
-                            {/* Right Column (Sidebar) */}
-                            <div className="space-y-6">
-                                <Leaderboard />
-
-                                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white text-center relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                                    <Crown className="w-8 h-8 mx-auto mb-3" />
-                                    <h3 className="font-bold text-lg mb-2">Upgrade to Pro</h3>
-                                    <p className="text-white/80 text-sm mb-4">Unlock unlimited AI coaching sessions and advanced analytics.</p>
-                                    <button className="w-full py-2 bg-white text-indigo-600 font-bold rounded-lg hover:bg-indigo-50 transition-colors">
-                                        View Plans
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        </>
                     )}
 
                     {activeTab === 'profile' && (
@@ -293,8 +322,8 @@ const Dashboard: React.FC = () => {
                     )}
 
                 </main>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

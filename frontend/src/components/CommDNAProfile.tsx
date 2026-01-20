@@ -24,6 +24,7 @@ interface DNAProfileProps {
         recommendedTone: string;
     };
     onRetake: () => void;
+    minimal?: boolean;
 }
 
 // Helper for Radar Chart
@@ -90,7 +91,7 @@ const RadarChart = ({ traits }: { traits: number[] }) => {
     );
 };
 
-const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake, user, stats }) => {
+const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake, user, stats, minimal = false }) => {
     // Map existing core traits to the UI's expanded trait set
     // Directness ~ Clarity
     // Empathy ~ Empathy
@@ -122,33 +123,35 @@ const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake, user, stats
 
     return (
         <div className="space-y-6 font-sans">
-            {/* 1. Header Card */}
-            <div className="bg-white dark:bg-neutral-900 rounded-3xl p-8 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
-                    <div className="w-20 h-20 rounded-full bg-neutral-900 text-white flex items-center justify-center text-3xl font-bold pb-1 relative uppercase">
-                        {user.name.charAt(0)}
-                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-500 rounded-full border-4 border-white dark:border-neutral-900" />
+            {/* 1. Header Card - Only show if not minimal */}
+            {!minimal && (
+                <div className="bg-white dark:bg-neutral-900 rounded-3xl p-8 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-6">
+                        <div className="w-20 h-20 rounded-full bg-neutral-900 text-white flex items-center justify-center text-3xl font-bold pb-1 relative uppercase">
+                            {user.name.charAt(0)}
+                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-500 rounded-full border-4 border-white dark:border-neutral-900" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-extrabold text-neutral-900 dark:text-white mb-1 capitalize">{user.name}.</h1>
+                            <div className="flex items-center gap-2 text-xs font-semibold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-full w-fit">
+                                <Zap className="w-3 h-3" /> LEVEL {stats.level} COMMUNICATOR
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-neutral-900 dark:text-white mb-1 capitalize">{user.name}.</h1>
-                        <div className="flex items-center gap-2 text-xs font-semibold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-full w-fit">
-                            <Zap className="w-3 h-3" /> LEVEL {stats.level} COMMUNICATOR
+
+                    <div className="flex items-center gap-8 bg-neutral-50 dark:bg-neutral-800/50 px-8 py-4 rounded-2xl">
+                        <div className="text-center">
+                            <div className="text-xs font-bold text-neutral-400 tracking-wider mb-1">ELO POWER</div>
+                            <div className="text-2xl font-extrabold text-neutral-900 dark:text-white">{eloPower}</div>
+                        </div>
+                        <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-700" />
+                        <div className="text-center">
+                            <div className="text-xs font-bold text-neutral-400 tracking-wider mb-1">SYNCH STREAK</div>
+                            <div className="text-2xl font-extrabold text-indigo-500">{stats.streak}d</div>
                         </div>
                     </div>
                 </div>
-
-                <div className="flex items-center gap-8 bg-neutral-50 dark:bg-neutral-800/50 px-8 py-4 rounded-2xl">
-                    <div className="text-center">
-                        <div className="text-xs font-bold text-neutral-400 tracking-wider mb-1">ELO POWER</div>
-                        <div className="text-2xl font-extrabold text-neutral-900 dark:text-white">{eloPower}</div>
-                    </div>
-                    <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-700" />
-                    <div className="text-center">
-                        <div className="text-xs font-bold text-neutral-400 tracking-wider mb-1">SYNCH STREAK</div>
-                        <div className="text-2xl font-extrabold text-indigo-500">{stats.streak}d</div>
-                    </div>
-                </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
