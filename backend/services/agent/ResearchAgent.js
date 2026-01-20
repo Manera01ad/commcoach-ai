@@ -7,7 +7,12 @@ import BrowserTool from '../tools/BrowserTool.js';
  */
 class ResearchAgent extends AgentService {
     constructor() {
+        // Only initialize if API key exists
         super({ modelName: 'gemini-1.5-flash', temperature: 0.4 });
+        this.enabled = !!process.env.GEMINI_API_KEY;
+        if (!this.enabled) {
+            console.warn('⚠️  ResearchAgent disabled: GEMINI_API_KEY not configured');
+        }
     }
 
     /**
@@ -16,6 +21,10 @@ class ResearchAgent extends AgentService {
      * @param {function} onEvent - Callback for browser events { type, description, ... }
      */
     async research(query, onEvent = null) {
+        if (!this.enabled) {
+            return "Research feature is currently unavailable. Please configure GEMINI_API_KEY in your environment.";
+        }
+
         try {
             console.log(`[ResearchAgent] Starting research on: "${query}"`);
 

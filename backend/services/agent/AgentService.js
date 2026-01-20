@@ -30,6 +30,11 @@ class AgentService {
         const modelName = config.modelName || "gemini-1.5-flash";
 
         if (modelName.startsWith("gemini")) {
+            // Check if API key exists before initializing
+            if (!process.env.GEMINI_API_KEY) {
+                console.warn('⚠️  GEMINI_API_KEY not found. Agent features will be limited.');
+                return null;
+            }
             return new ChatGoogleGenerativeAI({
                 model: modelName,
                 maxOutputTokens: config.maxTokens || 1000,
@@ -37,6 +42,10 @@ class AgentService {
                 apiKey: process.env.GEMINI_API_KEY,
             });
         } else if (modelName.startsWith("gpt")) {
+            if (!process.env.OPENAI_API_KEY) {
+                console.warn('⚠️  OPENAI_API_KEY not found. Agent features will be limited.');
+                return null;
+            }
             return new ChatOpenAI({
                 modelName: modelName,
                 temperature: temperature,
@@ -44,6 +53,10 @@ class AgentService {
             });
         } else {
             // Default to Gemini if unknown
+            if (!process.env.GEMINI_API_KEY) {
+                console.warn('⚠️  GEMINI_API_KEY not found. Agent features will be limited.');
+                return null;
+            }
             return new ChatGoogleGenerativeAI({
                 model: "gemini-1.5-flash",
                 maxOutputTokens: 1000,
@@ -70,6 +83,9 @@ class AgentService {
 
             // 2. Invoke Model
             const model = await this.getModel();
+            if (!model) {
+                throw new Error('Model not initialized. Please configure API keys.');
+            }
             const response = await model.invoke(formattedMessages);
 
             // 3. Return Content
@@ -96,6 +112,9 @@ class AgentService {
             });
 
             const model = await this.getModel();
+            if (!model) {
+                throw new Error('Model not initialized. Please configure API keys.');
+            }
             const stream = await model.stream(formattedMessages);
 
             for await (const chunk of stream) {
