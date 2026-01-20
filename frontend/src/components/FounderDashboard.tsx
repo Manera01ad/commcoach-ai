@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Crown, DollarSign, Users, Award, TrendingUp, Copy, Check } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
 
 const FounderDashboard: React.FC = () => {
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
 
@@ -20,6 +22,7 @@ const FounderDashboard: React.FC = () => {
         navigator.clipboard.writeText(`https://commcoach.ai/join?ref=${stats.referralCode}`);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        showToast({ type: 'success', title: 'Copied!', message: 'Referral link copied.' });
     };
 
     // Dynamic load Razorpay
@@ -50,7 +53,7 @@ const FounderDashboard: React.FC = () => {
                 // Open Razorpay Modal
                 const res = await loadRazorpay();
                 if (!res) {
-                    alert('Razorpay SDK failed to load. Are you online?');
+                    showToast({ type: 'error', message: 'Razorpay SDK failed to load.' });
                     return;
                 }
 
@@ -70,10 +73,11 @@ const FounderDashboard: React.FC = () => {
                             });
 
                             if (verifyRes.success) {
-                                window.location.reload(); // Refresh to show Founder dashboard
+                                showToast({ type: 'success', title: 'Welcome!', message: 'Membership activated.' });
+                                setTimeout(() => window.location.reload(), 1500);
                             }
                         } catch (err) {
-                            alert('Payment verification failed.');
+                            showToast({ type: 'error', message: 'Payment verification failed.' });
                             console.error(err);
                         }
                     },
@@ -88,7 +92,7 @@ const FounderDashboard: React.FC = () => {
 
         } catch (error) {
             console.error('Checkout error:', error);
-            alert('Failed to start checkout. Please try again.');
+            showToast({ type: 'error', message: 'Failed to start checkout.' });
         } finally {
             setLoading(false);
         }
