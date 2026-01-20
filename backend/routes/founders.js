@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/create-checkout', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
-        const userIp = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+        const userIp = req.ip || req.headers['x-forwarded-for'];
 
         // Default to Stripe if IP lookup fails or sets to localhost
         // in production we would use a geo-ip service here

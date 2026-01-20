@@ -7,7 +7,11 @@ import Stripe from 'stripe';
 
 class StripeService {
     constructor() {
-        this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+        if (process.env.STRIPE_SECRET_KEY) {
+            this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+        } else {
+            console.warn('⚠️ STRIPE_SECRET_KEY is missing. Stripe functionality will be disabled.');
+        }
     }
 
     /**
