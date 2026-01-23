@@ -23,6 +23,7 @@ import personasRoutes from './routes/personas.js';
 import foundersRoutes from './routes/founders.js';
 import gamificationRoutes from './routes/gamification.js';
 import assessmentRoutes from './routes/assessment.js';
+import aiRoutes from './routes/ai.js';
 
 // Security Middleware
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter.js';
@@ -87,6 +88,7 @@ app.get('/health', (req, res) => {
 // Mount Routes
 app.use('/api/antigravity', strictLimiter, antigravityRoutes);
 app.use('/api/gemini', strictLimiter, geminiRoutes);
+app.use('/api/ai', aiRoutes); // NEW: Intelligent AI Router
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/agents', strictLimiter, agentRoutes);
@@ -100,17 +102,21 @@ app.use('/api/assessment', assessmentRoutes);
 app.get('/api', (req, res) => {
   res.json({
     message: 'CommCoach AI Backend API',
-    version: '1.0.3',
+    version: '1.1.0',
     endpoints: {
       health: '/health',
       auth: '/api/auth',
       admin: '/api/admin',
       agents: '/api/agents',
+      ai: '/api/ai', // NEW: Intelligent AI Router
       antigravity: '/api/antigravity',
-      gemini: '/api/gemini',
+      gemini: '/api/gemini', // Legacy
       streak: '/api/streak',
       missions: '/api/missions',
-      personas: '/api/personas'
+      personas: '/api/personas',
+      founders: '/api/founders',
+      gamification: '/api/gamification',
+      assessment: '/api/assessment'
     }
   });
 });

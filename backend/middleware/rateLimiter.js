@@ -59,7 +59,7 @@ export const strictLimiter = rateLimit({
     max: async (req) => {
         const user = req.user;
 
-        if (!user) return 2; // Very limited for unauthenticated
+        if (!user) return 2; // Restore strict limit
 
         switch (user.subscription_tier) {
             case 'enterprise':
