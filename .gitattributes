@@ -1,0 +1,24 @@
+# CommCoach AI - Git Attributes
+# Setup git-crypt encryption for sensitive files
+
+# Encrect all .env files
+*.env filter=git-crypt diff=git-crypt
+*/.env filter=git-crypt diff=git-crypt
+.env.* filter=git-crypt diff=git-crypt
+
+# Encrypt credentials and secrets folders
+credentials/** filter=git-crypt diff=git-crypt
+secrets/** filter=git-crypt diff=git-crypt
+**/credentials/** filter=git-crypt diff=git-crypt
+**/secrets/** filter=git-crypt diff=git-crypt
+
+# Encrypt specific sensitive files
+backend/keys/*.pem filter=git-crypt diff=git-crypt
+database/production-config.json filter=git-crypt diff=git-crypt
+
+# Force LF line endings for consistency across OS
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.md text eol=lf

@@ -3,20 +3,40 @@ node_modules/
 frontend/node_modules/
 backend/node_modules/
 
-# Environment variables - NEVER commit these!
+# Environment files - NEVER commit these!
 .env
 .env.local
 .env.*.local
+*.env
 frontend/.env
 frontend/.env.local
 backend/.env
 backend/.env.local
+
+# Credentials & Secrets
+credentials/
+secrets/
+**/credentials/**
+**/secrets/**
+*apikey*
+*api-key*
+*secret*
+*.pem
+*.key
+
+# Database
+*.db
+*.sqlite
+*.dump
+dump.rdb
 
 # Build outputs
 dist/
 build/
 frontend/dist/
 backend/dist/
+.vercel/
+.railway/
 
 # Logs
 logs
