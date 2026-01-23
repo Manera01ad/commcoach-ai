@@ -21,12 +21,12 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
 
         try {
             await login(email, password);
+            // Success! User will be automatically redirected by App.tsx
+            // No need to manually redirect here
         } catch (err: any) {
-            if (err.response?.data?.error) {
-                setError(err.response.data.error);
-            } else {
-                setError(err.message || 'Failed to sign in');
-            }
+            // Handle various error types
+            const errorMessage = err.message || 'Failed to sign in. Please check your credentials.';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

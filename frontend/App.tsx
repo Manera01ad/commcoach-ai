@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './src/contexts/AuthContext';
 import AuthRouter from './src/pages/auth/AuthRouter';
+import ProtectedRoute from './src/components/ProtectedRoute';
 import { SessionPhase, Message, SessionState, UserProfile } from './types';
 import ChatWindow from './components/ChatWindow';
 import Header from './components/Header';
@@ -9,10 +11,10 @@ import MentorsLab from './components/MentorsLab';
 import MeetingAgent from './components/MeetingAgent';
 import ProfileDashboard from './components/ProfileDashboard';
 import VisionLab from './components/VisionLab';
-import BrowserWindow from './src/components/AgentBrowser/BrowserWindow'; // Import Browser Window
-import { getGenerativeModelProxy } from './src/services/apiClient'; // Updated import
+import BrowserWindow from './src/components/AgentBrowser/BrowserWindow';
+import { getGenerativeModelProxy } from './src/services/apiClient';
 import Dashboard from './src/pages/Dashboard';
-import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './src/constants'; // This file needs to exist
+import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './src/constants';
 
 // Adapter for legacy geminiApi usage
 const geminiApi = getGenerativeModelProxy();
@@ -48,9 +50,11 @@ const DEFAULT_PROFILE: UserProfile = {
   growthGoals: ['Public Speaking', 'Clarity', 'Empathy', 'Persuasion']
 };
 
-const App: React.FC = () => {
-  const { isAuthenticated, loading } = useAuth();
-
+/**
+ * Main Application Component
+ * Handles routing and authentication flow
+ */
+const MainApp: React.FC = () => {
   const [session, setSession] = useState<SessionState>({
     sessionId: `sess_${Math.random().toString(36).substring(2, 11)}`,
     phase: SessionPhase.CHAT,
@@ -63,28 +67,9 @@ const App: React.FC = () => {
   });
 
   const [isThinking, setIsThinking] = useState(false);
-
-  // New State for Agent Browser
   const [showBrowser, setShowBrowser] = useState(false);
   const [browserStep, setBrowserStep] = useState<any>(null);
   const [browserLogs, setBrowserLogs] = useState<string[]>([]);
-
-  // Show loading screen while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
-        <div className="text-center">
-          <div className="spinner w-12 h-12 mx-auto mb-4"></div>
-          <p className="text-neutral-600 dark:text-neutral-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show auth pages if not authenticated
-  if (!isAuthenticated) {
-    return <AuthRouter />;
-  }
 
   const switchPhase = (newPhase: SessionPhase) => {
     if (newPhase === SessionPhase.CHAT) {
@@ -116,7 +101,6 @@ const App: React.FC = () => {
 
   const generateAIResponse = async (userText: string, instruction: string, useThinking: boolean = false, useSearch: boolean = false) => {
     setIsThinking(true);
-    // Create a placeholder message for the stream
     const messageId = Date.now().toString();
     setSession(prev => ({
       ...prev,
@@ -126,9 +110,7 @@ const App: React.FC = () => {
     try {
       let fullContent = "";
 
-      // Use Streaming API
       await geminiApi.streamContent(userText, (chunk: string) => {
-        // Check for Browser Events
         if (chunk.startsWith('[BROWSER_EVENT]')) {
           try {
             const eventData = JSON.parse(chunk.replace('[BROWSER_EVENT]', ''));
@@ -138,7 +120,6 @@ const App: React.FC = () => {
               setBrowserLogs(prev => [...prev, eventData.description]);
             }
 
-            // Auto-hide browser after 'think' event (logic can be refined)
             if (eventData.type === 'think' && eventData.description.includes('Synthesizing')) {
               setTimeout(() => setShowBrowser(false), 5000);
             }
@@ -146,7 +127,6 @@ const App: React.FC = () => {
             console.error("Failed to parse browser event", e);
           }
         } else {
-          // Normal Text Content
           fullContent += chunk;
           setSession(prev => ({
             ...prev,
@@ -205,7 +185,6 @@ const App: React.FC = () => {
     } else {
       setSession(prev => ({ ...prev, messages: [...prev.messages, userMsg] }));
 
-      // We rely on backend intent classification for research now
       let currentInstruction = SYSTEM_INSTRUCTION;
       if (text.includes('[LIBRARY SEARCH')) {
         currentInstruction += "\n\nYou are helping the user find specific training videos from the mentioned YouTube channel. Use Google Search to find direct video links, titles, and brief descriptions from that channel. Focus on Aleena Rais Live content if requested.";
@@ -259,17 +238,40 @@ const App: React.FC = () => {
             />
           )}
 
-          {/* Agent Browser Overlay */}
           <BrowserWindow
             isVisible={showBrowser}
             onClose={() => setShowBrowser(false)}
             currentStep={browserStep}
             logs={browserLogs}
           />
-
         </main>
       </div>
     </div>
+  );
+};
+
+/**
+ * App Component with Router
+ * Handles authentication routing
+ */
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        {/* Public Route - Login/Signup */}
+        <Route path="/login" element={<AuthRouter />} />
+
+        {/* Protected Routes - Require Authentication */}
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <MainApp />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 };
 
