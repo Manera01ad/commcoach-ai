@@ -8,7 +8,6 @@ import VoiceOverlay from './chat/VoiceOverlay';
 import { createPcmBlob } from '../audioUtils';
 import {
   Brain,
-  Search,
   Mic,
   StopCircle,
   Volume2,
@@ -402,14 +401,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                       </div>
                     )}
                   </div>
-                  <button type="button" onClick={() => setDeepThinking(!deepThinking)} className={`p-2 rounded-lg flex items-center space-x-1 transition-all ${deepThinking ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-indigo-600'}`}>
-                    <Brain className="w-4 h-4" />
-                    <span className="text-[9px] font-black uppercase">Think</span>
-                  </button>
-                  <button type="button" onClick={() => setSearchGrounding(!searchGrounding)} className={`p-2 rounded-lg flex items-center space-x-1 transition-all ${searchGrounding ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-indigo-600'}`}>
-                    <Search className="w-4 h-4" />
-                    <span className="text-[9px] font-black uppercase">Search</span>
-                  </button>
                 </div>
                 <div className="flex space-x-3">
                   <button type="button" onClick={startVoiceSession} className={`p-4 rounded-full transition-all ${isSessionActive ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}>
@@ -467,10 +458,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         isAnalyzing={isAnalyzing}
         isSessionActive={isSessionActive}
         onStartVoiceSession={startVoiceSession}
-        deepThinking={deepThinking}
-        setDeepThinking={setDeepThinking}
-        searchGrounding={searchGrounding}
-        setSearchGrounding={setSearchGrounding}
         appIsThinking={appIsThinking}
         onShowKeySettings={() => setShowKeySettings(true)}
         selectedModel={selectedModel}

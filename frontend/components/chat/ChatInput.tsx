@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
-import { Brain, Search, Mic, StopCircle, Settings, Send, ChevronDown, Sparkles } from 'lucide-react';
+import { Mic, StopCircle, Settings, Send, ChevronDown, Sparkles } from 'lucide-react';
 
 interface ChatInputProps {
     onSend: (text: string) => void;
     isAnalyzing: boolean;
     isSessionActive: boolean;
     onStartVoiceSession: () => void;
-    deepThinking: boolean;
-    setDeepThinking: (val: boolean) => void;
-    searchGrounding: boolean;
-    setSearchGrounding: (val: boolean) => void;
     appIsThinking?: boolean;
     onShowKeySettings?: () => void;
     selectedModel: string;
@@ -21,10 +17,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     isAnalyzing,
     isSessionActive,
     onStartVoiceSession,
-    deepThinking,
-    setDeepThinking,
-    searchGrounding,
-    setSearchGrounding,
     appIsThinking,
     onShowKeySettings,
     selectedModel,
@@ -100,28 +92,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
                                     </div>
                                 )}
                             </div>
-
-                            <div className="w-px h-4 bg-slate-200 mx-1" />
-
-                            <button
-                                type="button"
-                                onClick={() => setDeepThinking(!deepThinking)}
-                                title="Thinking Mode"
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${deepThinking ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-indigo-600'}`}
-                            >
-                                <Brain className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-tighter">Thinking</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setSearchGrounding(!searchGrounding)}
-                                title="Search Grounding"
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${searchGrounding ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-indigo-600'}`}
-                            >
-                                <Search className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-tighter">Search</span>
-                            </button>
                         </div>
 
                         <div className="flex items-center gap-3">
