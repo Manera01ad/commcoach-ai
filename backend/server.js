@@ -26,6 +26,7 @@ import foundersRoutes from './routes/founders.js';
 import gamificationRoutes from './routes/gamification.js';
 import assessmentRoutes from './routes/assessment.js';
 import aiRoutes from './routes/ai.js';
+import therapyRoutes from './routes/therapy.js';
 
 // Security Middleware
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter.js';
@@ -104,6 +105,7 @@ app.use('/api/personas', personasRoutes);
 app.use('/api/founders', foundersRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/assessment', assessmentRoutes);
+app.use('/api/therapy', therapyRoutes);
 
 app.get('/api', (req, res) => {
   res.json({
@@ -122,7 +124,8 @@ app.get('/api', (req, res) => {
       personas: '/api/personas',
       founders: '/api/founders',
       gamification: '/api/gamification',
-      assessment: '/api/assessment'
+      assessment: '/api/assessment',
+      therapy: '/api/therapy'
     }
   });
 });

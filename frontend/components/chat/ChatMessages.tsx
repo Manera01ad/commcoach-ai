@@ -1,7 +1,12 @@
 import React, { useRef, useEffect } from 'react';
 import { Brain, Volume2, Youtube, ExternalLink, BarChart2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Message, SessionPhase } from '../../types'; // Adjusted import path
+import { Message, SessionPhase } from '../../types';
 import { marked } from 'marked';
+import { ArchetypeBadge } from '../../src/components/Aura/ArchetypeBadge';
+import { TherapyMessage } from '../../src/components/Aura/TherapyMessage';
+import { ConfidenceMeter } from '../../src/components/Aura/ConfidenceMeter';
+import { ExerciseCard } from '../../src/components/Aura/ExerciseCard';
+import '../../src/styles/aura.css';
 
 // Define Interface locally or import if exported
 interface AssessmentStructuredData {
@@ -62,8 +67,43 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                     <div key={msg.id} className="mb-12">
                         <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in`}>
                             {msg.role === 'assistant' && <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center mr-3 mt-1 shadow-sm border border-slate-100 text-indigo-500 shrink-0"><Brain className="w-5 h-5" /></div>}
-                            <div className={`max-w-[85%] p-6 rounded-2xl relative ${msg.role === 'user' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-800 border border-slate-100 shadow-sm'}`}>
-                                <div className="prose-sm" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} />
+                            <div className={`max-w-[85%] p-6 rounded-2xl relative ${msg.role === 'user' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-800 border border-slate-100 shadow-sm'} ${msg.metadata?.therapyResult ? 'border-purple-500/30 bg-gradient-to-br from-white to-purple-50/30' : ''}`}>
+                                {msg.metadata?.therapyResult && (
+                                    <div className="mb-4">
+                                        <ArchetypeBadge
+                                            archetype={msg.metadata.therapyResult.archetype}
+                                            confidence={msg.metadata.therapyResult.confidence}
+                                        />
+                                    </div>
+                                )}
+
+                                {msg.metadata?.therapyResult ? (
+                                    <div className="space-y-2">
+                                        {/* Split content by sections if they exist */}
+                                        {msg.content.includes('### The Mirror') ? (
+                                            <>
+                                                <TherapyMessage
+                                                    section="mirror"
+                                                    content={msg.content.split('### The Prescription')[0].replace('### The Mirror', '').trim()}
+                                                />
+                                                <TherapyMessage
+                                                    section="prescription"
+                                                    content={msg.content.split('### The Prescription')[1]?.trim() || ''}
+                                                />
+                                                <div className="pt-2">
+                                                    <ExerciseCard
+                                                        exercise={msg.content.split('### The Prescription')[1]?.split('\n')[0]?.trim() || 'CBT Grounding Exercise'}
+                                                    />
+                                                </div>
+                                                <ConfidenceMeter score={msg.metadata.therapyResult.confidence} />
+                                            </>
+                                        ) : (
+                                            <div className="prose-sm" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} />
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="prose-sm" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} />
+                                )}
                                 {msg.role === 'assistant' && (
                                     <button
                                         onClick={() => onTts(msg.content, msg.id)}

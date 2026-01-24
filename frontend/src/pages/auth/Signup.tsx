@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Eye, EyeOff, Lock, Mail, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, ShieldCheck, ArrowRight } from 'lucide-react';
 
 interface SignupProps {
     onSwitchToLogin: () => void;
 }
 
 const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
-    const { signup } = useAuth();
+    const { signup, loginWithGoogle } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
@@ -15,6 +15,15 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    const handleGoogleSignup = async () => {
+        setError(null);
+        try {
+            await loginWithGoogle();
+        } catch (err: any) {
+            setError(err.message || 'Google sign-up failed');
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,7 +34,6 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
             await signup(email, password, fullName);
             setSuccess(true);
         } catch (err: any) {
-            // Handle various error types
             const errorMessage = err.message || 'Failed to create account. Please try again.';
             setError(errorMessage);
         } finally {
@@ -35,17 +43,17 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
 
     if (success) {
         return (
-            <div className="w-full max-w-md p-8 rounded-2xl bg-white dark:bg-neutral-900 shadow-xl border border-neutral-200 dark:border-neutral-800 text-center animate-in fade-in zoom-in duration-300">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 dark:text-green-400">
-                    <ShieldCheck className="w-8 h-8" />
+            <div className="w-full max-w-md p-10 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-neutral-100 flex flex-col items-center text-center animate-in fade-in zoom-in duration-500">
+                <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mb-8 text-emerald-500 shadow-xl shadow-emerald-500/10">
+                    <ShieldCheck className="w-10 h-10" />
                 </div>
-                <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Account Created!</h2>
-                <p className="text-neutral-500 dark:text-neutral-400 mb-8">
-                    Your account has been successfully created. You can now sign in to access the platform.
+                <h2 className="text-3xl font-black text-neutral-800 mb-3">Account Created</h2>
+                <p className="text-neutral-500 font-medium mb-10 max-w-sm">
+                    Welcome to the future of communication. Your account has been successfully initialized.
                 </p>
                 <button
                     onClick={onSwitchToLogin}
-                    className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-lg shadow-blue-500/30"
+                    className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl transition-all shadow-xl shadow-blue-500/20"
                 >
                     Proceed to Login
                 </button>
@@ -54,72 +62,102 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
     }
 
     return (
-        <div className="w-full max-w-md p-8 rounded-2xl bg-white dark:bg-neutral-900 shadow-xl border border-neutral-200 dark:border-neutral-800 backdrop-blur-sm">
+        <div className="w-full max-w-md p-8 md:p-10 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-neutral-100 flex flex-col items-center">
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-                    Create Account
-                </h1>
-                <p className="text-neutral-500 dark:text-neutral-400 mt-2">
-                    Join CommCoach AI today
-                </p>
+                <h1 className="text-3xl font-black text-blue-600 mb-2">Create Account</h1>
+                <p className="text-neutral-400 font-medium text-sm">Join CommCoach AI today</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Google Signup - Now Activated */}
+            <button
+                type="button"
+                onClick={handleGoogleSignup}
+                className="w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-2xl bg-white border border-neutral-200 hover:bg-neutral-50 transition-all font-bold text-neutral-700 shadow-sm active:scale-[0.98] mb-6"
+            >
+                <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
+                <span className="text-[15px]">Sign up with Google</span>
+            </button>
+
+            {/* Divider - From reference design */}
+            <div className="w-full relative flex items-center justify-center py-4 mb-6">
+                <div className="w-full border-t border-neutral-100"></div>
+                <span className="absolute px-4 bg-white text-[11px] font-black text-neutral-300 uppercase tracking-widest">OR</span>
+            </div>
+
+            {/* Tabs - From reference design */}
+            <div className="w-full flex p-1.5 bg-neutral-50 rounded-2xl mb-8">
+                <button
+                    type="button"
+                    onClick={onSwitchToLogin}
+                    className="flex-1 py-3 text-sm font-black text-neutral-400 hover:text-neutral-600 transition-colors"
+                >
+                    Sign In
+                </button>
+                <button
+                    type="button"
+                    onClick={() => { }}
+                    className="flex-1 py-3 text-sm font-black text-neutral-800 bg-white rounded-xl shadow-sm border border-neutral-100"
+                >
+                    Sign Up
+                </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="w-full space-y-5">
                 {error && (
-                    <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-sm">
+                    <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-[13px] font-bold text-center animate-shake">
                         {error}
                     </div>
                 )}
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Full Name</label>
-                    <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                <div className="space-y-1.5 w-full">
+                    <label className="text-[13px] font-bold text-neutral-600 ml-1 block">Full Name</label>
+                    <div className="relative group">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-300 group-focus-within:text-blue-500 transition-colors" />
                         <input
                             type="text"
                             required
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                            className="w-full pl-12 pr-5 py-3.5 rounded-xl bg-white border border-neutral-200 text-neutral-800 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all outline-none text-[15px] font-medium placeholder:text-neutral-300"
                             placeholder="John Doe"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Email Address</label>
-                    <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                <div className="space-y-1.5 w-full">
+                    <label className="text-[13px] font-bold text-neutral-600 ml-1 block">Email</label>
+                    <div className="relative group">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-300 group-focus-within:text-blue-500 transition-colors" />
                         <input
                             type="email"
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                            className="w-full pl-12 pr-5 py-3.5 rounded-xl bg-white border border-neutral-200 text-neutral-800 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all outline-none text-[15px] font-medium placeholder:text-neutral-300"
                             placeholder="you@example.com"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Password</label>
-                    <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                <div className="space-y-1.5 w-full">
+                    <label className="text-[13px] font-bold text-neutral-600 ml-1 block">Secure Password</label>
+                    <div className="relative group">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within:text-blue-500 transition-colors" />
                         <input
                             type={showPassword ? 'text' : 'password'}
                             required
                             minLength={6}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-10 pr-12 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                            className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-white border border-neutral-200 text-neutral-800 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all outline-none text-[15px] font-medium placeholder:text-neutral-300"
                             placeholder="••••••••"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-300 hover:text-neutral-500 transition-colors"
                         >
-                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                     </div>
                 </div>
@@ -127,27 +165,23 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 px-4 bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-900 font-medium rounded-lg shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-3 mt-4"
                 >
                     {loading ? (
-                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                         <>
-                            Create Account <ArrowRight className="w-4 h-4" />
+                            <ArrowRight className="w-5 h-5" />
+                            <span className="text-[16px]">Create Account with Email</span>
                         </>
                     )}
                 </button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                Already have an account?{' '}
-                <button
-                    onClick={onSwitchToLogin}
-                    className="font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
-                >
-                    Sign In
-                </button>
-            </div>
+            <p className="mt-8 text-[12px] font-medium text-neutral-400 text-center leading-relaxed">
+                By signing up, you agree to our <br />
+                <a href="#" className="underline decoration-neutral-200 underline-offset-4 hover:text-neutral-800 transition-colors">Terms of Service</a> and <a href="#" className="underline decoration-neutral-200 underline-offset-4 hover:text-neutral-800 transition-colors">Privacy Policy</a>.
+            </p>
         </div>
     );
 };

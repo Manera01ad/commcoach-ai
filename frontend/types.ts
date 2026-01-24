@@ -7,7 +7,8 @@ export enum SessionPhase {
   CHAT = 'CHAT',
   MENTORS = 'MENTORS',
   AGENT = 'AGENT',
-  PROFILE = 'PROFILE'
+  PROFILE = 'PROFILE',
+  THERAPY_DASHBOARD = 'THERAPY_DASHBOARD'
 }
 
 export interface AvatarCloneConfig {
@@ -64,6 +65,12 @@ export interface Message {
     toneAnalysis?: string;
     complexityScore?: number;
     pacingNote?: string;
+  };
+  metadata?: {
+    therapyResult?: {
+      archetype: string;
+      confidence: number;
+    };
   };
 }
 

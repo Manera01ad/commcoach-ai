@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StopCircle, Settings, Send, ChevronDown, Sparkles, AudioLines } from 'lucide-react';
+import { StopCircle, Settings, Send, ChevronDown, Sparkles, AudioLines, Brain } from 'lucide-react';
 
 interface ChatInputProps {
     onSend: (text: string) => void;
@@ -10,6 +10,8 @@ interface ChatInputProps {
     onShowKeySettings?: () => void;
     selectedModel: string;
     onModelChange: (model: string) => void;
+    therapyMode: boolean;
+    onToggleTherapy: () => void;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
@@ -20,7 +22,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
     appIsThinking,
     onShowKeySettings,
     selectedModel,
-    onModelChange
+    onModelChange,
+    therapyMode,
+    onToggleTherapy
 }) => {
     const [input, setInput] = useState('');
     const [showModels, setShowModels] = useState(false);
@@ -92,6 +96,21 @@ const ChatInput: React.FC<ChatInputProps> = ({
                                     </div>
                                 )}
                             </div>
+
+                            {/* Therapy Mode Toggle */}
+                            <button
+                                type="button"
+                                onClick={onToggleTherapy}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${therapyMode
+                                    ? 'bg-purple-600/10 border-purple-500/30 text-purple-600 font-bold shadow-sm'
+                                    : 'border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                                    }`}
+                            >
+                                <Brain className={`w-3.5 h-3.5 ${therapyMode ? 'animate-pulse' : ''}`} />
+                                <span className="text-[11px] tracking-tight">
+                                    {therapyMode ? 'Therapy Mode ON' : 'Enable Therapy'}
+                                </span>
+                            </button>
                         </div>
 
                         <div className="flex items-center gap-2">

@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Login from './Login';
 import Signup from './Signup';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Brain } from 'lucide-react';
 
 const AuthRouter: React.FC = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -17,47 +17,47 @@ const AuthRouter: React.FC = () => {
     <div className="min-h-screen w-full flex bg-neutral-50 dark:bg-neutral-950 font-['Inter']">
 
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex w-1/2 bg-neutral-900 border-r border-neutral-800 p-12 flex-col justify-between relative overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+      <div className="hidden lg:flex w-1/2 bg-[#0a0a0f] border-r border-white/5 p-12 lg:p-16 flex-col justify-between relative overflow-hidden">
+        {/* Deep Aura Background Effects */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-tr from-blue-500 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
+            <div className="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">
+            <span className="text-2xl font-bold text-white tracking-tight">
               CommCoach AI
             </span>
-            <div className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 tracking-wider">
+            <div className="px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 tracking-wider">
               BETA
             </div>
           </div>
         </div>
 
         <div className="relative z-10 max-w-lg">
-          <h2 className="text-4xl font-bold text-white leading-tight mb-6">
+          <h2 className="text-5xl font-bold text-white leading-tight mb-8">
             Master the art of <br />
             <span className="text-blue-400">communication</span> with AI
           </h2>
-          <p className="text-lg text-neutral-400 leading-relaxed mb-8">
+          <p className="text-xl text-neutral-400 leading-relaxed mb-12">
             Get real-time feedback, practice with realistic personas, and track your progress with our advanced multi-modal AI coaching platform.
           </p>
 
           <div className="grid grid-cols-2 gap-6">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              <div className="font-semibold text-white mb-1">Real-time Analysis</div>
-              <div className="text-sm text-neutral-400">Instant feedback on pacing and clarity</div>
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm shadow-xl">
+              <div className="font-bold text-white mb-2">Real-time Analysis</div>
+              <div className="text-sm text-neutral-500 leading-relaxed">Instant feedback on pacing and clarity</div>
             </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              <div className="font-semibold text-white mb-1">Adaptive Drill</div>
-              <div className="text-sm text-neutral-400">Personalized exercises for your gaps</div>
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm shadow-xl">
+              <div className="font-bold text-white mb-2">Adaptive Drill</div>
+              <div className="text-sm text-neutral-500 leading-relaxed">Personalized exercises for your gaps</div>
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 text-sm text-neutral-500">
+        <div className="relative z-10 text-sm font-medium text-neutral-600">
           © 2026 CommCoach AI. All rights reserved.
         </div>
       </div>

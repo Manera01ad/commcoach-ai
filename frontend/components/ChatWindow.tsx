@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Message, SessionPhase } from '../types';
+import { marked } from 'marked';
 import CommCoachInfographic from './CommCoachInfographic';
 import ChatMessages from './chat/ChatMessages';
 import ChatInput from './chat/ChatInput';
@@ -42,6 +43,7 @@ interface ChatWindowProps {
   onStartMentorsLab?: () => void;
   onStartMeetingAgent?: () => void;
   isThinking?: boolean;
+  setSession: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -52,7 +54,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   onStartAssessment,
   onStartMentorsLab,
   onStartMeetingAgent,
-  isThinking: appIsThinking
+  isThinking: appIsThinking,
+  setSession
 }) => {
   const [input, setInput] = useState('');
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -65,6 +68,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('user_gemini_key') || '');
   const [selectedModel, setSelectedModel] = useState(localStorage.getItem('user_chat_model') || 'gemini-2.0-flash-exp');
   const [showModelsInitial, setShowModelsInitial] = useState(false);
+  const [therapyMode, setTherapyMode] = useState(false);
 
   // Antigravity State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -149,7 +153,57 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     // We need to support the initial chat view's input as well
     const text = input;
     setInput('');
-    onSend(text, deepThinking, searchGrounding, selectedModel);
+
+    if (therapyMode) {
+      await sendTherapyMessage(text);
+    } else {
+      onSend(text, deepThinking, searchGrounding, selectedModel);
+    }
+  };
+
+  const sendTherapyMessage = async (text: string) => {
+    onAddManualMessage('user', text);
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+    try {
+      const response = await fetch(`${API_BASE}/api/therapy/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: messages.slice(-5)
+        })
+      });
+
+      if (!response.ok) throw new Error('Therapy analysis failed');
+      const data = await response.json();
+
+      if (data.type === 'therapy') {
+        const therapyMsg: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date(),
+          metadata: {
+            therapyResult: {
+              archetype: data.archetype,
+              confidence: data.confidence
+            }
+          }
+        };
+        // Use setSession to add the message with metadata directly
+        // because onAddManualMessage might not support complex metadata
+        setSession(prev => ({
+          ...prev,
+          messages: [...prev.messages, therapyMsg]
+        }));
+      } else if (data.type === 'clarification') {
+        onAddManualMessage('assistant', data.question);
+      }
+    } catch (err) {
+      console.error(err);
+      onAddManualMessage('assistant', "⚠️ Failed to connect to Clinical Therapy system.");
+    }
   };
 
   const recognitionRef = useRef<any>(null);
@@ -399,6 +453,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                       </div>
                     )}
                   </div>
+                  {/* Therapy Mode Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setTherapyMode(!therapyMode)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${therapyMode
+                        ? 'bg-purple-600/10 border-purple-500/30 text-purple-600 font-bold shadow-sm'
+                        : 'bg-slate-50 border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                      }`}
+                  >
+                    <Brain className={`w-3.5 h-3.5 ${therapyMode ? 'animate-pulse' : ''}`} />
+                    <span className="text-[11px] tracking-tight">
+                      {therapyMode ? 'Therapy Mode ON' : 'Enable Therapy'}
+                    </span>
+                  </button>
                 </div>
                 <div className="flex space-x-3">
                   <button
@@ -456,6 +524,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           setSelectedModel(m);
           localStorage.setItem('user_chat_model', m);
         }}
+        therapyMode={therapyMode}
+        onToggleTherapy={() => setTherapyMode(!therapyMode)}
       />
 
       {/* Key Settings Modal */}

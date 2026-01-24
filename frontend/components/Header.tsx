@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SessionPhase } from '../types';
-import { Target, Users, Mic2, Briefcase, Eye, Moon, Sun, LogOut, Settings, User } from 'lucide-react';
+import { Target, Users, Mic2, Briefcase, Eye, Moon, Sun, LogOut, Settings, User, Sparkles } from 'lucide-react';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 
@@ -36,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
             { id: SessionPhase.CHAT, label: 'Mastery', icon: <Target className="w-3 h-3" /> },
             { id: SessionPhase.MENTORS, label: 'Ment', icon: <Users className="w-3 h-3" /> },
             { id: SessionPhase.AGENT, label: 'Meet', icon: <Briefcase className="w-3 h-3" /> },
+            { id: SessionPhase.THERAPY_DASHBOARD, label: 'Aura', icon: <Sparkles className="w-3 h-3" /> },
           ].map(item => (
             <button
               key={item.id}

@@ -13,6 +13,7 @@ import ProfileDashboard from './components/ProfileDashboard';
 import BrowserWindow from './src/components/AgentBrowser/BrowserWindow';
 import { getGenerativeModelProxy } from './src/services/apiClient';
 import Dashboard from './src/pages/Dashboard';
+import TherapyDashboard from './src/pages/TherapyDashboard';
 import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './src/constants';
 
 // Adapter for legacy geminiApi usage
@@ -249,6 +250,9 @@ const MainApp: React.FC = () => {
           {session.phase === SessionPhase.PROFILE && (
             <Dashboard />
           )}
+          {session.phase === (SessionPhase as any).THERAPY_DASHBOARD && (
+            <TherapyDashboard />
+          )}
           {(session.phase === SessionPhase.CHAT || session.phase === SessionPhase.ASSESSMENT) && (
             <ChatWindow
               messages={session.messages}
@@ -260,6 +264,7 @@ const MainApp: React.FC = () => {
               onStartAssessment={() => switchPhase(SessionPhase.ASSESSMENT)}
               onStartMentorsLab={() => switchPhase(SessionPhase.MENTORS)}
               onStartMeetingAgent={() => switchPhase(SessionPhase.AGENT)}
+              setSession={setSession}
             />
           )}
 
