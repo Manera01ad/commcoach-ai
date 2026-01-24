@@ -23,16 +23,35 @@ class VoiceService {
                 socket.join(`user-${userId}`);
             });
 
-            socket.on('audio-packet', async (data) => {
-                const { audio, userId } = data;
-                console.log(`[VoiceService] Received audio packet from user: ${userId}`);
+            socket.on('speech-text', async (data) => {
+                const { text, isFinal, userId } = data;
+                console.log(`[VoiceService] Received speech text: "${text}" (Final: ${isFinal})`);
 
-                // Mock behavior: respond every 10th packet
-                if (!socket.packetCount) socket.packetCount = 0;
-                socket.packetCount++;
+                // Real-time behavioral coaching logic
+                if (isFinal) {
+                    try {
+                        const prompt = `
+                        Analyze this spoken segment for communication effectiveness:
+                        "${text}"
+                        
+                        Provide a very brief (1 sentence), high-impact coaching tip focused on:
+                        1. Linguistic clarity
+                        2. Tone
+                        3. Confidence
+                        
+                        The tip must be direct and behavioral.
+                        `;
 
-                if (socket.packetCount % 10 === 0) {
-                    this.sendVoiceResponse(userId, "Analysis update: Your pace is excellent. I'm detecting high clarity levels in your last segment.");
+                        const response = await geminiService.generateContent('gemini-2.0-flash-exp', prompt);
+                        this.sendVoiceResponse(userId, response);
+                    } catch (error) {
+                        console.error('[VoiceService] Gemini error:', error);
+                    }
+                } else if (text.length > 30 && !socket.interimSent) {
+                    // Quick interim encouragement/feedback
+                    socket.interimSent = true;
+                    this.sendVoiceResponse(userId, "I'm detecting your rhythm... continue.", { shouldSpeak: false });
+                    setTimeout(() => { socket.interimSent = false; }, 5000);
                 }
             });
 
@@ -43,12 +62,12 @@ class VoiceService {
     }
 
     // Broadcast a voice response back to the user
-    async sendVoiceResponse(userId, text) {
+    async sendVoiceResponse(userId, text, extra = {}) {
         if (!this.io) return;
 
         this.io.to(`user-${userId}`).emit('voice-response', {
             text,
-            // In a real implementation, we would also send a base64 encoded audio buffer (TTS)
+            ...extra,
             timestamp: new Date().toISOString()
         });
     }

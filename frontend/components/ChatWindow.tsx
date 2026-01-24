@@ -145,6 +145,74 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     onSend(text);
   };
 
+  const [speechRecognition, setSpeechRecognition] = useState<any>(null);
+
+  useEffect(() => {
+    // Initialize Speech Recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        const currentText = finalTranscript || interimTranscript;
+        if (currentText) {
+          setInputFeedback(currentText);
+          inputFeedbackRef.current = currentText;
+
+          // Stream the text to backend for real-time analysis
+          if (sessionRef.current?.connected) {
+            sessionRef.current.emit('speech-text', {
+              text: currentText,
+              isFinal: !!finalTranscript,
+              userId: 'user_current'
+            });
+          }
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          setVoiceError('Microphone access denied.');
+        }
+      };
+
+      setSpeechRecognition(recognition);
+    }
+  }, []);
+
+  const speakText = (text: string) => {
+    if (!window.speechSynthesis) return;
+
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.1;
+    utterance.pitch = 1.0;
+
+    // Find a good voice (preferably a professional sounding one)
+    const voices = window.speechSynthesis.getVoices();
+    const premiumVoice = voices.find(v => v.name.includes('Google') || v.name.includes('Premium')) || voices[0];
+    if (premiumVoice) utterance.voice = premiumVoice;
+
+    window.speechSynthesis.speak(utterance);
+  };
+
   const startVoiceSession = async () => {
     if (isSessionActive) {
       stopVoiceSession();
@@ -160,38 +228,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       socket.on('connect', async () => {
         console.log('[Voice] Socket connected');
-        const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-        audioContextRef.current = inputCtx;
 
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        streamRef.current = stream;
-
-        const source = inputCtx.createMediaStreamSource(stream);
-        const processor = inputCtx.createScriptProcessor(4096, 1, 1);
-        processorRef.current = processor;
-
-        source.connect(processor);
-        processor.connect(inputCtx.destination);
-
-        processor.onaudioprocess = (e) => {
-          if (!isSessionActive) return;
-          const inputData = e.inputBuffer.getChannelData(0);
-          const pcm = createPcmBlob(inputData);
-          socket.emit('audio-packet', {
-            audio: pcm.data,
-            userId: 'user_current',
-            timestamp: new Date().toISOString()
-          });
-        };
+        if (speechRecognition) {
+          speechRecognition.start();
+        }
 
         socket.emit('start-voice', { userId: 'user_current' });
         setIsSessionActive(true);
         setIsConnectingVoice(false);
       });
 
-      socket.on('voice-response', (data: { text: string }) => {
+      socket.on('voice-response', (data: { text: string; shouldSpeak?: boolean }) => {
         setOutputFeedback(data.text);
-        onAddManualMessage('assistant', data.text);
+        if (data.shouldSpeak !== false) {
+          speakText(data.text);
+          // Also add to chat history for persistent record
+          onAddManualMessage('assistant', data.text);
+        }
       });
 
       socket.on('connect_error', (err) => {
@@ -210,32 +263,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const stopVoiceSession = () => {
     setIsSessionActive(false);
     setIsConnectingVoice(false);
-    if (processorRef.current) {
-      try { processorRef.current.disconnect(); } catch (e) { }
-      processorRef.current = null;
+
+    if (speechRecognition) {
+      try { speechRecognition.stop(); } catch (e) { }
     }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
     }
-    if (audioContextRef.current) {
-      if (audioContextRef.current.state !== 'closed') {
-        audioContextRef.current.close().catch(() => { });
-      }
-      audioContextRef.current = null;
-    }
-    if (outputAudioContextRef.current) {
-      if (outputAudioContextRef.current.state !== 'closed') {
-        outputAudioContextRef.current.close().catch(() => { });
-      }
-      outputAudioContextRef.current = null;
-    }
+
     if (sessionRef.current) {
       try { sessionRef.current.close(); } catch (e) { }
       sessionRef.current = null;
     }
 
-    // Clear refs
+    // Clear feedbacks
     inputFeedbackRef.current = '';
     outputFeedbackRef.current = '';
     setInputFeedback('');
