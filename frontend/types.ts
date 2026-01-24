@@ -7,8 +7,7 @@ export enum SessionPhase {
   CHAT = 'CHAT',
   MENTORS = 'MENTORS',
   AGENT = 'AGENT',
-  PROFILE = 'PROFILE',
-  VISION = 'VISION'
+  PROFILE = 'PROFILE'
 }
 
 export interface AvatarCloneConfig {

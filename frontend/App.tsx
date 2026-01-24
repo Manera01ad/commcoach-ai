@@ -10,7 +10,6 @@ import RecapScreen from './components/RecapScreen';
 import MentorsLab from './components/MentorsLab';
 import MeetingAgent from './components/MeetingAgent';
 import ProfileDashboard from './components/ProfileDashboard';
-import VisionLab from './components/VisionLab';
 import BrowserWindow from './src/components/AgentBrowser/BrowserWindow';
 import { getGenerativeModelProxy } from './src/services/apiClient';
 import Dashboard from './src/pages/Dashboard';
@@ -217,9 +216,6 @@ const MainApp: React.FC = () => {
           )}
           {session.phase === SessionPhase.AGENT && (
             <MeetingAgent />
-          )}
-          {session.phase === SessionPhase.VISION && (
-            <VisionLab />
           )}
           {session.phase === SessionPhase.PROFILE && (
             <Dashboard />
