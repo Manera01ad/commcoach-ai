@@ -5,6 +5,8 @@ import Login from './Login';
 import Signup from './Signup';
 import { Sparkles, Brain } from 'lucide-react';
 
+import loginVideo from '../../assets/login_bg.mp4';
+
 const AuthRouter: React.FC = () => {
   const { isAuthenticated, loading } = useAuth();
   const [view, setView] = useState<'login' | 'signup'>('login');
@@ -18,6 +20,21 @@ const AuthRouter: React.FC = () => {
 
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex w-1/2 bg-[#0a0a0f] border-r border-white/5 p-12 lg:p-16 flex-col justify-between relative overflow-hidden">
+        {/* Background Video - Scaled to hide watermark, muted as requested */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover scale-[1.15] origin-top"
+          >
+            <source src={loginVideo} type="video/mp4" />
+          </video>
+          {/* Subtle gradient overlay to enhance text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/70 via-neutral-950/40 to-indigo-600/30" />
+        </div>
+
         {/* Deep Aura Background Effects */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
