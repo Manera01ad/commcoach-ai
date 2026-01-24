@@ -15,6 +15,8 @@ import { getGenerativeModelProxy } from './src/services/apiClient';
 import Dashboard from './src/pages/Dashboard';
 import TherapyDashboard from './src/pages/TherapyDashboard';
 import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './src/constants';
+import LandingPage from './src/pages/LandingPage';
+
 
 // Adapter for legacy geminiApi usage
 const geminiApi = getGenerativeModelProxy();
@@ -284,11 +286,13 @@ const MainApp: React.FC = () => {
  * App Component with Router
  * Handles authentication routing
  */
+
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* Public Route - Login/Signup */}
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<AuthRouter />} />
 
         {/* Protected Routes - Require Authentication */}
