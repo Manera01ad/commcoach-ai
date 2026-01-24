@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mic, StopCircle, Settings, Send, ChevronDown, Sparkles } from 'lucide-react';
+import { StopCircle, Settings, Send, ChevronDown, Sparkles, AudioLines } from 'lucide-react';
 
 interface ChatInputProps {
     onSend: (text: string) => void;
@@ -94,13 +94,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 type="button"
                                 onClick={onStartVoiceSession}
-                                className={`p-2.5 rounded-xl transition-all ${isSessionActive ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:bg-slate-200/50 hover:text-slate-900'}`}
+                                className={`p-2 rounded-xl transition-all ${isSessionActive ? 'bg-red-500 text-white animate-pulse' : 'bg-teal-600/90 text-white hover:bg-teal-700 shadow-sm'}`}
+                                title="Start Voice Conversation"
                             >
-                                {isSessionActive ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                                {isSessionActive ? <StopCircle className="w-5 h-5" /> : <AudioLines className="w-5 h-5" />}
                             </button>
 
                             <button

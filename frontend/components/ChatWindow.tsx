@@ -8,11 +8,11 @@ import VoiceOverlay from './chat/VoiceOverlay';
 import { createPcmBlob } from '../audioUtils';
 import {
   Brain,
-  Mic,
   StopCircle,
   Volume2,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  AudioLines
 } from 'lucide-react';
 
 interface AssessmentStructuredData {
@@ -403,8 +403,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   </div>
                 </div>
                 <div className="flex space-x-3">
-                  <button type="button" onClick={startVoiceSession} className={`p-4 rounded-full transition-all ${isSessionActive ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}>
-                    {isSessionActive ? <StopCircle className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                  <button
+                    type="button"
+                    onClick={startVoiceSession}
+                    className={`p-4 rounded-2xl transition-all shadow-lg ${isSessionActive ? 'bg-red-500 text-white animate-pulse' : 'bg-teal-600 text-white hover:bg-teal-700 shadow-teal-900/10'}`}
+                    title="Start Voice Conversation"
+                  >
+                    {isSessionActive ? <StopCircle className="w-6 h-6" /> : <AudioLines className="w-6 h-6" />}
                   </button>
                   <button
                     type="button"
