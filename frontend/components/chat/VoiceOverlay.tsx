@@ -1,5 +1,5 @@
 import React from 'react';
-import { Waves, Mic, Brain, StopCircle, Loader2, AlertCircle, X } from 'lucide-react';
+import { Waves, Mic, Brain, StopCircle, Loader2, AlertCircle, X, Search } from 'lucide-react';
 
 interface VoiceOverlayProps {
     isSessionActive: boolean;
@@ -9,6 +9,7 @@ interface VoiceOverlayProps {
     setVoiceError: (err: string | null) => void;
     inputFeedback: string;
     outputFeedback: string;
+    userVolume: number;
 }
 
 const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
@@ -18,8 +19,12 @@ const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
     voiceError,
     setVoiceError,
     inputFeedback,
-    outputFeedback
+    outputFeedback,
+    userVolume
 }) => {
+    // Scale volume for visualization (0-100 to 1-2.5 scale)
+    const scale = 1 + (userVolume / 50);
+    const opacity = 0.3 + (userVolume / 100);
     return (
         <>
             {/* Voice Active Overlay */}
@@ -27,9 +32,13 @@ const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
                 <div className="absolute inset-0 z-[60] bg-slate-900/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
                     <div className="w-full max-w-2xl flex flex-col items-center space-y-12">
                         <div className="relative">
-                            <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-[60px] animate-pulse" />
-                            <div className="w-32 h-32 bg-indigo-600 rounded-[3rem] flex items-center justify-center text-white shadow-2xl relative z-10 border-4 border-white/10 overflow-hidden">
-                                <Waves className="w-16 h-16 animate-pulse" />
+                            {/* Gemini Live Style Pulse Waves */}
+                            <div className="absolute inset-0 bg-indigo-500/30 rounded-full transition-transform duration-75 ease-out" style={{ transform: `scale(${scale * 1.5})`, opacity: opacity * 0.5 }} />
+                            <div className="absolute inset-0 bg-violet-500/20 rounded-full transition-transform duration-100 ease-out" style={{ transform: `scale(${scale * 2})`, opacity: opacity * 0.3 }} />
+                            <div className="absolute inset-0 bg-blue-500/10 rounded-full transition-transform duration-150 ease-out" style={{ transform: `scale(${scale * 2.5})`, opacity: opacity * 0.1 }} />
+
+                            <div className="w-32 h-32 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-[3rem] flex items-center justify-center text-white shadow-2xl relative z-10 border-4 border-white/20 overflow-hidden transition-transform duration-75" style={{ transform: `scale(${scale})` }}>
+                                <Waves className="w-16 h-16" />
                             </div>
                         </div>
 
@@ -57,6 +66,28 @@ const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
                                 <p className="text-xl font-medium text-white leading-relaxed">
                                     {outputFeedback || "I am analyzing your delivery patterns..."}
                                 </p>
+                            </div>
+
+                            {/* Extensions Mock */}
+                            <div className="flex items-center justify-center gap-6">
+                                <div className="flex flex-col items-center gap-2 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-help" title="Gemini Google Maps Extension Active">
+                                    <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center border border-green-500/30 text-green-400">
+                                        <Search className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-[8px] font-black uppercase text-slate-500">Maps</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-help" title="Gemini YouTube Extension Active">
+                                    <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center border border-red-500/30 text-red-400">
+                                        <Waves className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-[8px] font-black uppercase text-slate-500">YouTube</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-help" title="Gemini Workplace Extension Active">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center border border-blue-500/30 text-blue-400">
+                                        <Brain className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-[8px] font-black uppercase text-slate-500">Workplace</span>
+                                </div>
                             </div>
                         </div>
 

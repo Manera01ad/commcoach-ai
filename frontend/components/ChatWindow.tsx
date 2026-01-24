@@ -73,8 +73,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   // Transcription Buffers
   const [inputFeedback, setInputFeedback] = useState('');
   const [outputFeedback, setOutputFeedback] = useState('');
+  const [userVolume, setUserVolume] = useState(0);
   const inputFeedbackRef = useRef('');
   const outputFeedbackRef = useRef('');
+  const analyzerRef = useRef<AnalyserNode | null>(null);
 
   const sessionRef = useRef<any>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -161,6 +163,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     recognition.lang = 'en-US';
 
     recognition.onresult = (event: any) => {
+      // Gemini Live Feature: Interrupt AI when user starts speaking
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+
       let interimTranscript = '';
       let finalTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -227,6 +234,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setVoiceError(null);
     setIsConnectingVoice(true);
     try {
+      // Initialize Audio Analysis for Visualization
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyzer = audioCtx.createAnalyser();
+      analyzer.fftSize = 256;
+      source.connect(analyzer);
+      analyzerRef.current = analyzer;
+      streamRef.current = stream;
+
+      const updateVolume = () => {
+        if (!analyzerRef.current) return;
+        const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
+        analyzerRef.current.getByteFrequencyData(dataArray);
+        const sum = dataArray.reduce((p, c) => p + c, 0);
+        const avg = sum / dataArray.length;
+        setUserVolume(avg);
+        if (isSessionActive) requestAnimationFrame(updateVolume);
+      };
+      updateVolume();
+
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const SOCKET_BASE = API_URL.replace('/api', '');
       const socket: Socket = io(SOCKET_BASE);
@@ -380,6 +408,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         setVoiceError={setVoiceError}
         inputFeedback={inputFeedback}
         outputFeedback={outputFeedback}
+        userVolume={userVolume}
       />
 
       <ChatMessages
