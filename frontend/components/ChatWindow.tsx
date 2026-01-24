@@ -11,7 +11,9 @@ import {
   Search,
   Mic,
   StopCircle,
-  Volume2
+  Volume2,
+  Sparkles,
+  ChevronDown
 } from 'lucide-react';
 
 interface AssessmentStructuredData {
@@ -34,7 +36,7 @@ interface AssessmentStructuredData {
 
 interface ChatWindowProps {
   messages: Message[];
-  onSend: (text: string, useThinking?: boolean, useSearch?: boolean) => void;
+  onSend: (text: string, useThinking?: boolean, useSearch?: boolean, model?: string) => void;
   onAddManualMessage: (role: 'user' | 'assistant', content: string) => void;
   isVoiceMode: boolean;
   phase: SessionPhase;
@@ -63,6 +65,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
   const [showKeySettings, setShowKeySettings] = useState(false);
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('user_gemini_key') || '');
+  const [selectedModel, setSelectedModel] = useState(localStorage.getItem('user_chat_model') || 'gemini-2.0-flash-exp');
+  const [showModelsInitial, setShowModelsInitial] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(localStorage.getItem('user_auto_speak') === 'true');
 
   // Antigravity State
@@ -148,7 +152,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     // We need to support the initial chat view's input as well
     const text = input;
     setInput('');
-    onSend(text, deepThinking, searchGrounding);
+    onSend(text, deepThinking, searchGrounding, selectedModel);
   };
 
   const recognitionRef = useRef<any>(null);
@@ -362,14 +366,49 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 className="w-full h-24 bg-transparent border-none outline-none focus:ring-0 text-xl font-medium text-slate-800 placeholder-slate-300 resize-none"
               />
               <div className="flex items-center justify-between pt-6 border-t border-slate-50">
-                <div className="flex space-x-4">
-                  <button type="button" onClick={() => setDeepThinking(!deepThinking)} className={`p-3 rounded-xl flex items-center space-x-2 transition-all ${deepThinking ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>
-                    <Brain className="w-5 h-5" />
-                    <span className="text-[10px] font-black uppercase">Thinking Mode</span>
+                <div className="flex items-center space-x-2">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowModelsInitial(!showModelsInitial)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-500 hover:text-indigo-600 transition-all"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-bold tracking-tight">
+                        {selectedModel === 'gemini-2.0-flash-exp' ? 'Gemini 2.0 Flash' :
+                          selectedModel === 'gemini-2.0-flash-thinking-exp-01-21' ? 'Gemini 2.0 Thinking' :
+                            selectedModel === 'gemini-1.5-pro' ? 'Gemini 1.5 Pro' : 'GPT-4o'}
+                      </span>
+                      <ChevronDown className={`w-3 h-3 opacity-50 transition-transform ${showModelsInitial ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showModelsInitial && (
+                      <div className="absolute bottom-full left-0 mb-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl py-2 z-[100]">
+                        {['gemini-2.0-flash-exp', 'gemini-2.0-flash-thinking-exp-01-21', 'gemini-1.5-pro', 'gpt-4o'].map(m => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => {
+                              setSelectedModel(m);
+                              localStorage.setItem('user_chat_model', m);
+                              setShowModelsInitial(false);
+                            }}
+                            className={`w-full text-left px-4 py-2 text-xs font-bold transition-colors ${selectedModel === m ? 'text-indigo-600 bg-indigo-50/50' : 'text-slate-600 hover:bg-slate-50'}`}
+                          >
+                            {m === 'gemini-2.0-flash-exp' ? 'Gemini 2.0 Flash' :
+                              m === 'gemini-2.0-flash-thinking-exp-01-21' ? 'Gemini 2.0 Thinking' :
+                                m === 'gemini-1.5-pro' ? 'Gemini 1.5 Pro' : 'GPT-4o'}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button type="button" onClick={() => setDeepThinking(!deepThinking)} className={`p-2 rounded-lg flex items-center space-x-1 transition-all ${deepThinking ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-indigo-600'}`}>
+                    <Brain className="w-4 h-4" />
+                    <span className="text-[9px] font-black uppercase">Think</span>
                   </button>
-                  <button type="button" onClick={() => setSearchGrounding(!searchGrounding)} className={`p-3 rounded-xl flex items-center space-x-2 transition-all ${searchGrounding ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>
-                    <Search className="w-5 h-5" />
-                    <span className="text-[10px] font-black uppercase">Search</span>
+                  <button type="button" onClick={() => setSearchGrounding(!searchGrounding)} className={`p-2 rounded-lg flex items-center space-x-1 transition-all ${searchGrounding ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-indigo-600'}`}>
+                    <Search className="w-4 h-4" />
+                    <span className="text-[9px] font-black uppercase">Search</span>
                   </button>
                 </div>
                 <div className="flex space-x-3">
@@ -434,6 +473,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         setSearchGrounding={setSearchGrounding}
         appIsThinking={appIsThinking}
         onShowKeySettings={() => setShowKeySettings(true)}
+        selectedModel={selectedModel}
+        onModelChange={(m) => {
+          setSelectedModel(m);
+          localStorage.setItem('user_chat_model', m);
+        }}
       />
 
       {/* Key Settings Modal */}
