@@ -33,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
 
         <nav className="flex items-center bg-neutral-50 dark:bg-neutral-800 p-1 rounded-xl lg:rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-x-auto no-scrollbar max-w-[180px] sm:max-w-none">
           {[
-            { id: SessionPhase.CHAT, label: 'Diag', icon: <Target className="w-3 h-3" /> },
+            { id: SessionPhase.CHAT, label: 'Mastery', icon: <Target className="w-3 h-3" /> },
             { id: SessionPhase.MENTORS, label: 'Ment', icon: <Users className="w-3 h-3" /> },
             { id: SessionPhase.AGENT, label: 'Meet', icon: <Briefcase className="w-3 h-3" /> },
           ].map(item => (

@@ -18,8 +18,8 @@ const CommCoachInfographic: React.FC<CommCoachInfographicProps> = ({
   const steps = [
     {
       icon: <Brain className="w-6 h-6" />,
-      title: "Mindset Foundation",
-      desc: "Power to change & words that forge reality.",
+      title: "30-Day Mastery",
+      desc: "Begin your 60-step journey to forge your Communication DNA.",
       color: "bg-indigo-500",
       action: onStartAssessment
     },
@@ -50,17 +50,17 @@ const CommCoachInfographic: React.FC<CommCoachInfographicProps> = ({
     <div className="w-full max-w-5xl mx-auto py-4 md:py-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {steps.map((step, idx) => (
-          <button 
-            key={idx} 
+          <button
+            key={idx}
             onClick={step.action}
             className="relative flex md:flex-col items-center md:items-start p-5 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-200 hover:-translate-y-1 transition-all group overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           >
             <div className={`absolute top-0 right-0 w-24 h-24 ${step.color} opacity-[0.03] -mr-8 -mt-8 rounded-full group-hover:scale-150 transition-transform duration-700`} />
-            
+
             <div className={`w-12 h-12 ${step.color} text-white rounded-2xl flex items-center justify-center mb-0 md:mb-5 mr-4 md:mr-0 shrink-0 shadow-lg shadow-slate-200 group-hover:scale-110 transition-transform`}>
               {step.icon}
             </div>
-            
+
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-black text-slate-900 mb-1 uppercase tracking-tight leading-tight">{step.title}</h4>
@@ -75,19 +75,19 @@ const CommCoachInfographic: React.FC<CommCoachInfographicProps> = ({
           </button>
         ))}
       </div>
-      
+
       <div className="mt-8 flex flex-wrap items-center justify-center gap-6 md:gap-8">
         <div className="flex items-center space-x-2">
-           <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Confidence Mindset</span>
+          <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Confidence Mindset</span>
         </div>
         <div className="flex items-center space-x-2">
-           <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse delay-100" />
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Well-like Delivery</span>
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse delay-100" />
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Well-like Delivery</span>
         </div>
         <div className="flex items-center space-x-2">
-           <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse delay-200" />
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vocal Power Drills</span>
+          <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse delay-200" />
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vocal Power Drills</span>
         </div>
       </div>
     </div>

@@ -46,35 +46,72 @@ Analyze user responses against these 18 strategies. If a user fails to acknowled
 Direct, high-standard, and focused on behavioral linguistics. You are a coach, not a friend. Correct linguistic flaws the moment they appear.`;
 
 export const ASSESSMENT_QUESTIONS = [
-  // STAGE 1: MINDSET FOUNDATION
-  "Do you believe communication is a talent you're born with, or a skill you can fix? Let's start by identifying one specific flaw you want to practice ground today.",
-  "Words Forge Reality: Instead of saying you are 'nervous' about a situation, how else can you describe your current state using objective language?",
-  "Communicating with Purpose: In your next interaction, what is the single most important goal you want to achieve?",
+  // WEEK 1: THE FOUNDATION (Days 1–7)
+  "Day 1, Protocol 1: Do you believe communication is a talent you're born with, or a skill you can fix? Let's identify one specific flaw to work on.",
+  "Day 1, Protocol 2: 'Words Forge Reality'. Instead of saying you are 'nervous' about a situation, how else can you describe your state using objective language?",
+  "Day 2, Protocol 3: Purpose-Driven: What is the single most important goal you want to achieve in your next conversation?",
+  "Day 2, Protocol 4: Rejection of Labels: Think of a time you labeled yourself 'shy'. How would you describe that behavior without using a character trait?",
 
-  // STAGE 2: CRAFTING THE MESSAGE
-  "Small Talk Challenge: Give me an alternative to 'How are you?' that you could use to start a conversation with a colleague today.",
-  "Ask 'What' not 'Why': I'll play a coworker who made a mistake. Ask me about the mistake without using the word 'Why'.",
-  "The Well, Not the Waterfall: Describe your favorite book or movie in exactly three sentences. No more, no less.",
-  "Be Clear and Concise: Explain your current project as if I have only 30 seconds to listen.",
+  "Day 3, Protocol 5: Small Talk Ban: Give me an alternative to 'How are you?' that focuses on a specific forward-looking event.",
+  "Day 3, Protocol 6: Intentional Curiosity: Practice asking a 'What' question about my morning that doesn't feel like an interrogation.",
+  "Day 4, Protocol 7: The Rule of Three: Describe your current professional role in exactly three concise sentences.",
+  "Day 4, Protocol 8: Information Diet: You are explaining a complex idea. How do you decide when to stop sharing and start listening?",
+  "Day 5, Protocol 9: Mental Rehearsal: Visualize a high-stakes meeting. What is the first sentence you will say to establish presence?",
+  "Day 5, Protocol 10: Energy Mapping: Rate your current energy level (1-10). How will you adjust your vocal pitch to match or raise the vibe of the room?",
+  "Day 6, Protocol 11: The Power of Pause: Tell me a fact about yourself, but insert a 2-second 'Mystery Pause' right before the key word.",
+  "Day 6, Protocol 12: Eliminating Fillers: Speak for 30 seconds about your passion without using 'um', 'uh', or 'like'.",
+  "Day 7, Protocol 13: Milestone Review: Looking back at Week 1, which 'Word Forge' (banned word) was the hardest to eliminate?",
+  "Day 7, Protocol 14: Week 1 Integration: Describe how your perception of 'difficult conversations' has shifted this week.",
 
-  // STAGE 3: NAVIGATING CHALLENGES
-  "Acknowledge Before Responding: I'm going to suggest a bad idea. Practice validating my intent before telling me why it won't work: 'We should cancel all meetings to save time.'",
-  "Separate Person from Problem: You have a teammate who missed a deadline. Correct them without using character labels or the word 'always'.",
-  "Unraveling vs Battling: How do you approach a disagreement to ensure it's a 'problem-solving' session rather than a battle?",
-  "Assign Positive Intent: Think of a recent frustrating interaction. What is one positive reason that person might have acted that way?",
+  // WEEK 2: COMMAND & INFLUENCE (Days 8-14)
+  "Day 8, Protocol 15: Being a Well, Not a Waterfall: If someone asks 'What do you do?', practice giving a 10-word answer that invites a follow-up.",
+  "Day 8, Protocol 16: Strategic Brevity: Explain why clarity matters more than complexity using only one sentence.",
+  "Day 9, Protocol 17: Establishing Authority: Use a 'Descending Inflection' (lowering pitch at the end of a sentence) to state your name and role.",
+  "Day 9, Protocol 18: Body Language Mirroring: How do you adjust your posture in a video call to convey both authority and warmth?",
+  "Day 10, Protocol 19: The 'What' Initiative: I'm going to act as a confused teammate. Ask me a 'What' question to clarify my confusion without sounding blaming.",
+  "Day 10, Protocol 20: Objective Observation: Describe a mistake you saw recently using only facts, zero adjectives.",
+  "Day 11, Protocol 21: Vocal Range Exploration: Say 'I am ready for this' in three different pitches (Low, Medium, High). Which feels most natural?",
+  "Day 11, Protocol 22: Pacing for Impact: Speak about your favorite hobby, slowing down to 100 words per minute. Start now.",
+  "Day 12, Protocol 23: The Art of Validation: I'm going to disagree with you. Practice validating my intent before you offer your perspective.",
+  "Day 12, Protocol 24: Acknowledgment Drills: Respond to this: 'I think we are moving too fast.' (Start with 'I understand...')",
+  "Day 13, Protocol 25: Handling Interruptions: How do you gracefully reclaim the floor when someone cuts you off mid-sentence?",
+  "Day 13, Protocol 26: Navigating Silence: If a meeting goes silent, what is your 'Bridge Question' to restart the flow?",
+  "Day 14, Protocol 27: Week 2 Reflection: Which strategy from this week made you feel most empowered?",
+  "Day 14, Protocol 28: Influence Check: Give an example of a time this week you influenced someone by listening more than talking.",
 
-  // STAGE 4: DELIVERING WITH PRESENCE
-  "Command Presence: Stand tall right now. Describe your ideal morning routine while focusing on keeping your shoulders broad and your voice steady.",
-  "Harness Vocal Power: Tell me a fact, but use a deliberate 2-second 'Power Pause' right before the most important word.",
-  "Eye Contact & Connection: Describe how you maintain connection in a virtual meeting vs. in person.",
-  "Strategic Breathing: Before you answer this, take one deep breath for focus. Now, tell me why clarity matters more than complexity.",
+  // WEEK 3: NAVIGATING CHALLENGES (Days 15-21)
+  "Day 15, Protocol 29: Separating Person from Problem: Address a 'late report' issue without using the word 'You'.",
+  "Day 15, Protocol 30: Positive Intent Assignment: Think of someone you dislike. What is one positive motivation for their behavior?",
+  "Day 16, Protocol 31: The 'Graceful Response' to Criticism: Practice: 'That is an insightful point, thank you. I will consider what you said.'",
+  "Day 16, Protocol 32: De-escalation Phrases: Give me a phrase you can use to cool down a heated debate.",
+  "Day 17, Protocol 33: Unraveling vs. Battling: In a conflict, how do you signal that you are on the same side as the other person?",
+  "Day 17, Protocol 34: Strategic Vulnerability: Share a small mistake you made recently. How did it help you build trust?",
+  "Day 18, Protocol 35: Asking for Help (Power vs. Weakness): Practice asking for support in a way that sounds like a strategic request, not a plea.",
+  "Day 18, Protocol 36: No as a Complete Sentence: Practice saying 'No' to a request firmly but without over-explaining your reasons.",
+  "Day 19, Protocol 37: Managing High-Status Individuals: How do you maintain your 'Internal Status' when speaking to an executive?",
+  "Day 19, Protocol 38: Eye Contact in Digital Space: Describe your technique for maintaining 'virtual' eye contact while reading notes.",
+  "Day 20, Protocol 39: The 'Bridge of Empathy': Use the phrase 'I can see how that would lead you to...' in a mock response to me.",
+  "Day 20, Protocol 40: Tone Matching: I'll speak in an 'Analytical' tone. Respond to me by matching that tone for 1 minute.",
+  "Day 21, Protocol 41: Week 3 Synthesis: How did you handle a mini-conflict this week using a 30-day strategy?",
+  "Day 21, Protocol 42: Resilience Check: On a scale of 1-10, how well did you manage your linguistic stressors this week?",
 
-  // STAGE 5: LISTENING AND RESPONDING
-  "Master Active Listening: Tell me about something you're passionate about. I'll summarize it, and you tell me if I missed the 'Well' for the 'Waterfall'.",
-  "Handle Feedback Gracefully: I'm going to give you critical feedback: 'Your communication is too blunt.' Practice the methodology-approved response.",
-  
-  // STAGE 6: EVALUATION & PLANNING
-  "Which of the 18 strategies felt most difficult for you today?",
-  "On a scale of 1-5, how much more 'Well-like' (precise) do you feel in your delivery?",
-  "What is the one 'Word Forge' you will ban from your vocabulary this week?"
+  // WEEK 4: MASTERY PROTOCOL (Days 22-30)
+  "Day 22, Protocol 43: Advanced Storytelling: Use the 'Problem-Action-Result' framework to describe a recent win in 45 seconds.",
+  "Day 22, Protocol 44: Painting with Words: Describe your vision for the future of your career using vivid, sensory language.",
+  "Day 23, Protocol 45: The Persuasion Formula: Tell me why I should hire you for a project using 'Benefit -> Evidence -> Call to Action'.",
+  "Day 23, Protocol 46: High-Stakes Presence: You have 10 seconds to impress a board group. What is your 'Hook'?",
+  "Day 24, Protocol 47: Strategic Silence Mastery: Ask me a difficult question and then DO NOT speak until I answer. Ready?",
+  "Day 24, Protocol 48: Active Listening (Levels 1-3): I will tell you a story. You must summarize the 'unspoken emotion' behind it.",
+  "Day 25, Protocol 49: The 'Elegant Exit': Practice ending a 1:1 conversation in a way that leaves the other person feeling valued.",
+  "Day 25, Protocol 50: Influence without Authority: How do you lead a peer group session using only questions?",
+  "Day 26, Protocol 51: Mental Agility Drill: I'll give you a random word. Speak about its connection to communication for 30 seconds.",
+  "Day 26, Protocol 52: Humor and Gravitas: How do you use a light joke to break the ice without losing your professional authority?",
+  "Day 27, Protocol 53: Charisma Mapping: Which archetypal trait (Clarity, Power, or Warmth) is your natural superpower?",
+  "Day 27, Protocol 54: Shadow Profiling: Which trait do you hide when you are under pressure? How can we flip it into a strength?",
+  "Day 28, Protocol 55: The 30-Day Transformation Pitch: Explain to a stranger how your communication has improved since Day 1.",
+  "Day 28, Protocol 56: Legacy Language: What is the one phrase you want people to associate with your leadership?",
+  "Day 29, Protocol 57: Final Drill - Conflict De-escalation: I'm furious about a delay. Use everything you've learned to calm me down.",
+  "Day 29, Protocol 58: Final Drill - The Power Speech: Give a 60-second 'Manifesto' of your communication philosophy.",
+  "Day 30, Protocol 59: Ultimate DNA Lock: Looking back at 60 steps, which specific protocol changed your behavior the most?",
+  "Day 30, Protocol 60: Mastery Graduation: Your Communication DNA is now mapped. Are you ready to lead with impact?"
 ];

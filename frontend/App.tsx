@@ -90,7 +90,7 @@ const MainApp: React.FC = () => {
         messages: [{
           id: 'assessment_start',
           role: 'assistant',
-          content: `### Diagnostic Lab: Entry Protocol\n\nWelcome to your performance evaluation. I will run a series of communication drills to identify your hidden gaps.\n\n**Protocol 1:** ${firstQuestion}`,
+          content: `### 30-Day Communication Mastery\n\nWelcome to Day 1. We will begin with two foundational protocols to map your current Communication DNA.\n\n**Day 1, Protocol 1:** ${firstQuestion}`,
           timestamp: new Date()
         }],
         assessmentStep: 0
@@ -166,6 +166,27 @@ const MainApp: React.FC = () => {
       }));
 
       if (!isComplete) {
+        // Check if we just finished 2 steps (a full day)
+        const currentDaySteps = nextStep % 2;
+        if (currentDaySteps === 0) {
+          // Day completed!
+          const dayNumber = nextStep / 2;
+          setTimeout(() => {
+            setSession(prev => ({
+              ...prev,
+              messages: [...prev.messages, {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: `🚀 **Day ${dayNumber} Complete!** You've fortified your Communication DNA today. Your streak has been updated.\n\nSee you tomorrow for Day ${dayNumber + 1}!`,
+                timestamp: new Date()
+              }]
+            }));
+            // Report activity to backend for streak/XP
+            geminiApi.reportActivity(2);
+          }, 600);
+          return;
+        }
+
         const nextQuestion = ASSESSMENT_QUESTIONS[nextStep];
         setTimeout(() => {
           setSession(prev => ({
@@ -173,7 +194,7 @@ const MainApp: React.FC = () => {
             messages: [...prev.messages, {
               id: Date.now().toString(),
               role: 'assistant',
-              content: `**Protocol ${nextStep + 1}:** ${nextQuestion}`,
+              content: `**Day ${Math.floor(nextStep / 2) + 1}, Protocol ${nextStep + 1}:** ${nextQuestion}`,
               timestamp: new Date()
             }]
           }));

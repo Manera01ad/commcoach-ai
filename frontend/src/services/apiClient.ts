@@ -98,6 +98,34 @@ export const generateContent = async (prompt: string): Promise<string> => {
 };
 
 /**
+ * Reports user activity to update streaks and XP
+ */
+export const reportActivity = async (activityWeight: number = 1): Promise<any> => {
+    try {
+        const token = localStorage.getItem('supabase.auth.token');
+        const accessToken = token ? JSON.parse(token).access_token : '';
+
+        const response = await fetch(`${API_URL}/api/streak/activity`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+                activityWeight,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            }),
+        });
+
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (error) {
+        console.error("Activity Reporting Error:", error);
+        return null;
+    }
+};
+
+/**
  * Legacy support wrapper
  */
 export const getGenerativeModelProxy = () => {
@@ -111,6 +139,7 @@ export const getGenerativeModelProxy = () => {
                 }
             };
         },
-        streamContent: streamContent
+        streamContent: streamContent,
+        reportActivity: reportActivity
     };
 };
