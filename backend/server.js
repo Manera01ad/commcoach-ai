@@ -10,6 +10,8 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import http from 'http';
+import voiceService from './services/VoiceService.js';
 
 // Route Imports
 import antigravityRoutes from './routes/antigravity.js';
@@ -36,7 +38,11 @@ const __dirname = dirname(__filename);
 
 // Initialize Express app
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// Initialize Voice WebSocket Service
+voiceService.init(server);
 
 // Trust proxy (required for rate limiting behind proxies like Railway/Vercel)
 app.set('trust proxy', 1);
@@ -144,10 +150,11 @@ app.use((err, req, res, next) => {
 // START SERVER
 // ========================================
 
-const server = app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log('\n🚀 CommCoach Backend Server');
   console.log('================================');
   console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Voice WebSocket: OPERATIONAL`);
   console.log(`✅ Auth Routes: http://localhost:${PORT}/api/auth`);
   console.log('================================\n');
 });

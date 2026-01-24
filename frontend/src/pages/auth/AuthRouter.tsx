@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import Login from './Login';
 import Signup from './Signup';
 import { Sparkles } from 'lucide-react';
 
 const AuthRouter: React.FC = () => {
+  const { isAuthenticated, loading } = useAuth();
   const [view, setView] = useState<'login' | 'signup'>('login');
+
+  if (isAuthenticated && !loading) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="min-h-screen w-full flex bg-neutral-50 dark:bg-neutral-950 font-['Inter']">

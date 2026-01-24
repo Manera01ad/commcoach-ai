@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { io, Socket } from 'socket.io-client';
 import { Message, SessionPhase } from '../types';
 import CommCoachInfographic from './CommCoachInfographic';
 import ChatMessages from './chat/ChatMessages';
 import ChatInput from './chat/ChatInput';
 import VoiceOverlay from './chat/VoiceOverlay';
+import { createPcmBlob } from '../audioUtils';
 import {
   Brain,
   Search,
@@ -151,16 +153,53 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setVoiceError(null);
     setIsConnectingVoice(true);
     try {
-      const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      const outputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      audioContextRef.current = inputCtx;
-      outputAudioContextRef.current = outputCtx;
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const SOCKET_BASE = API_URL.replace('/api', '');
+      const socket: Socket = io(SOCKET_BASE);
+      sessionRef.current = socket;
 
-      // Voice Session requires backend WebSocket proxy implementation
-      setVoiceError("Voice Mode disabled during security maintenance.");
-      setIsConnectingVoice(false);
+      socket.on('connect', async () => {
+        console.log('[Voice] Socket connected');
+        const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+        audioContextRef.current = inputCtx;
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+
+        const source = inputCtx.createMediaStreamSource(stream);
+        const processor = inputCtx.createScriptProcessor(4096, 1, 1);
+        processorRef.current = processor;
+
+        source.connect(processor);
+        processor.connect(inputCtx.destination);
+
+        processor.onaudioprocess = (e) => {
+          if (!isSessionActive) return;
+          const inputData = e.inputBuffer.getChannelData(0);
+          const pcm = createPcmBlob(inputData);
+          socket.emit('audio-packet', {
+            audio: pcm.data,
+            userId: 'user_current',
+            timestamp: new Date().toISOString()
+          });
+        };
+
+        socket.emit('start-voice', { userId: 'user_current' });
+        setIsSessionActive(true);
+        setIsConnectingVoice(false);
+      });
+
+      socket.on('voice-response', (data: { text: string }) => {
+        setOutputFeedback(data.text);
+        onAddManualMessage('assistant', data.text);
+      });
+
+      socket.on('connect_error', (err) => {
+        console.error('[Voice] Connection error:', err);
+        setVoiceError('Failed to connect to Voice Server.');
+        setIsConnectingVoice(false);
+      });
+
     } catch (err) {
       console.error(err);
       setVoiceError('Failed to access microphone or connect to AI.');
