@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Brain, Search, Mic, StopCircle, Volume2 } from 'lucide-react';
+import { Brain, Search, Mic, StopCircle, Volume2, Settings, Send } from 'lucide-react';
 
 interface ChatInputProps {
     onSend: (text: string) => void;
@@ -11,6 +11,7 @@ interface ChatInputProps {
     searchGrounding: boolean;
     setSearchGrounding: (val: boolean) => void;
     appIsThinking?: boolean;
+    onShowKeySettings?: () => void;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
@@ -22,7 +23,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
     setDeepThinking,
     searchGrounding,
     setSearchGrounding,
-    appIsThinking
+    appIsThinking,
+    onShowKeySettings
 }) => {
     const [input, setInput] = useState('');
 
@@ -46,7 +48,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
                         className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-8 text-sm font-bold focus:border-indigo-500 outline-none disabled:opacity-50"
                     />
                 </div>
-                <button type="button" onClick={() => setDeepThinking(!deepThinking)} className={`p-4 rounded-xl transition-all ${deepThinking ? 'bg-indigo-600 text-white' : 'text-slate-400 bg-slate-50'}`}><Brain className="w-5 h-5" /></button>
+                <button type="button" onClick={() => setDeepThinking(!deepThinking)} title="Thinking Mode" className={`p-4 rounded-xl transition-all ${deepThinking ? 'bg-indigo-600 text-white' : 'text-slate-400 bg-slate-50 hover:text-indigo-600'}`}><Brain className="w-5 h-5" /></button>
+                <button type="button" onClick={() => setSearchGrounding(!searchGrounding)} title="Web Search" className={`p-4 rounded-xl transition-all ${searchGrounding ? 'bg-indigo-600 text-white' : 'text-slate-400 bg-slate-50 hover:text-indigo-600'}`}><Search className="w-5 h-5" /></button>
+                <button type="button" onClick={onShowKeySettings} title="AI Settings" className="p-4 rounded-xl text-slate-400 bg-slate-50 hover:text-indigo-600"><Settings className="w-5 h-5" /></button>
 
                 <button
                     type="button"
@@ -57,7 +61,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 </button>
 
                 <button type="submit" disabled={!input.trim() || isAnalyzing} className="bg-slate-900 text-white p-4 rounded-xl hover:bg-black disabled:opacity-30">
-                    <Volume2 className="w-5 h-5" />
+                    <Send className="w-5 h-5" />
                 </button>
             </form>
         </div>

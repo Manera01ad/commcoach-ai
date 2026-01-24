@@ -10,7 +10,9 @@ class GeminiService {
     _ensureInitialized() {
         if (!this.genAI) {
             if (!process.env.GEMINI_API_KEY) {
-                throw new Error('GEMINI_API_KEY is not set in environment variables');
+                const error = new Error('Gemini API Key is missing. Please add your key to the environment or settings.');
+                error.code = 'MISSING_GEMINI_KEY';
+                throw error;
             }
             this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         }
@@ -24,11 +26,21 @@ class GeminiService {
      * @returns {Promise<object>} Generated content
      */
     async generateContent(model, prompt, config = {}) {
-        this._ensureInitialized();
+        let client = this.genAI;
+
+        // Use provided API key if available for this specific request
+        if (config.apiKey) {
+            client = new GoogleGenerativeAI(config.apiKey);
+        } else {
+            this._ensureInitialized();
+            client = this.genAI;
+        }
+
         try {
-            const generativeModel = this.genAI.getGenerativeModel({
+            const { apiKey, ...restConfig } = config;
+            const generativeModel = client.getGenerativeModel({
                 model,
-                ...config
+                ...restConfig
             });
 
             const result = await generativeModel.generateContent(prompt);

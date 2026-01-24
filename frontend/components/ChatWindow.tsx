@@ -60,6 +60,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [deepThinking, setDeepThinking] = useState(false);
   const [searchGrounding, setSearchGrounding] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
+  const [showKeySettings, setShowKeySettings] = useState(false);
+  const [geminiKey, setGeminiKey] = useState(localStorage.getItem('user_gemini_key') || '');
 
   // Antigravity State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -145,55 +147,57 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     onSend(text);
   };
 
-  const [speechRecognition, setSpeechRecognition] = useState<any>(null);
+  const recognitionRef = useRef<any>(null);
 
-  useEffect(() => {
-    // Initialize Speech Recognition
+  const initRecognition = (socket: Socket) => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
+    if (!SpeechRecognition) return null;
 
-      recognition.onresult = (event: any) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          } else {
-            interimTranscript += event.results[i][0].transcript;
-          }
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+        else interimTranscript += event.results[i][0].transcript;
+      }
+      const currentText = finalTranscript || interimTranscript;
+      if (currentText) {
+        console.log('[Voice] Transcribed:', currentText);
+        setInputFeedback(currentText);
+        inputFeedbackRef.current = currentText;
+        if (socket?.connected) {
+          socket.emit('speech-text', {
+            text: currentText,
+            isFinal: !!finalTranscript,
+            userId: 'user_current',
+            userApiKey: geminiKey
+          });
         }
+      }
+    };
 
-        const currentText = finalTranscript || interimTranscript;
-        if (currentText) {
-          setInputFeedback(currentText);
-          inputFeedbackRef.current = currentText;
+    recognition.onerror = (event: any) => {
+      console.error('STT Error:', event.error);
+      if (event.error === 'not-allowed') setVoiceError('Microphone access denied.');
+    };
 
-          // Stream the text to backend for real-time analysis
-          if (sessionRef.current?.connected) {
-            sessionRef.current.emit('speech-text', {
-              text: currentText,
-              isFinal: !!finalTranscript,
-              userId: 'user_current'
-            });
-          }
-        }
-      };
+    recognition.onend = () => {
+      if (sessionRef.current?.connected) {
+        try { recognition.start(); } catch (e) { }
+      }
+    };
 
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        if (event.error === 'not-allowed') {
-          setVoiceError('Microphone access denied.');
-        }
-      };
+    recognitionRef.current = recognition;
+    return recognition;
+  };
 
-      setSpeechRecognition(recognition);
-    }
-  }, []);
+
+
 
   const speakText = (text: string) => {
     if (!window.speechSynthesis) return;
@@ -228,14 +232,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       socket.on('connect', async () => {
         console.log('[Voice] Socket connected');
-
-        if (speechRecognition) {
-          speechRecognition.start();
+        const recognition = initRecognition(socket);
+        if (recognition) {
+          try { recognition.start(); } catch (e) {
+            console.error("Failed to start STT:", e);
+          }
         }
-
         socket.emit('start-voice', { userId: 'user_current' });
         setIsSessionActive(true);
         setIsConnectingVoice(false);
+      });
+
+      socket.on('voice-error', (data: { code: string, message: string }) => {
+        if (data.code === 'KEY_REQUIRED') {
+          setVoiceError(data.message);
+          setShowKeySettings(true);
+          stopVoiceSession();
+        }
       });
 
       socket.on('voice-response', (data: { text: string; shouldSpeak?: boolean }) => {
@@ -264,8 +277,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setIsSessionActive(false);
     setIsConnectingVoice(false);
 
-    if (speechRecognition) {
-      try { speechRecognition.stop(); } catch (e) { }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.stop();
+      } catch (e) { }
+      recognitionRef.current = null;
     }
 
     if (window.speechSynthesis) {
@@ -374,7 +391,53 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         searchGrounding={searchGrounding}
         setSearchGrounding={setSearchGrounding}
         appIsThinking={appIsThinking}
+        onShowKeySettings={() => setShowKeySettings(true)}
       />
+
+      {/* Key Settings Modal */}
+      {showKeySettings && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-black text-slate-900 mb-2">Gemini API Key Required</h3>
+            <p className="text-sm text-slate-500 mb-6">To support a larger audience, please provide your own free Gemini API key from Google AI Studio.</p>
+
+            <input
+              type="password"
+              placeholder="AIza..."
+              value={geminiKey}
+              onChange={(e) => setGeminiKey(e.target.value)}
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-4 text-sm font-bold focus:border-indigo-500 outline-none mb-6"
+            />
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  localStorage.setItem('user_gemini_key', geminiKey);
+                  setShowKeySettings(false);
+                }}
+                className="flex-1 bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black"
+              >
+                Save Key
+              </button>
+              <button
+                onClick={() => setShowKeySettings(false)}
+                className="px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest text-slate-400 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noreferrer"
+              className="block text-center mt-6 text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline"
+            >
+              Get Free Key from AI Studio →
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

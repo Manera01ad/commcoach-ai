@@ -24,7 +24,7 @@ class VoiceService {
             });
 
             socket.on('speech-text', async (data) => {
-                const { text, isFinal, userId } = data;
+                const { text, isFinal, userId, userApiKey } = data;
                 console.log(`[VoiceService] Received speech text: "${text}" (Final: ${isFinal})`);
 
                 // Real-time behavioral coaching logic
@@ -42,10 +42,16 @@ class VoiceService {
                         The tip must be direct and behavioral.
                         `;
 
-                        const response = await geminiService.generateContent('gemini-2.0-flash-exp', prompt);
+                        const response = await geminiService.generateContent('gemini-2.0-flash-exp', prompt, { apiKey: userApiKey });
                         this.sendVoiceResponse(userId, response);
                     } catch (error) {
                         console.error('[VoiceService] Gemini error:', error);
+                        if (error.code === 'MISSING_GEMINI_KEY') {
+                            socket.emit('voice-error', {
+                                code: 'KEY_REQUIRED',
+                                message: 'Google Gemini API Key is required to activate Voice Hub. Please add a key in Settings.'
+                            });
+                        }
                     }
                 } else if (text.length > 30 && !socket.interimSent) {
                     // Quick interim encouragement/feedback
