@@ -12,7 +12,7 @@ const AuthRouter: React.FC = () => {
   const [view, setView] = useState<'login' | 'signup'>('login');
 
   if (isAuthenticated && !loading) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

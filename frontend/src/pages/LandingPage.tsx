@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
 import {
     Sparkles,
     Brain,
@@ -118,6 +119,7 @@ const ThemeToggle = () => {
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
     const [scrolled, setScrolled] = useState(false);
     const [mood, setMood] = useState<'calm' | 'energetic' | 'joyful' | 'focused'>('joyful');
     const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
@@ -231,18 +233,29 @@ const LandingPage: React.FC = () => {
                         <a href="#pricing" className="hover:text-indigo-600 transition-colors">Pricing</a>
                         <div className="h-6 w-px bg-black/10 dark:bg-white/10 mx-2"></div>
                         <ThemeToggle />
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="text-slate-900 dark:text-white hover:text-indigo-600 transition-colors"
-                        >
-                            Sign In
-                        </button>
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="px-6 py-3 bg-indigo-600 text-white rounded-full font-black shadow-xl shadow-indigo-600/20 hover:scale-105 active:scale-95 transition-all"
-                        >
-                            Get Started
-                        </button>
+                        {isAuthenticated ? (
+                            <button
+                                onClick={() => navigate('/dashboard')}
+                                className="px-6 py-3 bg-indigo-600 text-white rounded-full font-black shadow-xl shadow-indigo-600/20 hover:scale-105 active:scale-95 transition-all"
+                            >
+                                Go to Dashboard
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    className="text-slate-900 dark:text-white hover:text-indigo-600 transition-colors"
+                                >
+                                    Sign In
+                                </button>
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    className="px-6 py-3 bg-indigo-600 text-white rounded-full font-black shadow-xl shadow-indigo-600/20 hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    Get Started
+                                </button>
+                            </>
+                        )}
                     </div>
 
                     <button className="md:hidden text-slate-900 dark:text-white">
@@ -293,12 +306,21 @@ const LandingPage: React.FC = () => {
                             transition={{ delay: 0.3 }}
                             className="flex flex-col sm:flex-row items-center gap-6"
                         >
-                            <button
-                                onClick={() => navigate('/login')}
-                                className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-                            >
-                                Start Free Trial <ArrowRight className="w-6 h-6" />
-                            </button>
+                            {isAuthenticated ? (
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                                >
+                                    Enter Dashboard <ArrowRight className="w-6 h-6" />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                                >
+                                    Start Free Trial <ArrowRight className="w-6 h-6" />
+                                </button>
+                            )}
                             <button className="flex items-center gap-3 text-slate-900 dark:text-white font-black hover:text-indigo-600 transition-colors group">
                                 <div className="w-14 h-14 rounded-full border-2 border-slate-200 dark:border-white/10 flex items-center justify-center group-hover:bg-indigo-50/50 transition-all">
                                     <Play className="w-5 h-5 fill-current" />
@@ -560,10 +582,10 @@ const LandingPage: React.FC = () => {
                     <h2 className="text-6xl md:text-7xl font-black text-slate-900 dark:text-white mb-8 tracking-tighter">Ready to <span className="text-indigo-600">smile?</span></h2>
                     <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 font-medium">Join 50,000+ people mastering their voice with joy.</p>
                     <button
-                        onClick={() => navigate('/login')}
+                        onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
                         className="px-12 py-6 bg-indigo-600 text-white rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-indigo-600/30 hover:scale-105 active:scale-95 transition-all"
                     >
-                        Join CommCoach Now — Free.
+                        {isAuthenticated ? 'Go to Dashboard' : 'Join CommCoach Now — Free.'}
                     </button>
                 </div>
             </section>

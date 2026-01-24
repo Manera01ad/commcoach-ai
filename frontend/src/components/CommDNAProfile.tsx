@@ -213,10 +213,33 @@ const CommDNAProfile: React.FC<DNAProfileProps> = ({ data, onRetake, user, stats
                         ))}
                     </div>
 
-                    <div className="mt-8 bg-neutral-50 dark:bg-neutral-800/30 p-6 rounded-2xl">
-                        <div className="text-xs font-bold text-neutral-400 mb-2">IDEAL TRAINING CONTEXT</div>
+                    <div className="mt-8 grid grid-cols-2 gap-4">
+                        <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-2xl border border-green-100 dark:border-green-900/20">
+                            <div className="text-[10px] font-bold text-green-600 dark:text-green-400 mb-2 uppercase tracking-widest">Core Strengths</div>
+                            <ul className="space-y-1">
+                                {data.strengths.map((s, i) => (
+                                    <li key={i} className="text-xs font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
+                                        <div className="w-1 h-1 bg-green-500 rounded-full" /> {s}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl border border-red-100 dark:border-red-900/20">
+                            <div className="text-[10px] font-bold text-red-600 dark:text-red-400 mb-2 uppercase tracking-widest">Growth Areas</div>
+                            <ul className="space-y-1">
+                                {data.weaknesses.map((w, i) => (
+                                    <li key={i} className="text-xs font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
+                                        <div className="w-1 h-1 bg-red-500 rounded-full" /> {w}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 bg-neutral-50 dark:bg-neutral-800/30 p-6 rounded-2xl">
+                        <div className="text-xs font-bold text-neutral-400 mb-2 uppercase tracking-widest">Synthesized Coaching Protocol</div>
                         <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                            Based on your {data.archetype} profile, focus on delivering high-impact executive summaries to balance your natural empathy.
+                            Based on your {data.archetype} profile, focus on delivering high-impact executive summaries to balance your natural {data.strengths[0]?.toLowerCase() || 'empathy'}.
                         </p>
                     </div>
                 </motion.div>

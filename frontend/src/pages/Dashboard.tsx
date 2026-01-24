@@ -18,7 +18,7 @@ import { useAuth } from '../contexts/AuthContext';
 const Dashboard: React.FC = () => {
     const { user, logout } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'overview' | 'missions' | 'founders' | 'settings' | 'library' | 'community' | 'meetings' | 'profile'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'missions' | 'founders' | 'settings' | 'library' | 'community' | 'meetings' | 'profile' | 'neural'>('overview');
     const [dnaProfile, setDnaProfile] = useState<any>(null); // Ideally fetch from DB
     const [isAssessmentActive, setIsAssessmentActive] = useState(false);
 
@@ -74,7 +74,7 @@ const Dashboard: React.FC = () => {
 
                 {/* Sidebar Navigation */}
                 <aside className={`
-                    fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 p-6 flex flex-col justify-between transition-transform duration-300 transform
+                    fixed lg:sticky top-0 left-0 z-40 h-full w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 p-6 flex flex-col justify-between transition-transform duration-300 transform overflow-y-auto
                     ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     lg:h-screen lg:top-0
                 `}>
@@ -99,10 +99,17 @@ const Dashboard: React.FC = () => {
                             />
                             <MenuLink
                                 id="profile"
-                                icon={BrainCircuit}
+                                icon={Users}
                                 label="CommDNA Profile"
                                 active={activeTab === 'profile'}
                                 onClick={() => { setActiveTab('profile'); setSidebarOpen(false); }}
+                            />
+                            <MenuLink
+                                id="neural"
+                                icon={BrainCircuit}
+                                label="Neural Architecture"
+                                active={activeTab === 'neural'}
+                                onClick={() => { setActiveTab('neural'); setSidebarOpen(false); }}
                             />
                             <MenuLink
                                 id="missions"
@@ -154,7 +161,7 @@ const Dashboard: React.FC = () => {
                 </aside>
 
                 {/* Main Content Area */}
-                <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">
+                <main className="flex-1 h-full overflow-y-auto p-4 lg:p-8 overflow-x-hidden custom-scrollbar">
 
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
@@ -239,43 +246,32 @@ const Dashboard: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* DNA Profile Integration */}
-                            <div className="mt-12">
-                                <div className="mb-6 flex items-center gap-3">
-                                    <div className="h-px bg-neutral-200 dark:bg-neutral-800 flex-1" />
-                                    <h2 className="text-xl font-bold text-neutral-400 uppercase tracking-widest text-sm text-center">Neural Architecture</h2>
-                                    <div className="h-px bg-neutral-200 dark:bg-neutral-800 flex-1" />
-                                </div>
-
-                                {isAssessmentActive ? (
-                                    <CommDNAAssessment
-                                        onComplete={(result) => {
-                                            setDnaProfile(result);
-                                            setIsAssessmentActive(false);
-                                        }}
-                                        onCancel={() => setIsAssessmentActive(false)}
-                                    />
-                                ) : (
-                                    <CommDNAProfile
-                                        minimal={true}
-                                        data={dnaProfile || {
-                                            archetype: 'The Diplomat',
-                                            traits: { clarity: 65, empathy: 90, confidence: 60, persuasion: 75 },
-                                            strengths: ['Empathetic', 'Calm'],
-                                            weaknesses: ['Assertiveness'],
-                                            recommendedTone: 'Assertive'
-                                        }}
-                                        user={{ name: user?.full_name || 'Champion' }}
-                                        stats={{
-                                            level: userStats.level,
-                                            streak: userStats.streak,
-                                            xp: userStats.currentXP
-                                        }}
-                                        onRetake={() => setIsAssessmentActive(true)}
-                                    />
-                                )}
-                            </div>
                         </>
+                    )}
+
+                    {activeTab === 'neural' && (
+                        <div className="max-w-6xl mx-auto">
+                            <div className="mb-8 p-6 bg-gradient-to-r from-indigo-600/10 to-transparent rounded-3xl border border-indigo-500/10">
+                                <h2 className="text-3xl font-black mb-2">Neural Architecture</h2>
+                                <p className="text-neutral-500 font-medium">Your Real-time Communication DNA & Persona Matrix.</p>
+                            </div>
+                            <CommDNAProfile
+                                data={dnaProfile || {
+                                    archetype: 'The Diplomat',
+                                    traits: { clarity: 65, empathy: 90, confidence: 60, persuasion: 75 },
+                                    strengths: ['Empathetic', 'Calm'],
+                                    weaknesses: ['Assertiveness'],
+                                    recommendedTone: 'Assertive'
+                                }}
+                                user={{ name: user?.full_name || 'Champion' }}
+                                stats={{
+                                    level: userStats.level,
+                                    streak: userStats.streak,
+                                    xp: userStats.currentXP
+                                }}
+                                onRetake={() => { setActiveTab('profile'); setIsAssessmentActive(true); }}
+                            />
+                        </div>
                     )}
 
                     {activeTab === 'profile' && (
@@ -285,20 +281,34 @@ const Dashboard: React.FC = () => {
                                     onComplete={(result) => {
                                         setDnaProfile(result);
                                         setIsAssessmentActive(false);
+                                        setActiveTab('neural'); // Switch to neural view on completion
                                     }}
                                     onCancel={() => setIsAssessmentActive(false)}
                                 />
                             ) : dnaProfile ? (
-                                <CommDNAProfile
-                                    data={dnaProfile}
-                                    user={{ name: user?.full_name || 'Champion' }}
-                                    stats={{
-                                        level: userStats.level,
-                                        streak: userStats.streak,
-                                        xp: userStats.currentXP
-                                    }}
-                                    onRetake={() => setIsAssessmentActive(true)}
-                                />
+                                <div className="text-center py-12 px-6 bg-white dark:bg-neutral-900 rounded-[2.5rem] border border-neutral-100 dark:border-neutral-800 shadow-xl">
+                                    <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <Users className="w-10 h-10" />
+                                    </div>
+                                    <h2 className="text-3xl font-black mb-4">DNA Profile Active</h2>
+                                    <p className="text-neutral-500 max-w-lg mx-auto mb-8 text-lg font-medium">
+                                        Your communication DNA has been mapped. You can view your detailed architecture in the dedicated tab or recalibrate below.
+                                    </p>
+                                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                        <button
+                                            onClick={() => setActiveTab('neural')}
+                                            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-600/20 hover:scale-105 transition-all"
+                                        >
+                                            View Architecture
+                                        </button>
+                                        <button
+                                            onClick={() => setIsAssessmentActive(true)}
+                                            className="px-8 py-4 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-2xl font-black hover:bg-neutral-200 transition-all"
+                                        >
+                                            Retake Assessment
+                                        </button>
+                                    </div>
+                                </div>
                             ) : (
                                 <div className="text-center py-16 bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
                                     <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
