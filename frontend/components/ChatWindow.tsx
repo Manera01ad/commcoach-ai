@@ -9,7 +9,6 @@ import { createPcmBlob } from '../audioUtils';
 import {
   Brain,
   StopCircle,
-  Volume2,
   Sparkles,
   ChevronDown,
   AudioLines
@@ -66,7 +65,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('user_gemini_key') || '');
   const [selectedModel, setSelectedModel] = useState(localStorage.getItem('user_chat_model') || 'gemini-2.0-flash-exp');
   const [showModelsInitial, setShowModelsInitial] = useState(false);
-  const [autoSpeak, setAutoSpeak] = useState(localStorage.getItem('user_auto_speak') === 'true');
 
   // Antigravity State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -286,7 +284,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       socket.on('voice-response', (data: { text: string; shouldSpeak?: boolean }) => {
         setOutputFeedback(data.text);
-        if (data.shouldSpeak !== false || autoSpeak) {
+        if (data.shouldSpeak !== false) {
           speakText(data.text);
           onAddManualMessage('assistant', data.text);
         }
@@ -410,18 +408,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     title="Start Voice Conversation"
                   >
                     {isSessionActive ? <StopCircle className="w-6 h-6" /> : <AudioLines className="w-6 h-6" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newVal = !autoSpeak;
-                      setAutoSpeak(newVal);
-                      localStorage.setItem('user_auto_speak', String(newVal));
-                    }}
-                    title="Auto-Speak Responses"
-                    className={`p-4 rounded-full transition-all ${autoSpeak ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}
-                  >
-                    <Volume2 className="w-6 h-6" />
                   </button>
                   <button type="submit" disabled={!input.trim()} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black disabled:opacity-30">Send</button>
                 </div>
