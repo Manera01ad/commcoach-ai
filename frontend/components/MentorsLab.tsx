@@ -6,7 +6,7 @@ import MentorsRightPanel from './mentors/MentorsRightPanel';
 import MentorsModals from './mentors/MentorsModals';
 
 interface MentorsLabProps {
-  onSendMessage: (text: string) => void;
+  onSendMessage: (text: string, thinking?: boolean, search?: boolean) => void;
   messages: Message[];
   onAddManualMessage: (role: 'user' | 'assistant', content: string) => void;
   isThinking?: boolean;

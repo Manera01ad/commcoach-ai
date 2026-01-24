@@ -20,9 +20,10 @@ class ResearchAgent extends AgentService {
      * @param {string} query
      * @param {function} onEvent - Callback for browser events { type, description, ... }
      */
-    async research(query, onEvent = null) {
-        if (!this.enabled) {
-            return "Research feature is currently unavailable. Please configure GEMINI_API_KEY in your environment.";
+    async research(query, onEvent = null, config = {}) {
+        const apiKey = config.apiKey || process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return "Research feature is currently unavailable. Please provide a Gemini API key in Settings.";
         }
 
         try {
@@ -70,7 +71,7 @@ class ResearchAgent extends AgentService {
                 `}
             ];
 
-            const result = await this.generateResponse(messages);
+            const result = await this.generateResponse(messages, config);
             return result.content;
 
         } catch (error) {

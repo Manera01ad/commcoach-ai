@@ -10,7 +10,8 @@ import {
   Brain,
   Search,
   Mic,
-  StopCircle
+  StopCircle,
+  Volume2
 } from 'lucide-react';
 
 interface AssessmentStructuredData {
@@ -33,7 +34,7 @@ interface AssessmentStructuredData {
 
 interface ChatWindowProps {
   messages: Message[];
-  onSend: (text: string) => void;
+  onSend: (text: string, useThinking?: boolean, useSearch?: boolean) => void;
   onAddManualMessage: (role: 'user' | 'assistant', content: string) => void;
   isVoiceMode: boolean;
   phase: SessionPhase;
@@ -62,6 +63,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
   const [showKeySettings, setShowKeySettings] = useState(false);
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('user_gemini_key') || '');
+  const [autoSpeak, setAutoSpeak] = useState(localStorage.getItem('user_auto_speak') === 'true');
 
   // Antigravity State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -144,7 +146,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     // We need to support the initial chat view's input as well
     const text = input;
     setInput('');
-    onSend(text);
+    onSend(text, deepThinking, searchGrounding);
   };
 
   const recognitionRef = useRef<any>(null);
@@ -253,9 +255,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       socket.on('voice-response', (data: { text: string; shouldSpeak?: boolean }) => {
         setOutputFeedback(data.text);
-        if (data.shouldSpeak !== false) {
+        if (data.shouldSpeak !== false || autoSpeak) {
           speakText(data.text);
-          // Also add to chat history for persistent record
           onAddManualMessage('assistant', data.text);
         }
       });
@@ -346,6 +347,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 <div className="flex space-x-3">
                   <button type="button" onClick={startVoiceSession} className={`p-4 rounded-full transition-all ${isSessionActive ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}>
                     {isSessionActive ? <StopCircle className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newVal = !autoSpeak;
+                      setAutoSpeak(newVal);
+                      localStorage.setItem('user_auto_speak', String(newVal));
+                    }}
+                    title="Auto-Speak Responses"
+                    className={`p-4 rounded-full transition-all ${autoSpeak ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}
+                  >
+                    <Volume2 className="w-6 h-6" />
                   </button>
                   <button type="submit" disabled={!input.trim()} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black disabled:opacity-30">Send</button>
                 </div>

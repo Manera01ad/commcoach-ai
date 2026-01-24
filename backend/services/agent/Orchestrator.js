@@ -25,8 +25,9 @@ class AgentOrchestrator {
      * @param {string} message - The user's message
      * @param {boolean} stream - Whether to stream the response
      * @param {function} onChunk - Callback for streaming chunks
+     * @param {Object} config - Dynamic config overrides (apiKey, model)
      */
-    async processMessage(userId, sessionId, message, stream = false, onChunk = null) {
+    async processMessage(userId, sessionId, message, stream = false, onChunk = null, config = {}) {
         try {
             console.log(`[Orchestrator] Processing message for session ${sessionId}`);
 
@@ -52,10 +53,9 @@ class AgentOrchestrator {
             if (agentType === 'research') {
                 const researchResult = await agent.research(message, (event) => {
                     if (stream && onChunk) {
-                        // Send structured event as a special frame
                         onChunk(`[BROWSER_EVENT]${JSON.stringify(event)}`);
                     }
-                });
+                }, config);
 
                 if (stream && onChunk) {
                     // streaming is handled by the callback for events, but we also send the final result
@@ -83,12 +83,10 @@ class AgentOrchestrator {
                 await agent.streamResponse(messages, (chunk) => {
                     responseContent += chunk;
                     onChunk(chunk);
-                });
-                // Todo: Save full response to DB after streaming
+                }, config);
             } else {
-                const result = await agent.generateResponse(messages);
+                const result = await agent.generateResponse(messages, config);
                 responseContent = result.content;
-                // Todo: Save message to DB
             }
 
             // 5. Async: Store this interaction in Memory (if useful)

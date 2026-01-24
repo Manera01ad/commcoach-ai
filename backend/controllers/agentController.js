@@ -6,7 +6,7 @@ import Orchestrator from '../services/agent/Orchestrator.js';
  */
 export const handleChat = async (req, res) => {
     try {
-        const { message, sessionId, stream } = req.body;
+        const { message, sessionId, stream, config } = req.body;
         const userId = req.user.id; // From auth middleware
 
         if (!message || !sessionId) {
@@ -21,13 +21,13 @@ export const handleChat = async (req, res) => {
 
             await Orchestrator.processMessage(userId, sessionId, message, true, (chunk) => {
                 res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
-            });
+            }, config);
 
             res.write('data: [DONE]\n\n');
             res.end();
         } else {
             // Standard JSON response
-            const response = await Orchestrator.processMessage(userId, sessionId, message, false);
+            const response = await Orchestrator.processMessage(userId, sessionId, message, false, null, config);
             res.json({ content: response });
         }
 

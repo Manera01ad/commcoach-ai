@@ -13,8 +13,15 @@ class AgentService {
 
     /**
      * Get the model instance, initializing it if necessary
+     * @param {Object} overrideConfig - Dynamic overrides (apiKey, model)
      */
-    async getModel() {
+    async getModel(overrideConfig = {}) {
+        // If override config is provided (like a user-specific API key),
+        // we always create a fresh instance for that request.
+        if (Object.keys(overrideConfig).length > 0) {
+            return this.initializeModel({ ...this.config, ...overrideConfig });
+        }
+
         if (!this.model) {
             this.model = this.initializeModel(this.config);
         }
@@ -28,10 +35,10 @@ class AgentService {
     initializeModel(config) {
         const temperature = config.temperature || 0.7;
         const modelName = config.modelName || "gemini-1.5-flash";
+        const apiKey = config.apiKey || process.env.GEMINI_API_KEY;
 
         if (modelName.startsWith("gemini")) {
-            // Check if API key exists before initializing
-            if (!process.env.GEMINI_API_KEY) {
+            if (!apiKey) {
                 console.warn('⚠️  GEMINI_API_KEY not found. Agent features will be limited.');
                 return null;
             }
@@ -39,21 +46,21 @@ class AgentService {
                 model: modelName,
                 maxOutputTokens: config.maxTokens || 1000,
                 temperature: temperature,
-                apiKey: process.env.GEMINI_API_KEY,
+                apiKey: apiKey,
             });
         } else if (modelName.startsWith("gpt")) {
-            if (!process.env.OPENAI_API_KEY) {
+            const openAIApiKey = config.apiKey || process.env.OPENAI_API_KEY;
+            if (!openAIApiKey) {
                 console.warn('⚠️  OPENAI_API_KEY not found. Agent features will be limited.');
                 return null;
             }
             return new ChatOpenAI({
                 modelName: modelName,
                 temperature: temperature,
-                openAIApiKey: process.env.OPENAI_API_KEY,
+                openAIApiKey: openAIApiKey,
             });
         } else {
-            // Default to Gemini if unknown
-            if (!process.env.GEMINI_API_KEY) {
+            if (!apiKey) {
                 console.warn('⚠️  GEMINI_API_KEY not found. Agent features will be limited.');
                 return null;
             }
@@ -61,7 +68,7 @@ class AgentService {
                 model: "gemini-1.5-flash",
                 maxOutputTokens: 1000,
                 temperature: 0.7,
-                apiKey: process.env.GEMINI_API_KEY,
+                apiKey: apiKey,
             });
         }
     }
@@ -71,24 +78,20 @@ class AgentService {
      * @param {Array} messages - List of message objects { role, content }
      * @param {Object} context - Additional context to inject (user profile, etc.)
      */
-    async generateResponse(messages, context = {}) {
+    async generateResponse(messages, config = {}) {
         try {
-            // 1. Format messages for LangChain
-            // This is a simplified formatting; in a real scenario, we'd clean/parse more
             const formattedMessages = messages.map(msg => {
                 if (msg.role === 'user') return ["human", msg.content];
                 if (msg.role === 'assistant') return ["ai", msg.content];
                 return ["system", msg.content];
             });
 
-            // 2. Invoke Model
-            const model = await this.getModel();
+            const model = await this.getModel(config);
             if (!model) {
                 throw new Error('Model not initialized. Please configure API keys.');
             }
             const response = await model.invoke(formattedMessages);
 
-            // 3. Return Content
             return {
                 content: response.content,
                 metadata: response.response_metadata || {}
@@ -103,15 +106,15 @@ class AgentService {
     /**
      * Stream a response (for real-time chat)
      */
-    async streamResponse(messages, onChunk) {
+    async streamResponse(messages, onChunk, config = {}) {
         try {
             const formattedMessages = messages.map(msg => {
-                if (msg.role === 'user') return ["human", msg.content];
-                if (msg.role === 'assistant') return ["ai", msg.content];
+                if (msg.role === 'human' || msg.role === 'user') return ["human", msg.content];
+                if (msg.role === 'ai' || msg.role === 'assistant') return ["ai", msg.content];
                 return ["system", msg.content];
             });
 
-            const model = await this.getModel();
+            const model = await this.getModel(config);
             if (!model) {
                 throw new Error('Model not initialized. Please configure API keys.');
             }

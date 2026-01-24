@@ -109,7 +109,14 @@ const MainApp: React.FC = () => {
     try {
       let fullContent = "";
 
-      await geminiApi.streamContent(userText, (chunk: string) => {
+      const config: any = {};
+      if (useThinking) config.model = 'gemini-2.0-flash-thinking-exp-01-21';
+      if (useSearch) {
+        // Force research agent in orchestrator via a specific prefix or config
+        userText = `RESEARCH: ${userText}`;
+      }
+
+      await geminiApi.streamContent(userText, session.sessionId, (chunk: string) => {
         if (chunk.startsWith('[BROWSER_EVENT]')) {
           try {
             const eventData = JSON.parse(chunk.replace('[BROWSER_EVENT]', ''));
@@ -152,7 +159,7 @@ const MainApp: React.FC = () => {
     }
   };
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = (text: string, useThinking: boolean = false, useSearch: boolean = false) => {
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: text, timestamp: new Date() };
 
     if (session.phase === SessionPhase.ASSESSMENT) {
@@ -210,7 +217,7 @@ const MainApp: React.FC = () => {
         currentInstruction += "\n\nYou are helping the user find specific training videos from the mentioned YouTube channel. Use Google Search to find direct video links, titles, and brief descriptions from that channel. Focus on Aleena Rais Live content if requested.";
       }
 
-      generateAIResponse(text, currentInstruction);
+      generateAIResponse(text, currentInstruction, useThinking, useSearch);
     }
   };
 

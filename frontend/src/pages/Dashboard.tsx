@@ -9,6 +9,7 @@ import CommDNAAssessment from '../components/CommDNAAssessment';
 import CommDNAProfile from '../components/CommDNAProfile';
 import FounderDashboard from '../components/FounderDashboard';
 import Leaderboard from '../components/Leaderboard';
+import SettingsPage from './Settings';
 import { LayoutDashboard, Target, Users, Settings, LogOut, Menu, X, BookOpen, Crown, BrainCircuit } from 'lucide-react';
 
 // Context
@@ -324,8 +325,14 @@ const Dashboard: React.FC = () => {
                         </div>
                     )}
 
+                    {activeTab === 'settings' && (
+                        <div className="max-w-4xl mx-auto">
+                            <SettingsPage />
+                        </div>
+                    )}
+
                     {/* Other tabs can be placeholders for now */}
-                    {(activeTab !== 'overview' && activeTab !== 'founders') && (
+                    {(activeTab !== 'overview' && activeTab !== 'founders' && activeTab !== 'profile' && activeTab !== 'settings') && (
                         <div className="text-center py-20 text-neutral-500">
                             Work in progress...
                         </div>

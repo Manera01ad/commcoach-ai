@@ -5,10 +5,12 @@ const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:3001
 /**
  * Securely generates content using the backend proxy (Streaming Support).
  */
-export const streamContent = async (prompt: string, onChunk: (chunk: string) => void): Promise<string> => {
+export const streamContent = async (prompt: string, sessionId: string, onChunk: (chunk: string) => void, config: any = {}): Promise<string> => {
     try {
         const token = localStorage.getItem('supabase.auth.token');
         const accessToken = token ? JSON.parse(token).access_token : '';
+
+        const userKey = localStorage.getItem('user_gemini_key') || '';
 
         const response = await fetch(`${API_URL}/agents/chat`, {
             method: 'POST',
@@ -16,7 +18,16 @@ export const streamContent = async (prompt: string, onChunk: (chunk: string) => 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${accessToken}`
             },
-            body: JSON.stringify({ message: prompt, stream: true }),
+            body: JSON.stringify({
+                message: prompt,
+                sessionId: sessionId,
+                stream: true,
+                config: {
+                    model: config.model || localStorage.getItem('user_chat_model') || 'gemini-2.0-flash-exp',
+                    apiKey: config.apiKey || userKey,
+                    ...config
+                }
+            }),
         });
 
         if (!response.ok) throw new Error(`Stream Error: ${response.status}`);
@@ -70,10 +81,12 @@ export const streamContent = async (prompt: string, onChunk: (chunk: string) => 
 /**
  * Securely generates content using the backend proxy (Standard).
  */
-export const generateContent = async (prompt: string): Promise<string> => {
+export const generateContent = async (prompt: string, sessionId: string = 'default'): Promise<string> => {
     try {
         const token = localStorage.getItem('supabase.auth.token');
         const accessToken = token ? JSON.parse(token).access_token : '';
+
+        const userKey = localStorage.getItem('user_gemini_key') || '';
 
         const response = await fetch(`${API_URL}/gemini/generate`, {
             method: 'POST',
@@ -81,7 +94,14 @@ export const generateContent = async (prompt: string): Promise<string> => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${accessToken}`
             },
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({
+                model: localStorage.getItem('user_chat_model') || 'gemini-2.0-flash-exp',
+                prompt,
+                sessionId,
+                config: {
+                    apiKey: userKey
+                }
+            }),
         });
 
         if (!response.ok) {
