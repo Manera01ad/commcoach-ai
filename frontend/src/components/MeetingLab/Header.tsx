@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { SessionPhase } from '../types';
+import { SessionPhase } from '../../types';
 import { Target, Users, Mic2, Briefcase, Eye, Moon, Sun, LogOut, Settings, User, Sparkles } from 'lucide-react';
-import { useAuth } from '../src/contexts/AuthContext';
-import { useTheme } from '../src/contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface HeaderProps {
   phase: SessionPhase;

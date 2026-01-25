@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mentor } from '../../types';
+import { Mentor } from '../../../types';
 import { Home, Search, Library, Plus } from 'lucide-react';
 
 interface MentorsSidebarProps {

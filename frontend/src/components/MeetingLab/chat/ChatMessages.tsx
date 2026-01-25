@@ -1,12 +1,12 @@
 import React, { useRef, useEffect } from 'react';
 import { Brain, Volume2, Youtube, ExternalLink, BarChart2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Message, SessionPhase } from '../../types';
+import { Message, SessionPhase } from '../../../types';
 import { marked } from 'marked';
-import { ArchetypeBadge } from '../../src/components/Aura/ArchetypeBadge';
-import { TherapyMessage } from '../../src/components/Aura/TherapyMessage';
-import { ConfidenceMeter } from '../../src/components/Aura/ConfidenceMeter';
-import { ExerciseCard } from '../../src/components/Aura/ExerciseCard';
-import '../../src/styles/aura.css';
+import { ArchetypeBadge } from '../../Aura/ArchetypeBadge';
+import { TherapyMessage } from '../../Aura/TherapyMessage';
+import { ConfidenceMeter } from '../../Aura/ConfidenceMeter';
+import { ExerciseCard } from '../../Aura/ExerciseCard';
+import '../../../styles/aura.css';
 
 // Define Interface locally or import if exported
 interface AssessmentStructuredData {

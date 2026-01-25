@@ -13,7 +13,7 @@ export const TherapyDashboard: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0B] text-white p-6 md:p-12 font-['Inter'] relative overflow-hidden">
+        <div className="h-full bg-[#0A0A0B] text-white p-6 md:p-12 font-['Inter'] relative overflow-y-auto custom-scrollbar">
             {/* Aura Background Effects */}
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />

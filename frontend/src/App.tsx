@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './src/contexts/AuthContext';
-import AuthRouter from './src/pages/auth/AuthRouter';
-import ProtectedRoute from './src/components/ProtectedRoute';
+import { useAuth } from './contexts/AuthContext';
+import AuthRouter from './pages/auth/AuthRouter';
+import ProtectedRoute from './components/ProtectedRoute';
 import { SessionPhase, Message, SessionState, UserProfile } from './types';
-import ChatWindow from './components/ChatWindow';
-import Header from './components/Header';
-import RecapScreen from './components/RecapScreen';
-import MentorsLab from './components/MentorsLab';
-import MeetingAgent from './components/MeetingAgent';
-import ProfileDashboard from './components/ProfileDashboard';
-import BrowserWindow from './src/components/AgentBrowser/BrowserWindow';
-import { getGenerativeModelProxy } from './src/services/apiClient';
-import Dashboard from './src/pages/Dashboard';
-import TherapyDashboard from './src/pages/TherapyDashboard';
-import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './src/constants';
-import LandingPage from './src/pages/LandingPage';
+import ChatWindow from './components/MeetingLab/ChatWindow';
+import Header from './components/MeetingLab/Header';
+import RecapScreen from './components/MeetingLab/RecapScreen';
+import MentorsLab from './components/MeetingLab/MentorsLab';
+import MeetingAgent from './components/MeetingLab/MeetingAgent';
+import ProfileDashboard from './components/MeetingLab/ProfileDashboard';
+import BrowserWindow from './components/AgentBrowser/BrowserWindow';
+import { getGenerativeModelProxy } from './services/apiClient';
+import Dashboard from './pages/Dashboard';
+import TherapyDashboard from './pages/TherapyDashboard';
+import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './constants';
+import LandingPage from './pages/LandingPage';
 
 
 // Adapter for legacy geminiApi usage
@@ -226,7 +226,7 @@ const MainApp: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 font-['Inter'] overflow-hidden transition-colors duration-300">
+    <div className="flex flex-col h-screen w-full bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 font-['Inter'] overflow-hidden transition-colors duration-300">
       <Header
         phase={session.phase}
         isVoiceMode={false}

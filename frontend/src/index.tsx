@@ -2,10 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AuthProvider } from './src/contexts/AuthContext';
-import { ThemeProvider } from './src/contexts/ThemeContext';
-import { ToastProvider } from './src/contexts/ToastContext';
-import './src/styles/globals.css';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { ToastProvider } from './contexts/ToastContext';
+import './styles/globals.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

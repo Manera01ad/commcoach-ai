@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Message, SessionPhase } from '../types';
+import { Message, SessionPhase } from '../../types';
 import { marked } from 'marked';
 import CommCoachInfographic from './CommCoachInfographic';
 import ChatMessages from './chat/ChatMessages';
 import ChatInput from './chat/ChatInput';
 import VoiceOverlay from './chat/VoiceOverlay';
-import { createPcmBlob } from '../audioUtils';
+import { createPcmBlob } from '../../audioUtils';
 import {
   Brain,
   StopCircle,
@@ -43,7 +43,7 @@ interface ChatWindowProps {
   onStartMentorsLab?: () => void;
   onStartMeetingAgent?: () => void;
   isThinking?: boolean;
-  setSession: React.Dispatch<React.SetStateAction<any>>;
+  setSession?: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -193,10 +193,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         };
         // Use setSession to add the message with metadata directly
         // because onAddManualMessage might not support complex metadata
-        setSession(prev => ({
-          ...prev,
-          messages: [...prev.messages, therapyMsg]
-        }));
+        if (setSession) {
+          setSession(prev => ({
+            ...prev,
+            messages: [...prev.messages, therapyMsg]
+          }));
+        } else {
+          onAddManualMessage('assistant', data.response);
+        }
       } else if (data.type === 'clarification') {
         onAddManualMessage('assistant', data.question);
       }
@@ -458,8 +462,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     type="button"
                     onClick={() => setTherapyMode(!therapyMode)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${therapyMode
-                        ? 'bg-purple-600/10 border-purple-500/30 text-purple-600 font-bold shadow-sm'
-                        : 'bg-slate-50 border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                      ? 'bg-purple-600/10 border-purple-500/30 text-purple-600 font-bold shadow-sm'
+                      : 'bg-slate-50 border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100'
                       }`}
                   >
                     <Brain className={`w-3.5 h-3.5 ${therapyMode ? 'animate-pulse' : ''}`} />

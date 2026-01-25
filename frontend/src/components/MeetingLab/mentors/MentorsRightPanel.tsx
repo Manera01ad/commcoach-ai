@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mentor, MentorPlaylist, Message, SessionPhase } from '../../types';
+import { Mentor, MentorPlaylist, Message, SessionPhase } from '../../../types';
 import ChatWindow from '../ChatWindow';
 import {
     Youtube, Play, Info, BarChart2

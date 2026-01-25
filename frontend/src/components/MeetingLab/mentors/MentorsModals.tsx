@@ -1,5 +1,5 @@
 import React from 'react';
-import { MentorPlaylist } from '../../types';
+import { MentorPlaylist } from '../../../types';
 import { Plus, X, Youtube } from 'lucide-react';
 
 interface MentorsModalsProps {

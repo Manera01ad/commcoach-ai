@@ -128,7 +128,7 @@ const Dashboard: React.FC = () => {
     );
 
     return (
-        <div className="min-h-screen bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white font-sans">
+        <div className="h-full flex flex-col bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white font-sans overflow-hidden">
 
             {/* Mobile Header */}
             <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-30">
@@ -143,7 +143,7 @@ const Dashboard: React.FC = () => {
                 </button>
             </div>
 
-            <div className="flex max-w-7xl mx-auto relative">
+            <div className="flex-1 min-h-0 flex max-w-7xl mx-auto relative w-full overflow-hidden">
 
                 {/* Mobile Sidebar Overlay */}
                 {sidebarOpen && (

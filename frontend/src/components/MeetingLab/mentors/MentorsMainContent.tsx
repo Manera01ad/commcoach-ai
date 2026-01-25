@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mentor, MentorPlaylist } from '../../types';
+import { Mentor, MentorPlaylist } from '../../../types';
 import {
     Youtube, TrendingUp, UserMinus, UserPlus, Bell, Plus, Settings, Search, Filter, Volume2, Play, ExternalLink, Edit3, Trash2
 } from 'lucide-react';
