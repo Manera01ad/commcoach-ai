@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MeetingSpeaker } from '../types';
-// import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai'; // Removed for security
-import { geminiApi } from '../services/api';
-import { decode, decodeAudioData, createPcmBlob } from '../audioUtils';
+import { MeetingSpeaker } from '../../types';
+import { geminiApi } from '../../services/api';
+import { decode, decodeAudioData, createPcmBlob } from '../../audioUtils';
 import { marked } from 'marked';
 import {
   Zap,
@@ -32,6 +30,8 @@ import {
   ClipboardList
 } from 'lucide-react';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 const MEETING_SYSTEM_INSTRUCTION = `You are the Meeting Lab Intelligence Agent. 
 Your primary role is to act as a HIGH-FIDELITY SILENT TRANSCRIBER AND OBSERVER.
 
@@ -58,6 +58,7 @@ interface IntakeData {
 }
 
 const MeetingAgent: React.FC = () => {
+  const { user } = useAuth();
   // Removed 'setup' step from the state cycle
   const [currentStep, setCurrentStep] = useState<'splash' | 'active' | 'summary'>('splash');
   const [intake] = useState<IntakeData>({
@@ -148,24 +149,88 @@ const MeetingAgent: React.FC = () => {
     }
   };
 
+  const recognitionRef = useRef<any>(null);
+
+  const startMeeting = async () => {
+    if (isActive || isConnecting) return;
+    setIsConnecting(true);
+    try {
+      // 1. Request Microphone Access
+      streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      // 2. Initialize Web Speech API
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        throw new Error('Speech Recognition not supported in this browser.');
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          setTranscript(prev => [
+            ...prev,
+            {
+              speakerId: 'user',
+              name: user?.full_name || 'You',
+              text: finalTranscript,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              lastUpdated: Date.now()
+            }
+          ]);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech Recognition Error:', event.error);
+        stopMeeting();
+      };
+
+      recognition.start();
+      recognitionRef.current = recognition;
+
+      setIsActive(true);
+      setCurrentStep('active');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to initialize meeting: ' + (err as Error).message);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
   const stopMeeting = useCallback(async () => {
     setIsActive(false);
     setIsConnecting(false);
 
-    if (processorRef.current) {
-      try { processorRef.current.disconnect(); } catch (e) { }
-      processorRef.current = null;
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
     }
+
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     }
-    if (audioContextRef.current) {
-      await audioContextRef.current.close().catch(() => { });
-      audioContextRef.current = null;
-    }
-    if (sessionRef.current) {
-      try { await sessionRef.current.close(); } catch (e) { }
+
+    // Cleaning up other refs if any
+    if (processorRef.current) {
+      try { processorRef.current.disconnect(); } catch (e) { }
+      processorRef.current = null;
     }
 
     if (transcript.length > 0) {
@@ -174,23 +239,7 @@ const MeetingAgent: React.FC = () => {
     } else {
       setCurrentStep('splash');
     }
-  }, [transcript]);
-
-  const startMeeting = async () => {
-    if (isActive || isConnecting) return;
-    setIsConnecting(true);
-    try {
-      // SECURITY: Removed direct API key usage - moving to backend proxy
-      // const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      // TODO: Replace with backend API call to /api/meeting/live-session
-      console.warn("Live Meeting Agent temporarily disabled - migrating to backend proxy");
-      alert("Live Meeting Agent is being migrated to backend for security. Coming soon!");
-      setIsConnecting(false);
-    } catch (err) {
-      console.error(err);
-      setIsConnecting(false);
-    }
-  };
+  }, [transcript, user?.full_name]);
 
   const handleQa = async (queryText?: string) => {
     const text = queryText || qaInput;

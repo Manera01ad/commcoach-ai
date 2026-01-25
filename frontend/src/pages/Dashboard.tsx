@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabaseClient';
 
 // Components
 import StreakCounter from '../components/StreakCounter';
@@ -8,6 +9,8 @@ import DailyMission from '../components/DailyMission';
 import CommDNAAssessment from '../components/CommDNAAssessment';
 import CommDNAProfile from '../components/CommDNAProfile';
 import FounderDashboard from '../components/FounderDashboard';
+import MeetingAgent from '../components/MeetingLab/MeetingAgent';
+import AuraChat from '../components/AuraChat';
 import Leaderboard from '../components/Leaderboard';
 import SettingsPage from './Settings';
 import { LayoutDashboard, Target, Users, Settings, LogOut, Menu, X, BookOpen, Crown, BrainCircuit } from 'lucide-react';
@@ -19,17 +22,95 @@ const Dashboard: React.FC = () => {
     const { user, logout } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'missions' | 'founders' | 'settings' | 'library' | 'community' | 'meetings' | 'profile' | 'neural'>('overview');
-    const [dnaProfile, setDnaProfile] = useState<any>(null); // Ideally fetch from DB
+    const [dnaProfile, setDnaProfile] = useState<any>(null);
     const [isAssessmentActive, setIsAssessmentActive] = useState(false);
+    const [isAuraOpen, setIsAuraOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    // Stats (Mock for now, would come from Context/API)
-    const userStats = {
+    const [userStats, setUserStats] = useState({
         level: 4,
         currentXP: 850,
         nextLevelXP: 1000,
         streak: 12,
-        xpHistory: 50 // Recent gain
-    };
+        xpHistory: 50
+    });
+
+    const [dailyMissions, setDailyMissions] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!user) return;
+            try {
+                const tokenObj = localStorage.getItem('supabase.auth.token');
+                const token = tokenObj ? JSON.parse(tokenObj).access_token : '';
+
+                // 1. Fetch Streak Stats
+                const streakRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/streak/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const streakData = await streakRes.json();
+
+                // 2. Fetch Level/XP Stats
+                const levelRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/missions/level`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const levelData = await levelRes.json();
+
+                // 3. Fetch Today's Missions
+                const missionsRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/missions/today`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const missionsData = await missionsRes.json();
+
+                if (streakData.success) {
+                    setUserStats(prev => ({
+                        ...prev,
+                        streak: streakData.stats?.currentStreak || 0
+                    }));
+                }
+
+                if (levelData.success) {
+                    setUserStats(prev => ({
+                        ...prev,
+                        level: levelData.level?.level || prev.level,
+                        currentXP: levelData.level?.current_xp || prev.currentXP,
+                        nextLevelXP: levelData.level?.next_level_xp || prev.nextLevelXP
+                    }));
+                }
+
+                if (missionsData.success) {
+                    // Adapt the missions table structure to DailyMission props
+                    const mission = missionsData.mission;
+                    setDailyMissions([{
+                        id: mission.id,
+                        title: mission.drill.title,
+                        description: mission.drill.description,
+                        xpReward: mission.drill.xp_reward,
+                        category: mission.drill.category,
+                        difficulty: mission.drill.difficulty,
+                        status: mission.completed ? 'completed' : 'pending'
+                    }]);
+                }
+
+                // 4. Fetch DNA Profile
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('comm_dna')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile?.comm_dna) {
+                    setDnaProfile(profile.comm_dna);
+                }
+            } catch (err) {
+                console.error('Error fetching dashboard data:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [user]);
 
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -208,24 +289,23 @@ const Dashboard: React.FC = () => {
                                             <button className="text-sm text-indigo-600 font-medium hover:underline">View All</button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <DailyMission
-                                                id="1"
-                                                title="Pacing Drill"
-                                                description="Speak for 1 min at 130-150wpm"
-                                                xpReward={100}
-                                                category="delivery"
-                                                difficulty="easy"
-                                                status="pending"
-                                            />
-                                            <DailyMission
-                                                id="2"
-                                                title="Filler Word Hunt"
-                                                description="Use <2 filler words in a story"
-                                                xpReward={150}
-                                                category="clarity"
-                                                difficulty="medium"
-                                                status="pending"
-                                            />
+                                            {dailyMissions.length > 0 ? dailyMissions.map((m) => (
+                                                <DailyMission
+                                                    key={m.id}
+                                                    id={m.id}
+                                                    title={m.title}
+                                                    description={m.description}
+                                                    xpReward={m.xpReward}
+                                                    category={m.category}
+                                                    difficulty={m.difficulty}
+                                                    status={m.status}
+                                                />
+                                            )) : (
+                                                <div className="md:col-span-2 text-center py-8 bg-white/50 dark:bg-neutral-800/50 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700">
+                                                    <p className="text-neutral-500">No missions scheduled for today yet.</p>
+                                                    <button className="mt-2 text-sm text-indigo-600 font-bold">Generate New Mission →</button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -341,12 +421,27 @@ const Dashboard: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Other tabs can be placeholders for now */}
-                    {(activeTab !== 'overview' && activeTab !== 'founders' && activeTab !== 'profile' && activeTab !== 'settings') && (
-                        <div className="text-center py-20 text-neutral-500">
-                            Work in progress...
+                    {activeTab === 'meetings' && (
+                        <div className="h-[calc(100vh-16rem)] min-h-[600px]">
+                            <MeetingAgent />
                         </div>
                     )}
+
+                    {/* Floating Aura Active Link */}
+                    <div className="fixed bottom-8 right-8 z-50">
+                        <button
+                            onClick={() => setIsAuraOpen(true)}
+                            className="w-16 h-16 bg-slate-900 dark:bg-indigo-600 text-white rounded-[2rem] shadow-2xl shadow-indigo-600/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all group"
+                        >
+                            <BrainCircuit className="w-8 h-8 group-hover:animate-pulse" />
+                        </button>
+                    </div>
+
+                    <AuraChat
+                        isOpen={isAuraOpen}
+                        onClose={() => setIsAuraOpen(false)}
+                        dnaProfile={dnaProfile}
+                    />
 
                 </main>
             </div >

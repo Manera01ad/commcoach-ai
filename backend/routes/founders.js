@@ -74,4 +74,16 @@ router.post('/verify-stripe', authenticateToken, async (req, res) => {
     }
 });
 
+// Get founder stats
+router.get('/stats', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const stats = await PaymentService.getFounderStats(userId);
+        res.json(stats);
+    } catch (error) {
+        console.error('Error getting founder stats:', error);
+        res.status(500).json({ error: 'Failed to fetch founder stats' });
+    }
+});
+
 export default router;

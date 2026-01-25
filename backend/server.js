@@ -1,8 +1,6 @@
+import 'dotenv/config';
 console.log('--- BACKEND STARTING ---');
-// Load environment variables FIRST, before any other imports
-
-import dotenv from 'dotenv';
-dotenv.config();
+// Environment variables loaded via import 'dotenv/config'
 
 // Now import other modules that may use environment variables
 import express from 'express';
@@ -68,8 +66,8 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 2. Rate Limiter (Security) - Disabled temporarily for debugging
-// app.use('/api', apiLimiter);
+// 2. Rate Limiter (Security)
+app.use('/api', apiLimiter);
 
 
 

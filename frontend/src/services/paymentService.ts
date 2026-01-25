@@ -37,6 +37,12 @@ export const paymentService = {
     verifyStripe: async (sessionId: string) => {
         const response = await api.post('/founders/verify-stripe', { sessionId });
         return response.data;
+    },
+
+    // Get founder stats
+    getStats: async () => {
+        const response = await api.get('/founders/stats');
+        return response.data;
     }
 };
 

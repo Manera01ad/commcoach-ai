@@ -1,24 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Crown, DollarSign, Users, Award, TrendingUp, Copy, Check } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import { paymentService } from '../services/paymentService';
 
 const FounderDashboard: React.FC = () => {
     const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(true);
     const [copied, setCopied] = useState(false);
-
-    // Mock data - In real app, fetch from /api/founders/stats
-    const stats = {
+    const [stats, setStats] = useState({
         isFounder: false,
-        referralCode: 'ALEX-FND-2026',
+        referralCode: '',
         totalReferrals: 0,
         earningsPending: 0,
         earningsPaid: 0,
         referralRate: '20%'
-    };
+    });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const data = await paymentService.getStats();
+                if (data.isFounder) {
+                    setStats({
+                        isFounder: true,
+                        referralCode: data.referral_code,
+                        totalReferrals: data.total_referrals || 0,
+                        earningsPending: data.commission_pending || 0,
+                        earningsPaid: data.commission_paid || 0,
+                        referralRate: '20%'
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching founder stats:', error);
+            } finally {
+                setFetching(false);
+            }
+        };
+
+        fetchStats();
+    }, []);
 
     const handleCopy = () => {
+        if (!stats.referralCode) return;
         navigator.clipboard.writeText(`https://commcoach.ai/join?ref=${stats.referralCode}`);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -96,6 +121,14 @@ const FounderDashboard: React.FC = () => {
             setLoading(false);
         }
     };
+
+    if (fetching) {
+        return (
+            <div className="w-full h-64 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
 
     if (!stats.isFounder) {
         return (

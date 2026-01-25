@@ -21,11 +21,11 @@ class RazorpayService {
     /**
      * Create order for Founder's Circle
      */
-    async createFounderOrder(userId, amount = 40000) {
+    async createFounderOrder(userId, amount = 40000, currency = 'INR') {
         try {
             const options = {
-                amount: amount * 100, // Convert to paise
-                currency: 'INR',
+                amount: amount * 100, // Convert to subunit
+                currency: currency,
                 receipt: `founder_${userId}_${Date.now()}`,
                 notes: {
                     userId,

@@ -79,8 +79,10 @@ export const DailyMission: React.FC<DailyMissionProps> = (props) => {
 
     const fetchTodaysMission = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('/api/missions/today', {
+            const tokenObj = localStorage.getItem('supabase.auth.token');
+            const token = tokenObj ? JSON.parse(tokenObj).access_token : '';
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/missions/today`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -106,8 +108,10 @@ export const DailyMission: React.FC<DailyMissionProps> = (props) => {
         if (!mission) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`/api/missions/${mission.id}/complete`, {
+            const tokenObj = localStorage.getItem('supabase.auth.token');
+            const token = tokenObj ? JSON.parse(tokenObj).access_token : '';
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/missions/${mission.id}/complete`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -205,23 +209,25 @@ export const DailyMission: React.FC<DailyMissionProps> = (props) => {
 
     return (
         <motion.div
-            className="bg-gray-800 rounded-xl overflow-hidden shadow-xl"
+            className="bg-white dark:bg-neutral-900 rounded-3xl overflow-hidden shadow-xl border border-neutral-100 dark:border-neutral-800 transition-all hover:shadow-2xl hover:shadow-indigo-500/10"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
         >
             {/* Header */}
-            <div className={`bg-gradient-to-r ${getDifficultyColor(mission.drill.difficulty)} p-4`}>
+            <div className={`bg-gradient-to-r ${getDifficultyColor(mission.drill.difficulty)} p-5`}>
                 <div className="flex items-center justify-between text-white">
-                    <div className="flex items-center gap-3">
-                        <span className="text-3xl">{getCategoryIcon(mission.drill.category)}</span>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl">
+                            {getCategoryIcon(mission.drill.category)}
+                        </div>
                         <div>
-                            <h3 className="font-bold text-lg">{mission.drill.title}</h3>
-                            <p className="text-sm opacity-90 capitalize">{mission.drill.category}</p>
+                            <h3 className="font-bold text-lg tracking-tight">{mission.drill.title}</h3>
+                            <p className="text-xs opacity-80 font-medium uppercase tracking-wider">{mission.drill.category} Mission</p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <div className="text-xs opacity-90">Difficulty</div>
-                        <div className="font-bold">{getDifficultyLabel(mission.drill.difficulty)}</div>
+                        <div className="text-[10px] opacity-70 font-black uppercase tracking-widest">Difficulty</div>
+                        <div className="font-black text-sm uppercase">{getDifficultyLabel(mission.drill.difficulty)}</div>
                     </div>
                 </div>
             </div>
@@ -230,24 +236,24 @@ export const DailyMission: React.FC<DailyMissionProps> = (props) => {
             <div className="p-6">
                 {!practicing ? (
                     <>
-                        <p className="text-gray-300 mb-4">{mission.drill.description}</p>
+                        <p className="text-neutral-600 dark:text-neutral-400 mb-6 font-medium leading-relaxed">{mission.drill.description}</p>
 
-                        <div className="bg-gray-900 rounded-lg p-4 mb-6">
-                            <div className="text-sm text-gray-400 mb-2">Scenario:</div>
-                            <p className="text-white">{mission.drill.scenario}</p>
+                        <div className="bg-neutral-50 dark:bg-black p-5 rounded-2xl mb-6 border border-neutral-100 dark:border-neutral-800">
+                            <div className="text-xs text-neutral-400 font-bold uppercase tracking-widest mb-2">Scenario</div>
+                            <p className="text-neutral-900 dark:text-neutral-200 font-medium italic">"{mission.drill.scenario}"</p>
                         </div>
 
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex gap-4">
+                        <div className="flex items-center justify-between mb-8 px-2">
+                            <div className="flex gap-8">
                                 <div>
-                                    <div className="text-xs text-gray-400">Duration</div>
-                                    <div className="text-white font-semibold">
-                                        {Math.floor(mission.drill.duration_seconds / 60)} min
+                                    <div className="text-xs text-neutral-400 font-bold uppercase tracking-widest mb-1">Duration</div>
+                                    <div className="text-neutral-900 dark:text-white font-black text-lg">
+                                        {Math.floor(mission.drill.duration_seconds / 60)}:00
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs text-gray-400">Reward</div>
-                                    <div className="text-yellow-400 font-semibold">
+                                    <div className="text-xs text-neutral-400 font-bold uppercase tracking-widest mb-1">Reward</div>
+                                    <div className="text-indigo-600 dark:text-indigo-400 font-black text-lg">
                                         +{mission.drill.xp_reward} XP
                                     </div>
                                 </div>
@@ -255,47 +261,51 @@ export const DailyMission: React.FC<DailyMissionProps> = (props) => {
                         </div>
 
                         <motion.button
-                            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-4 rounded-lg"
+                            className="w-full bg-slate-900 dark:bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-xs"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={startPractice}
                         >
-                            Start Practice →
+                            Start Mission →
                         </motion.button>
                     </>
                 ) : (
-                    <div className="text-center py-8">
-                        <motion.div
-                            className="text-6xl font-bold text-white mb-4"
-                            animate={{ scale: [1, 1.1, 1] }}
-                            transition={{ duration: 1, repeat: Infinity }}
-                        >
-                            {formatTime(timeLeft)}
-                        </motion.div>
+                    <div className="text-center py-10">
+                        <div className="relative inline-block mb-10">
+                            <div className="absolute inset-0 bg-indigo-500 rounded-full blur-[40px] opacity-20 animate-pulse" />
+                            <motion.div
+                                className="relative text-7xl font-black text-neutral-900 dark:text-white"
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 1, repeat: Infinity }}
+                            >
+                                {formatTime(timeLeft)}
+                            </motion.div>
+                        </div>
 
-                        <p className="text-gray-400 mb-6">Practice the scenario above</p>
+                        <p className="text-neutral-500 font-medium mb-10">Capturing communication markers...</p>
 
-                        <div className="mb-6">
-                            <label className="text-sm text-gray-400 block mb-2">
-                                How did you do? (Score: {score}%)
-                            </label>
+                        <div className="max-w-xs mx-auto mb-10">
+                            <div className="flex justify-between text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+                                <span>Subjective Performance</span>
+                                <span className="text-indigo-600">{score}%</span>
+                            </div>
                             <input
                                 type="range"
                                 min="0"
                                 max="100"
                                 value={score}
                                 onChange={(e) => setScore(parseInt(e.target.value))}
-                                className="w-full"
+                                className="w-full h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full appearance-none cursor-pointer accent-indigo-600"
                             />
                         </div>
 
                         <motion.button
-                            className="bg-green-500 text-white font-bold py-3 px-8 rounded-lg"
+                            className="bg-emerald-600 text-white font-black py-4 px-12 rounded-2xl shadow-lg shadow-emerald-600/20 uppercase tracking-widest text-xs"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={handleComplete}
                         >
-                            Complete Mission
+                            Finalize Mission
                         </motion.button>
                     </div>
                 )}

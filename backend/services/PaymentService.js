@@ -13,12 +13,18 @@ class PaymentService {
      */
     async getUserLocation(ip) {
         try {
+            // Development/Localhost fallback
+            if (ip === '::1' || ip === '127.0.0.1' || !ip) {
+                return { country: 'US', currency: 'USD', timezone: 'UTC' };
+            }
+
             const response = await fetch(`https://ipapi.co/${ip}/json/`);
+            if (!response.ok) throw new Error('IP API failed');
             const data = await response.json();
             return {
-                country: data.country_code,
-                currency: data.currency,
-                timezone: data.timezone
+                country: data.country_code || 'US',
+                currency: data.currency || 'USD',
+                timezone: data.timezone || 'UTC'
             };
         } catch (error) {
             console.error('Error detecting location:', error);
@@ -27,23 +33,39 @@ class PaymentService {
     }
 
     /**
-     * Select appropriate payment gateway based on country
+     * Select appropriate payment gateway based on country and key availability
      */
     selectGateway(country) {
-        // India & South Asia → Razorpay (lower fees, local methods)
-        const razorpayCountries = ['IN', 'BD', 'LK', 'NP', 'PK'];
+        const stripeReady = !!process.env.STRIPE_SECRET_KEY;
+        const razorpayReady = !!process.env.RAZORPAY_KEY_ID && !!process.env.RAZORPAY_KEY_SECRET;
 
-        if (razorpayCountries.includes(country)) {
+        // Case 1: Manual Override / Solo Gateway
+        if (!stripeReady && razorpayReady) {
             return {
                 gateway: 'razorpay',
-                reason: 'Lower fees, UPI support, local payment methods'
+                reason: 'Razorpay is the only active gateway'
             };
         }
 
-        // Rest of world → Stripe (global trust, better conversion)
+        if (stripeReady && !razorpayReady) {
+            return {
+                gateway: 'stripe',
+                reason: 'Stripe is the only active gateway'
+            };
+        }
+
+        // Case 2: Geographic Routing (Both available)
+        const razorpayCountries = ['IN', 'BD', 'LK', 'NP', 'PK'];
+        if (razorpayCountries.includes(country)) {
+            return {
+                gateway: 'razorpay',
+                reason: 'Geographic preference (South Asia)'
+            };
+        }
+
         return {
             gateway: 'stripe',
-            reason: 'Global recognition, higher conversion, more payment methods'
+            reason: 'Geographic preference (Global)'
         };
     }
 
@@ -91,7 +113,7 @@ class PaymentService {
             // Create checkout based on gateway
             let checkout;
             if (gateway === 'razorpay') {
-                checkout = await RazorpayService.createFounderOrder(userId, pricing.amount);
+                checkout = await RazorpayService.createFounderOrder(userId, pricing.amount, pricing.currency);
             } else {
                 checkout = await StripeService.createFounderCheckout(userId, pricing.amount, pricing.currency);
             }
@@ -166,6 +188,12 @@ class PaymentService {
 
             if (error) throw error;
 
+            // Update user's subscription tier to 'pro' or 'founder' if we had that tier
+            await supabase
+                .from('profiles')
+                .update({ subscription_tier: 'pro' }) // Founder implies at least Pro
+                .eq('id', userId);
+
             return {
                 success: true,
                 membership: data,
@@ -174,6 +202,33 @@ class PaymentService {
         } catch (error) {
             console.error('[PaymentService] Error creating membership:', error);
             throw error;
+        }
+    }
+
+    /**
+     * Get founder stats for a user
+     */
+    async getFounderStats(userId) {
+        try {
+            const { data, error } = await supabase
+                .rpc('get_founder_stats', { p_user_id: userId });
+
+            if (error) {
+                // If the user is not a founder, the RPC might return an error or null
+                if (error.message.includes('Not a founder')) {
+                    return { isFounder: false };
+                }
+                throw error;
+            }
+
+            return {
+                success: true,
+                isFounder: true,
+                ...data
+            };
+        } catch (error) {
+            console.error('[PaymentService] Error getting founder stats:', error);
+            return { isFounder: false, error: error.message };
         }
     }
 }
