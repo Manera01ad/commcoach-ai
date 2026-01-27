@@ -1,0 +1,259 @@
+{
+  "name": "CommCoach AI - RTCROS Logic Validator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Define test cases for archetype detection\nconst testCases = [\n  {\n    id: 'fortress_test_1',\n    input: 'I never let anyone in. Silence is my shield.',\n    expected_archetype: 'The Fortress',\n    category: 'defensive'\n  },\n  {\n    id: 'prosecutor_test_1',\n    input: \"You're wrong, let me explain why with facts and logic.\",\n    expected_archetype: 'The Prosecutor',\n    category: 'aggressive'\n  },\n  {\n    id: 'pleaser_test_1',\n    input: \"It's fine, don't worry about me. I'll just deal with it.\",\n    expected_archetype: 'The Pleaser',\n    category: 'passive'\n  },\n  {\n    id: 'solver_test_1',\n    input: \"Stop crying, here's what you need to do to fix this.\",\n    expected_archetype: 'The Solver',\n    category: 'dismissive'\n  },\n  {\n    id: 'fortress_test_2',\n    input: 'I shut down when things get emotional. I need space.',\n    expected_archetype: 'The Fortress',\n    category: 'defensive'\n  },\n  {\n    id: 'prosecutor_test_2',\n    input: 'Let me tell you why your approach is fundamentally flawed.',\n    expected_archetype: 'The Prosecutor',\n    category: 'aggressive'\n  }\n];\n\nreturn testCases.map(test => ({ json: test }));"
+      },
+      "name": "Generate Test Cases",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "test_prompt",
+              "name": "test_prompt",
+              "value": "=<system_instruction>\n  <role>\n    You are the \"Archetype Architect,\" an advanced clinical communication coach and Cognitive Behavioral Therapy (CBT) facilitator. You possess the combined knowledge of a Senior Linguist and a Licensed Clinical Therapist. You do not judge; you analyze, diagnose patterns, and construct growth pathways.\n  </role>\n\n  <context>\n    The user is interacting with a \"Communication Archetypes + Therapy\" app. They are seeking to understand their communication style (Archetype) and receive therapeutic exercises to improve their interpersonal relationships. The user may be emotional, defensive, or unaware of their patterns.\n  </context>\n\n  <task>\n    Your goal is to analyze user input, identify their dominant Communication Archetype based on the definitions provided below, and generate a micro-therapy session that includes a \"Mirroring\" explanation and a \"Growth\" exercise.\n  </task>\n\n  <knowledge_base>\n    <archetypes>\n      <type name=\"The Fortress\">Defensive, walls up, uses silence as a weapon.</type>\n      <type name=\"The Prosecutor\">Aggressive, logic-driven, seeks to \"win\" conversations.</type>\n      <type name=\"The Pleaser\">Passive, self-sacrificing, avoids conflict at all costs.</type>\n      <type name=\"The Solver\">Dismisses emotions, jumps immediately to fixes.</type>\n    </archetypes>\n  </knowledge_base>\n\n  <requirements>\n    1. STRICT FACTUAL MODE: Do not diagnose medical conditions. Stick to behavioral observations.\n    2. Use \"Chain of Thought\" reasoning before outputting the diagnosis to ensure accuracy.\n    3. If the user input is too short to determine an archetype, ask a clarifying question.\n  </requirements>\n\n  <style>\n    Empathetic but analytical. Use \"Clinical Warmth.\" Be concise in diagnosis but detailed in exercises.\n  </style>\n\n  <output_format>\n    Provide the response in the following XML structure:\n    <analysis>\n      <thinking>[Internal reasoning path]</thinking>\n      <identified_archetype>[Name]</identified_archetype>\n      <confidence_score>[0-100%]</confidence_score>\n    </analysis>\n    <response_to_user>\n      ### The Mirror 🪞\n      [Explanation of what they did]\n      \n      ### The Prescription 💊\n      [Specific CBT/Communication exercise]\n    </response_to_user>\n  </output_format>\n</system_instruction>\n\nUser input: {{ $json.input }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Build Test Prompt",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-20250514",
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.3
+        },
+        "text": "={{ $json.test_prompt }}"
+      },
+      "name": "Call Claude API",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "anthropicApi": {
+          "id": "ANTHROPIC_API_CREDENTIALS_ID",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude's XML response and validate\nconst input = $input.item.json;\nconst claudeResponse = input.response || '';\n\n// Extract identified archetype from XML\nconst archetypeMatch = claudeResponse.match(/<identified_archetype>(.+?)<\\/identified_archetype>/);\nconst confidenceMatch = claudeResponse.match(/<confidence_score>(.+?)<\\/confidence_score>/);\n\nconst identifiedArchetype = archetypeMatch ? archetypeMatch[1].trim() : 'NOT_FOUND';\nconst confidenceScore = confidenceMatch ? parseFloat(confidenceMatch[1]) : 0;\n\n// Compare with expected\nconst expected = input.expected_archetype;\nconst isCorrect = identifiedArchetype === expected;\n\n// Check if response contains required sections\nconst hasMirror = claudeResponse.includes('### The Mirror');\nconst hasPrescription = claudeResponse.includes('### The Prescription');\nconst hasThinking = claudeResponse.includes('<thinking>');\n\n// Check if confidence is within acceptable range\nconst confidenceValid = confidenceScore >= 60 && confidenceScore <= 100;\n\nreturn {\n  test_id: input.id,\n  test_input: input.input,\n  expected_archetype: expected,\n  identified_archetype: identifiedArchetype,\n  confidence_score: confidenceScore,\n  is_correct: isCorrect,\n  has_mirror_section: hasMirror,\n  has_prescription_section: hasPrescription,\n  has_thinking_section: hasThinking,\n  confidence_valid: confidenceValid,\n  full_response: claudeResponse,\n  test_passed: isCorrect && hasMirror && hasPrescription && confidenceValid,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "name": "Validate Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "aggregateItems",
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "name": "Aggregate Test Results",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate overall accuracy\nconst results = $input.all();\n\nconst totalTests = results.length;\nconst passedTests = results.filter(r => r.json.test_passed).length;\nconst correctArchetypes = results.filter(r => r.json.is_correct).length;\n\nconst accuracy = (correctArchetypes / totalTests) * 100;\nconst overallPassRate = (passedTests / totalTests) * 100;\n\n// Calculate average confidence\nconst avgConfidence = results.reduce((sum, r) => sum + r.json.confidence_score, 0) / totalTests;\n\n// Breakdown by category\nconst categoryBreakdown = {};\nresults.forEach(r => {\n  const testId = r.json.test_id;\n  const category = testId.split('_')[0];\n  if (!categoryBreakdown[category]) {\n    categoryBreakdown[category] = { total: 0, correct: 0 };\n  }\n  categoryBreakdown[category].total++;\n  if (r.json.is_correct) categoryBreakdown[category].correct++;\n});\n\nreturn {\n  timestamp: new Date().toISOString(),\n  total_tests: totalTests,\n  passed_tests: passedTests,\n  archetype_accuracy: accuracy.toFixed(2),\n  overall_pass_rate: overallPassRate.toFixed(2),\n  average_confidence: avgConfidence.toFixed(2),\n  category_breakdown: categoryBreakdown,\n  individual_results: results.map(r => ({\n    test_id: r.json.test_id,\n    passed: r.json.test_passed,\n    correct: r.json.is_correct,\n    confidence: r.json.confidence_score\n  })),\n  alert_required: accuracy < 80 || overallPassRate < 75\n};"
+      },
+      "name": "Calculate Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "therapy_logic_tests",
+        "columns": "timestamp, total_tests, passed_tests, archetype_accuracy, overall_pass_rate, average_confidence, category_breakdown, individual_results, alert_required",
+        "options": {}
+      },
+      "name": "Log Results to Supabase",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.alert_required }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Alert if Accuracy Low",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@commcoach-ai.app",
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "⚠️ CommCoach AI - Therapy Logic Accuracy Alert",
+        "emailType": "text",
+        "message": "=⚠️ RTCROS Logic Validation Alert\n\n**Accuracy Below Threshold**\n**Time:** {{ $json.timestamp }}\n\n**Metrics:**\n- Archetype Accuracy: {{ $json.archetype_accuracy }}% (Expected: >80%)\n- Overall Pass Rate: {{ $json.overall_pass_rate }}% (Expected: >75%)\n- Average Confidence: {{ $json.average_confidence }}%\n- Tests Passed: {{ $json.passed_tests }}/{{ $json.total_tests }}\n\n**Category Breakdown:**\n{{ JSON.stringify($json.category_breakdown, null, 2) }}\n\n**Action Required:** Review therapy logic and Claude prompt configuration.\n\n---\nView detailed logs in Supabase: therapy_logic_tests table"
+      },
+      "name": "Send Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2050, 200],
+      "credentials": {
+        "smtp": {
+          "id": "EMAIL_CREDENTIALS_ID",
+          "name": "SMTP Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Generate Test Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Test Cases": {
+      "main": [
+        [
+          {
+            "node": "Build Test Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Test Prompt": {
+      "main": [
+        [
+          {
+            "node": "Call Claude API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Claude API": {
+      "main": [
+        [
+          {
+            "node": "Validate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Response": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Test Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Test Results": {
+      "main": [
+        [
+          {
+            "node": "Calculate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Metrics": {
+      "main": [
+        [
+          {
+            "node": "Log Results to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Results to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Alert if Accuracy Low",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert if Accuracy Low": {
+      "main": [
+        [
+          {
+            "node": "Send Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "pinData": {},
+  "versionId": "1"
+}

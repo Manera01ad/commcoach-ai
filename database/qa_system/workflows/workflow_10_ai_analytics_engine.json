@@ -1,0 +1,366 @@
+{
+  "name": "CommCoach AI - AI Analytics & Reporting Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Every Hour (Continuous Analysis)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Aggregate all test results from last hour\nWITH health_summary AS (\n  SELECT \n    'infrastructure' as category,\n    COUNT(*) as total_tests,\n    SUM(CASE WHEN is_healthy THEN 1 ELSE 0 END) as passed_tests,\n    AVG(frontend_response_time_ms) as avg_metric,\n    jsonb_agg(errors) FILTER (WHERE errors IS NOT NULL) as errors\n  FROM test_results \n  WHERE timestamp > NOW() - INTERVAL '1 hour'\n),\ntherapy_summary AS (\n  SELECT \n    'therapy_logic' as category,\n    COUNT(*) as total_tests,\n    SUM(CASE WHEN archetype_accuracy >= 80 THEN 1 ELSE 0 END) as passed_tests,\n    AVG(archetype_accuracy) as avg_metric,\n    jsonb_agg(individual_results) FILTER (WHERE alert_required) as errors\n  FROM therapy_logic_tests \n  WHERE timestamp > NOW() - INTERVAL '1 hour'\n),\njourney_summary AS (\n  SELECT \n    'user_journeys' as category,\n    COUNT(*) as total_tests,\n    SUM(CASE WHEN success_rate >= 85 THEN 1 ELSE 0 END) as passed_tests,\n    AVG(success_rate) as avg_metric,\n    jsonb_agg(failed_journeys_details) FILTER (WHERE alert_required) as errors\n  FROM user_journey_tests \n  WHERE timestamp > NOW() - INTERVAL '1 hour'\n)\nSELECT * FROM health_summary\nUNION ALL\nSELECT * FROM therapy_summary\nUNION ALL\nSELECT * FROM journey_summary;",
+        "options": {}
+      },
+      "name": "Gather All Test Results",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Get historical trends (last 24 hours vs previous 24 hours)\nWITH current_period AS (\n  SELECT \n    AVG(archetype_accuracy) as current_accuracy,\n    AVG(CASE WHEN is_healthy THEN 100 ELSE 0 END) as current_uptime\n  FROM therapy_logic_tests t\n  LEFT JOIN test_results r ON DATE_TRUNC('hour', t.timestamp) = DATE_TRUNC('hour', r.timestamp)\n  WHERE t.timestamp > NOW() - INTERVAL '24 hours'\n),\nprevious_period AS (\n  SELECT \n    AVG(archetype_accuracy) as prev_accuracy,\n    AVG(CASE WHEN is_healthy THEN 100 ELSE 0 END) as prev_uptime\n  FROM therapy_logic_tests t\n  LEFT JOIN test_results r ON DATE_TRUNC('hour', t.timestamp) = DATE_TRUNC('hour', r.timestamp)\n  WHERE t.timestamp BETWEEN NOW() - INTERVAL '48 hours' AND NOW() - INTERVAL '24 hours'\n)\nSELECT \n  c.current_accuracy,\n  p.prev_accuracy,\n  (c.current_accuracy - p.prev_accuracy) as accuracy_trend,\n  c.current_uptime,\n  p.prev_uptime,\n  (c.current_uptime - p.prev_uptime) as uptime_trend\nFROM current_period c, previous_period p;",
+        "options": {}
+      },
+      "name": "Get Trend Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [450, 500],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare data for Claude AI analysis\nconst testResults = $('Gather All Test Results').all();\nconst trendData = $('Get Trend Data').first().json;\n\n// Calculate overall health score\nconst categories = testResults.map(r => r.json);\nlet totalScore = 0;\nlet categoryCount = 0;\n\nconst categoryScores = {};\ncategories.forEach(cat => {\n  const passRate = cat.total_tests > 0 ? (cat.passed_tests / cat.total_tests) * 100 : 100;\n  categoryScores[cat.category] = {\n    score: passRate.toFixed(2),\n    total_tests: cat.total_tests,\n    passed: cat.passed_tests,\n    metric: cat.avg_metric?.toFixed(2) || 'N/A',\n    has_errors: cat.errors && cat.errors.length > 0\n  };\n  totalScore += passRate;\n  categoryCount++;\n});\n\nconst overallHealth = categoryCount > 0 ? (totalScore / categoryCount).toFixed(2) : 0;\n\n// Identify critical issues\nconst criticalIssues = [];\nconst warnings = [];\n\ncategories.forEach(cat => {\n  const passRate = cat.total_tests > 0 ? (cat.passed_tests / cat.total_tests) * 100 : 100;\n  \n  if (passRate < 80) {\n    criticalIssues.push({\n      category: cat.category,\n      severity: 'critical',\n      pass_rate: passRate.toFixed(2),\n      errors: cat.errors\n    });\n  } else if (passRate < 90) {\n    warnings.push({\n      category: cat.category,\n      severity: 'warning',\n      pass_rate: passRate.toFixed(2)\n    });\n  }\n});\n\n// Prepare context for Claude\nconst analysisContext = {\n  timestamp: new Date().toISOString(),\n  overall_health_score: overallHealth,\n  category_scores: categoryScores,\n  trends: {\n    accuracy_change: trendData.accuracy_trend?.toFixed(2) || 'N/A',\n    uptime_change: trendData.uptime_trend?.toFixed(2) || 'N/A'\n  },\n  critical_issues: criticalIssues,\n  warnings: warnings,\n  total_tests_run: categories.reduce((sum, cat) => sum + cat.total_tests, 0)\n};\n\nreturn analysisContext;"
+      },
+      "name": "Prepare Analysis Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ai_prompt",
+              "name": "ai_prompt",
+              "value": "=You are an AI Quality Assurance Analyst for CommCoach AI, a therapy communication app.\n\nAnalyze the following test results from the last hour and provide:\n1. Executive Summary (2-3 sentences)\n2. Critical Issues (if any)\n3. Warnings (if any)\n4. Trends Analysis\n5. Top 3 Recommended Actions (prioritized)\n6. Predictions (what might happen in next 24 hours if trends continue)\n\n**Test Data:**\n```json\n{{ JSON.stringify($json, null, 2) }}\n```\n\n**Response Format:**\nProvide a structured analysis in JSON format:\n```json\n{\n  \"executive_summary\": \"string\",\n  \"overall_status\": \"excellent|good|warning|critical\",\n  \"critical_issues\": [{\"issue\": \"string\", \"impact\": \"string\", \"urgency\": \"immediate|24hr|week\"}],\n  \"warnings\": [{\"warning\": \"string\", \"recommendation\": \"string\"}],\n  \"trends\": {\"accuracy\": \"improving|stable|declining\", \"performance\": \"improving|stable|declining\", \"analysis\": \"string\"},\n  \"recommended_actions\": [{\"priority\": \"high|medium|low\", \"action\": \"string\", \"rationale\": \"string\"}],\n  \"predictions\": \"string\",\n  \"confidence_level\": \"high|medium|low\"\n}\n```\n\nBe concise, actionable, and data-driven.",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "name": "Build AI Analysis Prompt",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-20250514",
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.3
+        },
+        "text": "={{ $json.ai_prompt }}"
+      },
+      "name": "Claude AI Analysis",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1,
+      "position": [1050, 400],
+      "credentials": {
+        "anthropicApi": {
+          "id": "ANTHROPIC_API_CREDENTIALS_ID",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude's JSON response\nconst input = $input.item.json;\nconst claudeResponse = input.response || '';\n\nlet analysis = {};\ntry {\n  // Remove markdown code fences if present\n  const cleanResponse = claudeResponse.replace(/```json\\n?|```/g, '').trim();\n  analysis = JSON.parse(cleanResponse);\n} catch (error) {\n  // Fallback if parsing fails\n  analysis = {\n    executive_summary: 'Analysis parsing failed',\n    overall_status: 'warning',\n    critical_issues: [],\n    warnings: [{warning: 'Failed to parse AI analysis', recommendation: 'Review raw response'}],\n    trends: {analysis: 'Unable to determine'},\n    recommended_actions: [],\n    predictions: 'Unable to predict',\n    confidence_level: 'low',\n    raw_response: claudeResponse\n  };\n}\n\n// Combine with original data\nconst analysisData = $('Prepare Analysis Data').first().json;\n\nreturn {\n  timestamp: new Date().toISOString(),\n  report_type: 'hourly_analysis',\n  overall_health_score: analysisData.overall_health_score,\n  \n  // AI-generated insights\n  executive_summary: analysis.executive_summary,\n  overall_status: analysis.overall_status,\n  critical_issues: analysis.critical_issues || [],\n  warnings: analysis.warnings || [],\n  trends: analysis.trends || {},\n  recommended_actions: analysis.recommended_actions || [],\n  predictions: analysis.predictions,\n  confidence_level: analysis.confidence_level,\n  \n  // Raw data\n  category_scores: analysisData.category_scores,\n  total_tests_run: analysisData.total_tests_run,\n  \n  // Metadata\n  ai_generated_insights: claudeResponse,\n  report_sent: false\n};"
+      },
+      "name": "Parse AI Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "ai_analytics_reports",
+        "columns": "report_type, timestamp, overall_health_score, critical_issues, warnings, trends, recommendations, ai_generated_insights, report_sent",
+        "options": {}
+      },
+      "name": "Save Analysis Report",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1450, 400],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is_critical",
+              "leftValue": "={{ $json.overall_status }}",
+              "rightValue": "critical",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "name": "Critical Issue Detected?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1650, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "analytics@commcoach-ai.app",
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "=🚨 CRITICAL: CommCoach AI System Alert - {{ $json.timestamp }}",
+        "emailType": "html",
+        "message": "=<html>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"background: #dc3545; color: white; padding: 20px; border-radius: 5px;\">\n    <h1 style=\"margin: 0;\">🚨 CRITICAL SYSTEM ALERT</h1>\n    <p style=\"margin: 5px 0 0 0; font-size: 14px;\">{{ $json.timestamp }}</p>\n  </div>\n  \n  <div style=\"padding: 20px; background: #f8f9fa; margin: 20px 0; border-left: 4px solid #dc3545;\">\n    <h2 style=\"margin-top: 0; color: #dc3545;\">Executive Summary</h2>\n    <p>{{ $json.executive_summary }}</p>\n    <p><strong>Overall Health Score:</strong> {{ $json.overall_health_score }}/100</p>\n    <p><strong>Status:</strong> <span style=\"color: #dc3545; font-weight: bold;\">{{ $json.overall_status.toUpperCase() }}</span></p>\n  </div>\n  \n  <div style=\"padding: 20px; background: white; margin: 20px 0; border: 1px solid #ddd;\">\n    <h2 style=\"color: #dc3545;\">Critical Issues</h2>\n    {{ $json.critical_issues.map(issue => `\n      <div style=\"background: #fff3cd; padding: 15px; margin: 10px 0; border-left: 3px solid #ffc107;\">\n        <h3 style=\"margin-top: 0; color: #856404;\">${issue.issue}</h3>\n        <p><strong>Impact:</strong> ${issue.impact}</p>\n        <p><strong>Urgency:</strong> <span style=\"color: #dc3545;\">${issue.urgency}</span></p>\n      </div>\n    `).join('') }}\n  </div>\n  \n  <div style=\"padding: 20px; background: white; margin: 20px 0; border: 1px solid #ddd;\">\n    <h2 style=\"color: #0056b3;\">Recommended Actions</h2>\n    <ol>\n      {{ $json.recommended_actions.map((action, i) => `\n        <li style=\"margin: 10px 0;\">\n          <strong style=\"color: ${action.priority === 'high' ? '#dc3545' : action.priority === 'medium' ? '#ffc107' : '#28a745'};\">\n            [${action.priority.toUpperCase()}]\n          </strong> \n          ${action.action}\n          <br><em style=\"color: #666;\">Rationale: ${action.rationale}</em>\n        </li>\n      `).join('') }}\n    </ol>\n  </div>\n  \n  <div style=\"padding: 20px; background: #e7f3ff; margin: 20px 0; border-left: 4px solid #0056b3;\">\n    <h2 style=\"margin-top: 0; color: #0056b3;\">Predictions</h2>\n    <p>{{ $json.predictions }}</p>\n  </div>\n  \n  <div style=\"padding: 20px; background: #f8f9fa; margin: 20px 0; text-align: center;\">\n    <p style=\"margin: 0; color: #666;\">View detailed logs in Supabase → ai_analytics_reports</p>\n    <p style=\"margin: 5px 0 0 0; font-size: 12px; color: #999;\">Confidence Level: {{ $json.confidence_level }}</p>\n  </div>\n</body>\n</html>"
+      },
+      "name": "Send Critical Alert Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1850, 300],
+      "credentials": {
+        "smtp": {
+          "id": "EMAIL_CREDENTIALS_ID",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is_daily_report_time",
+              "leftValue": "={{ new Date().getHours() }}",
+              "rightValue": "8",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "name": "Time for Daily Report?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1650, 600]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Get last 24 hours comprehensive summary\nSELECT \n  DATE_TRUNC('hour', timestamp) as hour,\n  COUNT(*) as tests_run,\n  AVG(overall_health_score) as avg_health\nFROM ai_analytics_reports\nWHERE timestamp > NOW() - INTERVAL '24 hours'\nGROUP BY hour\nORDER BY hour DESC;",
+        "options": {}
+      },
+      "name": "Get 24h Summary",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1850, 600],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "reports@commcoach-ai.app",
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "=📊 CommCoach AI - Daily Quality Report - {{ new Date().toLocaleDateString() }}",
+        "emailType": "html",
+        "message": "=<html>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px;\">\n    <h1 style=\"margin: 0;\">📊 Daily Quality Report</h1>\n    <p style=\"margin: 10px 0 0 0; font-size: 18px;\">{{ new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</p>\n  </div>\n  \n  <div style=\"padding: 30px; background: white; margin: 20px 0;\">\n    <h2 style=\"color: #667eea;\">Executive Summary</h2>\n    <div style=\"display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0;\">\n      <div style=\"background: #f0f4ff; padding: 20px; border-radius: 8px; text-align: center;\">\n        <h3 style=\"margin: 0; color: #667eea; font-size: 36px;\">{{ $json.overall_health_score }}</h3>\n        <p style=\"margin: 5px 0 0 0; color: #666;\">Health Score</p>\n      </div>\n      <div style=\"background: #f0fff4; padding: 20px; border-radius: 8px; text-align: center;\">\n        <h3 style=\"margin: 0; color: #28a745; font-size: 36px;\">{{ $json.total_tests_run }}</h3>\n        <p style=\"margin: 5px 0 0 0; color: #666;\">Tests Run (24h)</p>\n      </div>\n      <div style=\"background: {{ $json.critical_issues.length > 0 ? '#fff3cd' : '#f0fff4' }}; padding: 20px; border-radius: 8px; text-align: center;\">\n        <h3 style=\"margin: 0; color: {{ $json.critical_issues.length > 0 ? '#dc3545' : '#28a745' }}; font-size: 36px;\">{{ $json.critical_issues.length }}</h3>\n        <p style=\"margin: 5px 0 0 0; color: #666;\">Critical Issues</p>\n      </div>\n    </div>\n    \n    <p style=\"font-size: 16px; background: #f8f9fa; padding: 15px; border-left: 4px solid #667eea; margin: 20px 0;\">\n      {{ $json.executive_summary }}\n    </p>\n  </div>\n  \n  <!-- Add more sections here -->\n  \n  <div style=\"padding: 20px; background: #f8f9fa; text-align: center; margin-top: 30px;\">\n    <p style=\"margin: 0; color: #666; font-size: 14px;\">Powered by Claude AI Analytics Engine</p>\n    <p style=\"margin: 5px 0 0 0; color: #999; font-size: 12px;\">View detailed analytics in Supabase</p>\n  </div>\n</body>\n</html>"
+      },
+      "name": "Send Daily Report Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2050, 600],
+      "credentials": {
+        "smtp": {
+          "id": "EMAIL_CREDENTIALS_ID",
+          "name": "SMTP Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every Hour (Continuous Analysis)": {
+      "main": [
+        [
+          {
+            "node": "Gather All Test Results",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Trend Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gather All Test Results": {
+      "main": [
+        [
+          {
+            "node": "Prepare Analysis Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Analysis Data": {
+      "main": [
+        [
+          {
+            "node": "Build AI Analysis Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Analysis Prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "Save Analysis Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Analysis Report": {
+      "main": [
+        [
+          {
+            "node": "Critical Issue Detected?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Time for Daily Report?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Critical Issue Detected?": {
+      "main": [
+        [
+          {
+            "node": "Send Critical Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Time for Daily Report?": {
+      "main": [
+        [
+          {
+            "node": "Get 24h Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get 24h Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "pinData": {},
+  "versionId": "1"
+}

@@ -1,0 +1,109 @@
+{
+  "name": "CommCoach AI - Conversation Quality Analyzer",
+  "nodes": [
+    {
+      "parameters": {"rule": {"interval": [{"field": "hours", "hoursInterval": 4}]}},
+      "name": "Every 4 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const qualityTests = [\n  {id: 'empathy_1', category: 'empathy', input: 'I feel so alone nobody understands me', criteria: ['validates_feelings', 'shows_compassion']},\n  {id: 'empathy_2', category: 'empathy', input: 'Everything I try fails I am exhausted', criteria: ['acknowledges_struggle', 'offers_hope']},\n  {id: 'clinical_1', category: 'clinical_accuracy', input: 'I avoid conflict by people-pleasing', expected_archetype: 'The Pleaser', criteria: ['correct_archetype']},\n  {id: 'clinical_2', category: 'clinical_accuracy', input: 'I win arguments with facts but lose relationships', expected_archetype: 'The Prosecutor', criteria: ['correct_archetype']},\n  {id: 'actionable_1', category: 'actionability', input: 'What can I do to improve?', criteria: ['specific_exercise', 'clear_instructions']},\n  {id: 'actionable_2', category: 'actionability', input: 'I want to change but do not know how', criteria: ['concrete_advice', 'first_step']},\n  {id: 'clarity_1', category: 'clarity', input: 'I am confused about my pattern', criteria: ['clear_explanation', 'uses_examples']},\n  {id: 'clarity_2', category: 'clarity', input: 'Explain in simpler terms', criteria: ['accessible_language']},\n  {id: 'motivation_1', category: 'motivation', input: 'I tried your exercise but it is too hard', criteria: ['encourages_persistence', 'adjusts_difficulty']},\n  {id: 'motivation_2', category: 'motivation', input: 'I do not think I can change', criteria: ['instills_hope']}\n];\nreturn qualityTests.map(t => ({json: t}));"
+      },
+      "name": "Generate Quality Tests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.RAILWAY_BACKEND_URL }}/api/analyze",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"user_input\": \"{{ $json.input }}\", \"session_id\": \"quality_test_{{ Date.now() }}\"}",
+        "options": {"timeout": 15000}
+      },
+      "name": "Call Backend API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.item.json;\nconst response = JSON.stringify(input.response || {}).toLowerCase();\n\nlet categoryScore = 0;\nlet maxScore = 10;\n\nswitch(input.category) {\n  case 'empathy':\n    if (response.includes('understand') || response.includes('hear you')) categoryScore += 3;\n    if (response.includes('valid') || response.includes('makes sense')) categoryScore += 3;\n    if (!response.includes('just') && !response.includes('simply')) categoryScore += 2;\n    if (response.includes('not alone')) categoryScore += 2;\n    break;\n    \n  case 'clinical_accuracy':\n    if (input.expected_archetype && response.includes(input.expected_archetype.toLowerCase())) categoryScore += 5;\n    if (response.includes('pattern')) categoryScore += 2;\n    if (response.includes('archetype')) categoryScore += 3;\n    break;\n    \n  case 'actionability':\n    if (response.includes('exercise') || response.includes('try')) categoryScore += 4;\n    if (response.includes('step') || response.includes('start')) categoryScore += 3;\n    if (response.length > 100) categoryScore += 3;\n    break;\n    \n  case 'clarity':\n    const sentences = response.split('.');\n    if (sentences.length > 2) categoryScore += 3;\n    if (response.includes('example')) categoryScore += 3;\n    if (!response.includes('eschew') && !response.includes('utilize')) categoryScore += 4;\n    break;\n    \n  case 'motivation':\n    if (response.includes('progress') || response.includes('growth')) categoryScore += 3;\n    if (response.includes('can') || response.includes('will')) categoryScore += 3;\n    if (!response.includes('should have')) categoryScore += 4;\n    break;\n}\n\nreturn {\n  test_id: input.id,\n  category: input.category,\n  score: categoryScore,\n  max_score: maxScore,\n  percentage: ((categoryScore / maxScore) * 100).toFixed(1),\n  passed: categoryScore >= 7,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "name": "Score Quality",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "aggregateItems",
+        "aggregate": "aggregateAllItemData"
+      },
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.all();\n\nconst empathyTests = results.filter(r => r.json.category === 'empathy');\nconst empathyScore = empathyTests.length > 0 ? empathyTests.reduce((sum, r) => sum + parseFloat(r.json.percentage), 0) / empathyTests.length : 0;\n\nconst clinicalTests = results.filter(r => r.json.category === 'clinical_accuracy');\nconst clinicalScore = clinicalTests.length > 0 ? clinicalTests.reduce((sum, r) => sum + parseFloat(r.json.percentage), 0) / clinicalTests.length : 0;\n\nconst actionableTests = results.filter(r => r.json.category === 'actionability');\nconst actionableScore = actionableTests.length > 0 ? actionableTests.reduce((sum, r) => sum + parseFloat(r.json.percentage), 0) / actionableTests.length : 0;\n\nconst clarityTests = results.filter(r => r.json.category === 'clarity');\nconst clarityScore = clarityTests.length > 0 ? clarityTests.reduce((sum, r) => sum + parseFloat(r.json.percentage), 0) / clarityTests.length : 0;\n\nconst motivationTests = results.filter(r => r.json.category === 'motivation');\nconst motivationScore = motivationTests.length > 0 ? motivationTests.reduce((sum, r) => sum + parseFloat(r.json.percentage), 0) / motivationTests.length : 0;\n\nconst overallScore = (empathyScore + clinicalScore + actionableScore + clarityScore + motivationScore) / 5;\n\nconst lowQuality = results.filter(r => !r.json.passed);\n\nreturn {\n  timestamp: new Date().toISOString(),\n  empathy_score: empathyScore.toFixed(2),\n  clinical_accuracy_score: clinicalScore.toFixed(2),\n  actionability_score: actionableScore.toFixed(2),\n  clarity_score: clarityScore.toFixed(2),\n  motivation_score: motivationScore.toFixed(2),\n  overall_quality_score: overallScore.toFixed(2),\n  low_quality_responses: lowQuality.map(r => ({test_id: r.json.test_id, category: r.json.category, score: r.json.percentage})),\n  alert_required: overallScore < 80 || lowQuality.length > 3\n};"
+      },
+      "name": "Calculate Quality Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "conversation_quality_tests",
+        "columns": "timestamp, empathy_score, clinical_accuracy_score, actionability_score, clarity_score, motivation_score, overall_quality_score, low_quality_responses, alert_required"
+      },
+      "name": "Log Quality Results",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1450, 300],
+      "credentials": {"postgres": {"id": "SUPABASE_CREDENTIALS_ID", "name": "Supabase PostgreSQL"}}
+    },
+    {
+      "parameters": {
+        "conditions": {"boolean": [{"value1": "={{ $json.alert_required }}", "value2": true}]}
+      },
+      "name": "Alert if Low Quality",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "quality@commcoach-ai.app",
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "⚠️ QUALITY ALERT: Response Quality Below Standards",
+        "emailType": "text",
+        "message": "=⚠️ CONVERSATION QUALITY ALERT\n\n**Quality Below Standards**\n**Time:** {{ $json.timestamp }}\n\n**Quality Scores:**\n- Overall: {{ $json.overall_quality_score }}/100 (Target: >80)\n- Empathy: {{ $json.empathy_score }}/100\n- Clinical Accuracy: {{ $json.clinical_accuracy_score }}/100\n- Actionability: {{ $json.actionability_score }}/100\n- Clarity: {{ $json.clarity_score }}/100\n- Motivation: {{ $json.motivation_score }}/100\n\n**Low Quality Responses:** {{ $json.low_quality_responses.length }}\n\n**Details:**\n{{ JSON.stringify($json.low_quality_responses, null, 2) }}\n\n**ACTION REQUIRED:** Review within 24 hours\n\n**Recommended Actions:**\n1. Review low-scoring responses\n2. Update system prompts for weak areas\n3. Add examples for better responses\n4. Consider prompt engineering improvements\n\n---\nView logs: Supabase → conversation_quality_tests"
+      },
+      "name": "Send Quality Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1850, 300],
+      "credentials": {"smtp": {"id": "EMAIL_CREDENTIALS_ID", "name": "SMTP Account"}}
+    }
+  ],
+  "connections": {
+    "Every 4 Hours": {"main": [[{"node": "Generate Quality Tests"}]]},
+    "Generate Quality Tests": {"main": [[{"node": "Call Backend API"}]]},
+    "Call Backend API": {"main": [[{"node": "Score Quality"}]]},
+    "Score Quality": {"main": [[{"node": "Aggregate Results"}]]},
+    "Aggregate Results": {"main": [[{"node": "Calculate Quality Metrics"}]]},
+    "Calculate Quality Metrics": {"main": [[{"node": "Log Quality Results"}]]},
+    "Log Quality Results": {"main": [[{"node": "Alert if Low Quality"}]]},
+    "Alert if Low Quality": {"main": [[{"node": "Send Quality Alert"}]]}
+  },
+  "settings": {"executionOrder": "v1"},
+  "versionId": "1"
+}

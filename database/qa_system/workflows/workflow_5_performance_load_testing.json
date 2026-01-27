@@ -1,0 +1,324 @@
+{
+  "name": "CommCoach AI - Performance & Load Testing",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "cronExpression": "0 3 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Daily at 3 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate concurrent user test scenarios\nconst concurrentUsers = 10;\nconst testScenarios = [];\n\nfor (let i = 0; i < concurrentUsers; i++) {\n  testScenarios.push({\n    user_id: `load_test_user_${i}`,\n    session_id: `load_test_session_${Date.now()}_${i}`,\n    test_input: `This is a load test message from user ${i}. I feel overwhelmed and need help with my communication patterns.`,\n    expected_response_time_ms: 3000,\n    start_time: Date.now()\n  });\n}\n\nreturn testScenarios.map(test => ({ json: test }));"
+      },
+      "name": "Generate Concurrent Users",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.RAILWAY_BACKEND_URL }}/api/analyze",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_input\": \"{{ $json.test_input }}\",\n  \"session_id\": \"{{ $json.session_id }}\",\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {
+          "timeout": 30000,
+          "batching": {
+            "batch": {
+              "batchSize": 10,
+              "batchInterval": 100
+            }
+          }
+        }
+      },
+      "name": "Concurrent API Calls",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate response times for each concurrent call\nconst input = $input.item.json;\nconst startTime = input.start_time;\nconst endTime = Date.now();\nconst responseTime = endTime - startTime;\n\nconst responseReceived = input.response && !input.error;\nconst withinTarget = responseTime <= input.expected_response_time_ms;\n\nreturn {\n  user_id: input.user_id,\n  session_id: input.session_id,\n  response_time_ms: responseTime,\n  response_received: responseReceived,\n  within_target: withinTarget,\n  target_ms: input.expected_response_time_ms,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "name": "Calculate Response Times",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  COUNT(*) as active_connections,\n  MAX(waiting) as waiting_connections,\n  current_setting('max_connections')::int as max_connections\nFROM pg_stat_activity;",
+        "options": {}
+      },
+      "name": "Check DB Connection Pool",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [650, 500],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXPLAIN ANALYZE\nSELECT * FROM archetype_analyses \nWHERE session_id = 'test_session' \nORDER BY created_at DESC \nLIMIT 10;",
+        "options": {}
+      },
+      "name": "Test DB Query Performance",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [850, 500],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse EXPLAIN ANALYZE output for query performance\nconst explainOutput = $input.item.json;\nconst executionTime = explainOutput?.['Execution Time'] || 0;\n\nreturn {\n  query_execution_time_ms: executionTime,\n  query_within_target: executionTime < 100,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "name": "Parse Query Performance",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  pg_size_pretty(pg_database_size(current_database())) as db_size,\n  pg_database_size(current_database()) / (1024*1024) as db_size_mb;",
+        "options": {}
+      },
+      "name": "Check Database Size",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [650, 700],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "aggregateItems",
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "name": "Aggregate Concurrent Results",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate overall performance metrics\nconst results = $input.all();\nconst dbConnectionPool = $('Check DB Connection Pool').item.json;\nconst queryPerf = $('Parse Query Performance').item.json;\nconst dbSize = $('Check Database Size').item.json;\n\n// Concurrent load metrics\nconst totalRequests = results.length;\nconst successfulRequests = results.filter(r => r.json.response_received).length;\nconst avgResponseTime = results.reduce((sum, r) => sum + r.json.response_time_ms, 0) / totalRequests;\nconst maxResponseTime = Math.max(...results.map(r => r.json.response_time_ms));\nconst minResponseTime = Math.min(...results.map(r => r.json.response_time_ms));\nconst withinTargetCount = results.filter(r => r.json.within_target).length;\nconst withinTargetRate = (withinTargetCount / totalRequests) * 100;\n\n// Database metrics\nconst activeConnections = dbConnectionPool[0]?.active_connections || 0;\nconst maxConnections = dbConnectionPool[0]?.max_connections || 100;\nconst connectionUtilization = (activeConnections / maxConnections) * 100;\n\n// Memory estimation (basic)\nconst estimatedMemoryMb = activeConnections * 10; // Rough estimate: 10MB per connection\n\n// Overall performance score\nlet performanceScore = 100;\nif (avgResponseTime > 500) performanceScore -= 20;\nif (avgResponseTime > 1000) performanceScore -= 20;\nif (maxResponseTime > 3000) performanceScore -= 10;\nif (connectionUtilization > 80) performanceScore -= 15;\nif (queryPerf.query_execution_time_ms > 100) performanceScore -= 15;\nif (withinTargetRate < 90) performanceScore -= 20;\n\nconst alertRequired = \n  avgResponseTime > 1000 || \n  connectionUtilization > 90 || \n  withinTargetRate < 80 ||\n  queryPerf.query_execution_time_ms > 200;\n\nconst errors = [];\nif (avgResponseTime > 1000) errors.push(`High avg response time: ${avgResponseTime.toFixed(0)}ms`);\nif (connectionUtilization > 90) errors.push(`DB connection pool near capacity: ${connectionUtilization.toFixed(1)}%`);\nif (withinTargetRate < 80) errors.push(`Only ${withinTargetRate.toFixed(1)}% of requests within target`);\nif (queryPerf.query_execution_time_ms > 200) errors.push(`Slow query: ${queryPerf.query_execution_time_ms.toFixed(0)}ms`);\n\nreturn {\n  timestamp: new Date().toISOString(),\n  concurrent_users: totalRequests,\n  successful_requests: successfulRequests,\n  failed_requests: totalRequests - successfulRequests,\n  avg_response_time_ms: Math.round(avgResponseTime),\n  max_response_time_ms: maxResponseTime,\n  min_response_time_ms: minResponseTime,\n  within_target_rate: withinTargetRate.toFixed(2),\n  \n  // Database metrics\n  db_active_connections: activeConnections,\n  db_max_connections: maxConnections,\n  db_connection_utilization: connectionUtilization.toFixed(2),\n  db_query_avg_ms: queryPerf.query_execution_time_ms?.toFixed(0) || 0,\n  db_size_mb: dbSize[0]?.db_size_mb?.toFixed(2) || 0,\n  \n  // Resource estimates\n  estimated_memory_mb: estimatedMemoryMb,\n  cpu_usage_estimated: Math.min(100, (avgResponseTime / 10).toFixed(2)),\n  \n  // Overall assessment\n  performance_score: performanceScore.toFixed(2),\n  connection_pool_status: connectionUtilization > 80 ? 'WARNING' : 'OK',\n  \n  errors: errors,\n  alert_required: alertRequired,\n  \n  // Detailed results\n  individual_response_times: results.map(r => r.json.response_time_ms)\n};"
+      },
+      "name": "Calculate Performance Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "performance_tests",
+        "columns": "timestamp, concurrent_users, successful_requests, failed_requests, avg_response_time_ms, max_response_time_ms, within_target_rate, db_active_connections, db_connection_utilization, db_query_avg_ms, db_size_mb, estimated_memory_mb, performance_score, connection_pool_status, errors, alert_required",
+        "options": {}
+      },
+      "name": "Log Performance Results",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1450, 400],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.alert_required }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Alert if Performance Issue",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1650, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@commcoach-ai.app",
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "⚠️ CommCoach AI - Performance Degradation Detected",
+        "emailType": "text",
+        "message": "=⚠️ Performance & Load Test Alert\n\n**Performance Issue Detected**\n**Time:** {{ $json.timestamp }}\n\n**Load Test Results:**\n- Concurrent Users: {{ $json.concurrent_users }}\n- Success Rate: {{ $json.successful_requests }}/{{ $json.concurrent_users }}\n- Avg Response Time: {{ $json.avg_response_time_ms }}ms (Target: <500ms)\n- Max Response Time: {{ $json.max_response_time_ms }}ms\n- Within Target: {{ $json.within_target_rate }}%\n\n**Database Metrics:**\n- Active Connections: {{ $json.db_active_connections }}/{{ $json.db_max_connections }}\n- Connection Utilization: {{ $json.db_connection_utilization }}%\n- Query Performance: {{ $json.db_query_avg_ms }}ms (Target: <100ms)\n- Database Size: {{ $json.db_size_mb }} MB\n\n**Resource Estimates:**\n- Memory Usage: ~{{ $json.estimated_memory_mb }} MB\n- Connection Pool: {{ $json.connection_pool_status }}\n\n**Performance Score:** {{ $json.performance_score }}/100\n\n**Issues Found:**\n{{ $json.errors.join('\\n') }}\n\n**Recommended Actions:**\n1. Review database connection pooling configuration\n2. Check for slow queries in recent deployments\n3. Consider scaling Railway backend resources\n4. Monitor Claude API response times\n\n---\nView logs: Supabase → performance_tests table"
+      },
+      "name": "Send Performance Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1850, 400],
+      "credentials": {
+        "smtp": {
+          "id": "EMAIL_CREDENTIALS_ID",
+          "name": "SMTP Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily at 3 AM": {
+      "main": [
+        [
+          {
+            "node": "Generate Concurrent Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Concurrent Users": {
+      "main": [
+        [
+          {
+            "node": "Concurrent API Calls",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check DB Connection Pool",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Database Size",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Concurrent API Calls": {
+      "main": [
+        [
+          {
+            "node": "Calculate Response Times",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Response Times": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Concurrent Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DB Connection Pool": {
+      "main": [
+        [
+          {
+            "node": "Test DB Query Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test DB Query Performance": {
+      "main": [
+        [
+          {
+            "node": "Parse Query Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Concurrent Results": {
+      "main": [
+        [
+          {
+            "node": "Calculate Performance Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Performance Metrics": {
+      "main": [
+        [
+          {
+            "node": "Log Performance Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Performance Results": {
+      "main": [
+        [
+          {
+            "node": "Alert if Performance Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert if Performance Issue": {
+      "main": [
+        [
+          {
+            "node": "Send Performance Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "pinData": {},
+  "versionId": "1"
+}

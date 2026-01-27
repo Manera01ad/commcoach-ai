@@ -1,0 +1,238 @@
+{
+  "name": "CommCoach AI - Health Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://commcoach-ai.vercel.app/",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "name": "Check Vercel Frontend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.RAILWAY_BACKEND_URL }}/health",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "name": "Check Railway Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  (SELECT COUNT(*) FROM user_sessions) as session_count,\n  (SELECT COUNT(*) FROM archetype_analyses) as analysis_count,\n  pg_database_size(current_database()) / 1024 / 1024 as db_size_mb,\n  NOW() as check_time;",
+        "options": {}
+      },
+      "name": "Check Supabase DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [450, 600],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all health check results\nconst frontendData = $input.item.json;\nconst timestamp = new Date().toISOString();\n\n// Parse response codes\nconst frontendStatus = frontendData?.statusCode || 0;\nconst frontendTime = frontendData?.responseTime || 0;\n\n// Get backend data from previous node\nconst backendStatus = $('Check Railway Backend').item.json?.statusCode || 0;\nconst backendTime = $('Check Railway Backend').item.json?.responseTime || 0;\n\n// Get DB data\nconst dbData = $('Check Supabase DB').item.json;\nconst dbHealthy = dbData && dbData.length > 0;\n\n// Determine overall health\nconst isHealthy = frontendStatus === 200 && backendStatus === 200 && dbHealthy;\n\n// Collect errors\nconst errors = [];\nif (frontendStatus !== 200) errors.push(`Frontend returned ${frontendStatus}`);\nif (backendStatus !== 200) errors.push(`Backend returned ${backendStatus}`);\nif (!dbHealthy) errors.push('Database query failed');\n\nreturn {\n  timestamp,\n  frontend_status: frontendStatus,\n  frontend_response_time_ms: frontendTime,\n  backend_status: backendStatus,\n  backend_response_time_ms: backendTime,\n  db_session_count: dbData?.[0]?.session_count || 0,\n  db_analysis_count: dbData?.[0]?.analysis_count || 0,\n  db_size_mb: dbData?.[0]?.db_size_mb || 0,\n  is_healthy: isHealthy,\n  errors: errors,\n  alert_required: !isHealthy\n};"
+      },
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "test_results",
+        "columns": "timestamp, frontend_status, frontend_response_time_ms, backend_status, backend_response_time_ms, db_session_count, db_analysis_count, db_size_mb, is_healthy, errors, alert_sent",
+        "additionalFields": {},
+        "options": {}
+      },
+      "name": "Log to Supabase",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [850, 400],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.alert_required }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Alert Required?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "content": "🚨 **CommCoach AI - Production Alert**\n\n**Status:** Critical Failure Detected\n**Time:** {{ $json.timestamp }}\n\n**Component Status:**\n- Frontend (Vercel): {{ $json.frontend_status }} ({{ $json.frontend_response_time_ms }}ms)\n- Backend (Railway): {{ $json.backend_status }} ({{ $json.backend_response_time_ms }}ms)\n- Database (Supabase): {{ $json.db_session_count }} sessions, {{ $json.db_size_mb }} MB\n\n**Errors:**\n{{ $json.errors.join('\\n') }}\n\n**Action Required:** Please investigate immediately.\n\n---\nView logs: https://manera01.app.n8n.cloud",
+        "options": {}
+      },
+      "name": "Format Alert Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@commcoach-ai.app",
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "🚨 CommCoach AI Production Alert - {{ $json.timestamp }}",
+        "emailType": "text",
+        "message": "={{ $json.content }}"
+      },
+      "name": "Send Email Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1450, 200],
+      "credentials": {
+        "smtp": {
+          "id": "EMAIL_CREDENTIALS_ID",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "options": {},
+        "bodyParametersJson": "={\n  \"text\": \"🚨 CommCoach AI Production Alert\",\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"Production Health Alert\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Frontend:*\\n{{ $json.frontend_status }}\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Backend:*\\n{{ $json.backend_status }}\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Database:*\\n{{ $json.db_session_count }} sessions\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Time:*\\n{{ $json.timestamp }}\"\n        }\n      ]\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*Errors:*\\n{{ $json.errors.join('\\\\n') }}\"\n      }\n    }\n  ]\n}"
+      },
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 400]
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Check Vercel Frontend",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Railway Backend",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Supabase DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Vercel Frontend": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Log to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Alert Required?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert Required?": {
+      "main": [
+        [
+          {
+            "node": "Format Alert Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Alert Message": {
+      "main": [
+        [
+          {
+            "node": "Send Email Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "pinData": {},
+  "versionId": "1"
+}

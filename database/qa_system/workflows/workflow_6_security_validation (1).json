@@ -1,0 +1,246 @@
+{
+    "name": "CommCoach AI - Security & Data Validation",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "cronExpression",
+                            "cronExpression": "0 2 * * *"
+                        }
+                    ]
+                }
+            },
+            "name": "Daily at 2 AM",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Security test payloads\nconst securityTests = [\n  // SQL Injection Tests\n  { id: 'sql_1', type: 'sql_injection', input: \"'; DROP TABLE users; --\", expected: 'sanitized' },\n  { id: 'sql_2', type: 'sql_injection', input: \"1' OR '1'='1\", expected: 'sanitized' },\n  { id: 'sql_3', type: 'sql_injection', input: \"admin'--\", expected: 'sanitized' },\n  \n  // XSS Tests\n  { id: 'xss_1', type: 'xss', input: \"<script>alert('XSS')</script>\", expected: 'sanitized' },\n  { id: 'xss_2', type: 'xss', input: \"<img src=x onerror=alert('XSS')>\", expected: 'sanitized' },\n  { id: 'xss_3', type: 'xss', input: \"javascript:alert('XSS')\", expected: 'sanitized' },\n  { id: 'xss_4', type: 'xss', input: \"<svg onload=alert('XSS')>\", expected: 'sanitized' },\n  \n  // Command Injection Tests\n  { id: 'cmd_1', type: 'command_injection', input: \"; ls -la\", expected: 'sanitized' },\n  { id: 'cmd_2', type: 'command_injection', input: \"| cat /etc/passwd\", expected: 'sanitized' },\n  \n  // Path Traversal Tests\n  { id: 'path_1', type: 'path_traversal', input: \"../../../etc/passwd\", expected: 'sanitized' },\n  { id: 'path_2', type: 'path_traversal', input: \"....//....//....//etc/passwd\", expected: 'sanitized' },\n  \n  // NoSQL Injection\n  { id: 'nosql_1', type: 'nosql_injection', input: \"{'$gt': ''}\", expected: 'sanitized' },\n  \n  // LDAP Injection\n  { id: 'ldap_1', type: 'ldap_injection', input: \"*)(uid=*))(|(uid=*\", expected: 'sanitized' },\n  \n  // XML External Entity\n  { id: 'xxe_1', type: 'xxe', input: \"<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]><foo>&xxe;</foo>\", expected: 'sanitized' }\n];\n\nreturn securityTests.map(test => ({ json: test }));"
+            },
+            "name": "Generate Security Tests",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{ $env.RAILWAY_BACKEND_URL }}/api/analyze",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"user_input\": \"{{ $json.input }}\",\n  \"session_id\": \"security_test_{{ Date.now() }}\"\n}",
+                "options": {
+                    "timeout": 10000
+                }
+            },
+            "name": "Test Backend with Payload",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Validate that malicious input was sanitized\nconst input = $input.item.json;\nconst response = input.response || {};\nconst testPayload = input.input;\n\n// Check if dangerous content appears in response\nconst responseText = JSON.stringify(response).toLowerCase();\n\n// Security checks\nconst checks = {\n  no_script_tags: !responseText.includes('<script'),\n  no_sql_commands: !responseText.includes('drop table') && !responseText.includes('select *'),\n  no_path_traversal: !responseText.includes('../'),\n  no_command_injection: !responseText.includes('ls -la') && !responseText.includes('cat /etc'),\n  no_error_exposure: !responseText.includes('error:') || !responseText.includes('stack trace'),\n  response_received: !!response\n};\n\nconst allChecksPassed = Object.values(checks).every(v => v === true);\n\nreturn {\n  test_id: input.id,\n  test_type: input.type,\n  payload: testPayload,\n  sanitized_properly: allChecksPassed,\n  checks: checks,\n  timestamp: new Date().toISOString()\n};"
+            },
+            "name": "Validate Sanitization",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                850,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "aggregateItems",
+                "aggregate": "aggregateAllItemData"
+            },
+            "name": "Aggregate Security Results",
+            "type": "n8n-nodes-base.aggregate",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Calculate security metrics\nconst results = $input.all();\n\nconst totalTests = results.length;\nconst passedTests = results.filter(r => r.json.sanitized_properly).length;\nconst failedTests = totalTests - passedTests;\n\n// Break down by type\nconst byType = {};\nresults.forEach(r => {\n  const type = r.json.test_type;\n  if (!byType[type]) {\n    byType[type] = { total: 0, passed: 0 };\n  }\n  byType[type].total++;\n  if (r.json.sanitized_properly) byType[type].passed++;\n});\n\nconst injectionTests = ['sql_injection', 'nosql_injection', 'command_injection', 'ldap_injection'].reduce((sum, type) => sum + (byType[type]?.total || 0), 0);\nconst injectionPassed = ['sql_injection', 'nosql_injection', 'command_injection', 'ldap_injection'].reduce((sum, type) => sum + (byType[type]?.passed || 0), 0);\n\nconst xssTests = byType.xss?.total || 0;\nconst xssPassed = byType.xss?.passed || 0;\n\nconst pathTests = byType.path_traversal?.total || 0;\nconst pathPassed = byType.path_traversal?.passed || 0;\n\nconst totalSecurityScore = (passedTests / totalTests) * 100;\n\n// Find vulnerabilities\nconst vulnerabilities = results\n  .filter(r => !r.json.sanitized_properly)\n  .map(r => ({\n    test_id: r.json.test_id,\n    type: r.json.test_type,\n    payload: r.json.payload,\n    failed_checks: Object.entries(r.json.checks)\n      .filter(([_, passed]) => !passed)\n      .map(([check, _]) => check)\n  }));\n\nconst criticalIssues = vulnerabilities.filter(v => \n  ['sql_injection', 'xss', 'command_injection'].includes(v.type)\n).length;\n\nconst alertRequired = criticalIssues > 0 || totalSecurityScore < 95;\n\nreturn {\n  timestamp: new Date().toISOString(),\n  total_tests: totalTests,\n  passed_tests: passedTests,\n  failed_tests: failedTests,\n  \n  injection_tests_total: injectionTests,\n  injection_tests_passed: injectionPassed,\n  xss_tests_total: xssTests,\n  xss_tests_passed: xssPassed,\n  \n  total_security_score: totalSecurityScore.toFixed(2),\n  vulnerabilities_found: vulnerabilities,\n  critical_issues_count: criticalIssues,\n  \n  breakdown_by_type: byType,\n  alert_required: alertRequired\n};"
+            },
+            "name": "Calculate Security Score",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "insert",
+                "table": "security_tests",
+                "columns": "timestamp, injection_tests_passed, injection_tests_total, xss_tests_passed, xss_tests_total, total_security_score, vulnerabilities_found, critical_issues_count, alert_required"
+            },
+            "name": "Log Security Results",
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.4,
+            "position": [
+                1450,
+                300
+            ],
+            "credentials": {
+                "postgres": {
+                    "id": "SUPABASE_CREDENTIALS_ID",
+                    "name": "Supabase PostgreSQL"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{ $json.alert_required }}",
+                            "value2": true
+                        }
+                    ]
+                }
+            },
+            "name": "Alert if Vulnerabilities",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                1650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "fromEmail": "security@commcoach-ai.app",
+                "toEmail": "={{ $env.ALERT_EMAIL }}",
+                "subject": "=\ud83d\udea8 SECURITY ALERT: Vulnerabilities Detected - CommCoach AI",
+                "emailType": "text",
+                "message": "=\ud83d\udea8 SECURITY VULNERABILITY ALERT\n\n**Critical Security Issues Detected**\n**Time:** {{ $json.timestamp }}\n\n**Security Score:** {{ $json.total_security_score }}/100 (Target: >95)\n\n**Test Results:**\n- Total Tests: {{ $json.total_tests }}\n- Passed: {{ $json.passed_tests }}\n- FAILED: {{ $json.failed_tests }}\n- Critical Issues: {{ $json.critical_issues_count }}\n\n**Breakdown:**\n- Injection Tests: {{ $json.injection_tests_passed }}/{{ $json.injection_tests_total }}\n- XSS Tests: {{ $json.xss_tests_passed }}/{{ $json.xss_tests_total }}\n\n**Vulnerabilities Found:**\n{{ JSON.stringify($json.vulnerabilities_found, null, 2) }}\n\n**ACTION REQUIRED:** IMMEDIATE\n\n**Recommended Actions:**\n1. Review input sanitization in backend\n2. Update security middleware\n3. Re-test after fixes deployed\n4. Consider WAF (Web Application Firewall)\n\n---\nView logs: Supabase \u2192 security_tests table"
+            },
+            "name": "Send Security Alert",
+            "type": "n8n-nodes-base.emailSend",
+            "typeVersion": 2.1,
+            "position": [
+                1850,
+                300
+            ],
+            "credentials": {
+                "smtp": {
+                    "id": "EMAIL_CREDENTIALS_ID",
+                    "name": "SMTP Account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Daily at 2 AM": {
+            "main": [
+                [
+                    {
+                        "node": "Generate Security Tests",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Generate Security Tests": {
+            "main": [
+                [
+                    {
+                        "node": "Test Backend with Payload",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Test Backend with Payload": {
+            "main": [
+                [
+                    {
+                        "node": "Validate Sanitization",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validate Sanitization": {
+            "main": [
+                [
+                    {
+                        "node": "Aggregate Security Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Aggregate Security Results": {
+            "main": [
+                [
+                    {
+                        "node": "Calculate Security Score",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calculate Security Score": {
+            "main": [
+                [
+                    {
+                        "node": "Log Security Results",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Log Security Results": {
+            "main": [
+                [
+                    {
+                        "node": "Alert if Vulnerabilities",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Alert if Vulnerabilities": {
+            "main": [
+                [
+                    {
+                        "node": "Send Security Alert",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "versionId": "1"
+}

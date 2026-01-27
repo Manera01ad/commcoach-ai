@@ -25,6 +25,8 @@ import gamificationRoutes from './routes/gamification.js';
 import assessmentRoutes from './routes/assessment.js';
 import aiRoutes from './routes/ai.js';
 import therapyRoutes from './routes/therapy.js';
+import { supabaseAdmin } from './config/supabase.js';
+
 
 // Security Middleware
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter.js';
@@ -81,14 +83,40 @@ app.use((req, res, next) => {
 // HEADLTH & API ROUTES
 // ========================================
 
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
-  });
+app.get('/health', async (req, res) => {
+  try {
+    // 1. Basic Health Info
+    const healthData = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      service: 'CommCoach AI Backend'
+    };
+
+    // 2. Database Check
+    if (supabaseAdmin) {
+      const { data, error } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .limit(1);
+
+      healthData.database = error ? 'disconnected' : 'connected';
+      if (error) healthData.dbError = error.message;
+    } else {
+      healthData.database = 'not initialized';
+    }
+
+    res.status(healthData.database === 'connected' ? 200 : 503).json(healthData);
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
+
 
 // Mount Routes
 app.use('/api/antigravity', strictLimiter, antigravityRoutes);

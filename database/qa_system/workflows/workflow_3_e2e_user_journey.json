@@ -1,0 +1,424 @@
+{
+  "name": "CommCoach AI - E2E User Journey Testing",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "name": "Every 2 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate unique test session ID\nconst sessionId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n// Define complete user journey scenarios\nconst journeys = [\n  {\n    journey_id: 'new_user_fortress',\n    scenario: 'New user exhibiting Fortress behavior',\n    conversation: [\n      {\n        turn: 1,\n        input: \"I don't want to talk about it. Just leave me alone.\",\n        expected_archetype: 'The Fortress',\n        expected_elements: ['mirror', 'prescription', 'thinking']\n      },\n      {\n        turn: 2,\n        input: \"Fine. I shut down when people get too close.\",\n        expected_archetype: 'The Fortress',\n        expected_consistency: true\n      },\n      {\n        turn: 3,\n        input: \"I tried the exercise you suggested. It felt uncomfortable.\",\n        expected_archetype: 'The Fortress',\n        expected_growth_tracking: true\n      }\n    ]\n  },\n  {\n    journey_id: 'prosecutor_to_awareness',\n    scenario: 'User transitions from Prosecutor to self-awareness',\n    conversation: [\n      {\n        turn: 1,\n        input: \"You're wrong. Let me explain why your logic is flawed.\",\n        expected_archetype: 'The Prosecutor'\n      },\n      {\n        turn: 2,\n        input: \"Maybe I do always need to be right. That's exhausting.\",\n        expected_archetype: 'The Prosecutor',\n        expected_insight: true\n      }\n    ]\n  },\n  {\n    journey_id: 'pleaser_boundaries',\n    scenario: 'Pleaser learning boundaries',\n    conversation: [\n      {\n        turn: 1,\n        input: \"It's fine, I'll just do what they want. My needs don't matter.\",\n        expected_archetype: 'The Pleaser'\n      },\n      {\n        turn: 2,\n        input: \"I said no for the first time today. I feel guilty.\",\n        expected_archetype: 'The Pleaser',\n        expected_validation: true\n      }\n    ]\n  },\n  {\n    journey_id: 'solver_emotional_depth',\n    scenario: 'Solver learning to process emotions',\n    conversation: [\n      {\n        turn: 1,\n        input: \"Stop crying. Here's what you need to do to fix this.\",\n        expected_archetype: 'The Solver'\n      },\n      {\n        turn: 2,\n        input: \"I realize I dismiss my partner's feelings. How do I stop?\",\n        expected_archetype: 'The Solver',\n        expected_growth: true\n      }\n    ]\n  },\n  {\n    journey_id: 'edge_case_empty',\n    scenario: 'Edge case: Empty input',\n    conversation: [\n      {\n        turn: 1,\n        input: \"\",\n        expected_handling: 'graceful_error'\n      }\n    ]\n  },\n  {\n    journey_id: 'edge_case_gibberish',\n    scenario: 'Edge case: Nonsensical input',\n    conversation: [\n      {\n        turn: 1,\n        input: \"asdfghjkl qwertyuiop zxcvbnm\",\n        expected_handling: 'clarification_request'\n      }\n    ]\n  },\n  {\n    journey_id: 'edge_case_very_long',\n    scenario: 'Edge case: Very long input',\n    conversation: [\n      {\n        turn: 1,\n        input: \"I feel like \" + \"everything is overwhelming \".repeat(50),\n        expected_handling: 'processes_successfully'\n      }\n    ]\n  },\n  {\n    journey_id: 'edge_case_special_chars',\n    scenario: 'Edge case: Special characters',\n    conversation: [\n      {\n        turn: 1,\n        input: \"I'm feeling <script>alert('test')</script> anxious about <>&\\\"'things\",\n        expected_handling: 'sanitized_safely'\n      }\n    ]\n  },\n  {\n    journey_id: 'multilingual_test',\n    scenario: 'Edge case: Non-English input',\n    conversation: [\n      {\n        turn: 1,\n        input: \"Me siento muy solo y nadie me entiende.\",\n        expected_handling: 'appropriate_response'\n      }\n    ]\n  }\n];\n\nreturn journeys.map(journey => ({ \n  json: { \n    ...journey, \n    session_id: sessionId,\n    test_started_at: new Date().toISOString()\n  } \n}));"
+      },
+      "name": "Generate Journey Scenarios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "current_turn",
+              "name": "current_turn",
+              "value": "=0",
+              "type": "number"
+            },
+            {
+              "id": "conversation_history",
+              "name": "conversation_history",
+              "value": "=[]",
+              "type": "array"
+            },
+            {
+              "id": "test_results",
+              "name": "test_results",
+              "value": "=[]",
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "name": "Initialize Journey State",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.RAILWAY_BACKEND_URL }}/api/analyze",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_input\": {{ $json.conversation[0].input }},\n  \"session_id\": {{ $json.session_id }},\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Call Backend API - Turn 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate API response for first turn\nconst input = $input.item.json;\nconst response = input.response || {};\nconst conversation = input.conversation;\nconst expectedTurn = conversation[0];\n\nconst startTime = new Date(input.test_started_at).getTime();\nconst endTime = Date.now();\nconst responseTime = endTime - startTime;\n\n// Extract archetype from response\nlet identifiedArchetype = 'PARSE_ERROR';\nlet confidenceScore = 0;\nlet hasThinking = false;\nlet hasMirror = false;\nlet hasPrescription = false;\n\ntry {\n  const responseText = JSON.stringify(response);\n  \n  // Parse XML structure\n  const archetypeMatch = responseText.match(/<identified_archetype>(.+?)<\\/identified_archetype>/);\n  const confidenceMatch = responseText.match(/<confidence_score>(.+?)<\\/confidence_score>/);\n  \n  identifiedArchetype = archetypeMatch ? archetypeMatch[1].trim() : 'NOT_FOUND';\n  confidenceScore = confidenceMatch ? parseFloat(confidenceMatch[1]) : 0;\n  \n  // Check required sections\n  hasThinking = responseText.includes('<thinking>');\n  hasMirror = responseText.includes('### The Mirror') || responseText.includes('🪞');\n  hasPrescription = responseText.includes('### The Prescription') || responseText.includes('💊');\n} catch (error) {\n  // Parse error logged\n}\n\n// Validation checks\nconst checks = {\n  archetype_correct: identifiedArchetype === expectedTurn.expected_archetype,\n  confidence_valid: confidenceScore >= 60 && confidenceScore <= 100,\n  has_thinking: hasThinking,\n  has_mirror: hasMirror,\n  has_prescription: hasPrescription,\n  response_time_acceptable: responseTime < 10000,\n  no_errors: !response.error\n};\n\nconst allChecksPassed = Object.values(checks).every(v => v === true);\n\nreturn {\n  journey_id: input.journey_id,\n  session_id: input.session_id,\n  turn: 1,\n  user_input: expectedTurn.input,\n  identified_archetype: identifiedArchetype,\n  expected_archetype: expectedTurn.expected_archetype,\n  confidence_score: confidenceScore,\n  response_time_ms: responseTime,\n  checks: checks,\n  all_checks_passed: allChecksPassed,\n  full_response: response,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "name": "Validate Turn 1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has_more_turns",
+              "leftValue": "={{ $json.conversation.length }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Has More Turns?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.RAILWAY_BACKEND_URL }}/api/analyze",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_input\": {{ $json.conversation[1].input }},\n  \"session_id\": {{ $json.session_id }},\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Call Backend API - Turn 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate subsequent turns and check consistency\nconst input = $input.item.json;\nconst response = input.response || {};\nconst conversation = input.conversation;\nconst turn1Result = $('Validate Turn 1').item.json;\n\n// Parse current turn\nlet identifiedArchetype = 'PARSE_ERROR';\nlet confidenceScore = 0;\n\ntry {\n  const responseText = JSON.stringify(response);\n  const archetypeMatch = responseText.match(/<identified_archetype>(.+?)<\\/identified_archetype>/);\n  const confidenceMatch = responseText.match(/<confidence_score>(.+?)<\\/confidence_score>/);\n  \n  identifiedArchetype = archetypeMatch ? archetypeMatch[1].trim() : 'NOT_FOUND';\n  confidenceScore = confidenceMatch ? parseFloat(confidenceMatch[1]) : 0;\n} catch (error) {\n  // Parse error\n}\n\n// Check archetype consistency across conversation\nconst archetypeConsistent = identifiedArchetype === turn1Result.identified_archetype;\n\nconst checks = {\n  archetype_consistent: archetypeConsistent,\n  confidence_maintained: confidenceScore >= 60,\n  response_coherent: !response.error,\n  session_maintained: true // Session ID should match\n};\n\nreturn {\n  journey_id: input.journey_id,\n  session_id: input.session_id,\n  turn: 2,\n  identified_archetype: identifiedArchetype,\n  previous_archetype: turn1Result.identified_archetype,\n  consistency_maintained: archetypeConsistent,\n  checks: checks,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "name": "Validate Multi-Turn Consistency",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT * FROM user_sessions WHERE session_id = '{{ $json.session_id }}' LIMIT 1;",
+        "options": {}
+      },
+      "name": "Check DB Session Persistence",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1050, 400],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT * FROM archetype_analyses WHERE session_id = '{{ $json.session_id }}' ORDER BY created_at DESC;",
+        "options": {}
+      },
+      "name": "Check DB Analyses Written",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1250, 400],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all journey test results\nconst turn1 = $('Validate Turn 1').item.json;\nconst dbSession = $('Check DB Session Persistence').item.json;\nconst dbAnalyses = $('Check DB Analyses Written').item.json;\n\n// Check if we have turn 2 results\nlet turn2 = null;\ntry {\n  turn2 = $('Validate Multi-Turn Consistency').item.json;\n} catch {\n  // Single turn journey\n}\n\n// Validate database writes\nconst sessionCreated = dbSession && dbSession.length > 0;\nconst analysesWritten = dbAnalyses && dbAnalyses.length > 0;\n\nconst dbChecks = {\n  session_created: sessionCreated,\n  analyses_written: analysesWritten,\n  data_consistent: sessionCreated && analysesWritten\n};\n\n// Overall journey assessment\nconst journeyPassed = \n  turn1.all_checks_passed && \n  dbChecks.data_consistent &&\n  (turn2 ? turn2.consistency_maintained : true);\n\nconst errors = [];\nif (!turn1.all_checks_passed) errors.push('Turn 1 validation failed');\nif (!dbChecks.data_consistent) errors.push('Database persistence failed');\nif (turn2 && !turn2.consistency_maintained) errors.push('Multi-turn consistency failed');\n\nreturn {\n  journey_id: turn1.journey_id,\n  session_id: turn1.session_id,\n  journey_passed: journeyPassed,\n  turn_1_result: turn1,\n  turn_2_result: turn2,\n  database_checks: dbChecks,\n  total_response_time_ms: turn1.response_time_ms + (turn2 ? turn2.response_time_ms || 0 : 0),\n  errors: errors,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "name": "Aggregate Journey Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 400]
+    },
+    {
+      "parameters": {
+        "operation": "aggregateItems",
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "name": "Collect All Journeys",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1650, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate overall E2E test metrics\nconst results = $input.all();\n\nconst totalJourneys = results.length;\nconst passedJourneys = results.filter(r => r.json.journey_passed).length;\nconst failedJourneys = totalJourneys - passedJourneys;\n\nconst successRate = (passedJourneys / totalJourneys) * 100;\n\n// Average response times\nconst avgResponseTime = results.reduce((sum, r) => \n  sum + (r.json.total_response_time_ms || 0), 0) / totalJourneys;\n\n// Database consistency rate\nconst dbSuccessful = results.filter(r => \n  r.json.database_checks?.data_consistent).length;\nconst dbConsistencyRate = (dbSuccessful / totalJourneys) * 100;\n\n// Archetype accuracy\nconst archetypeCorrect = results.filter(r => \n  r.json.turn_1_result?.checks?.archetype_correct).length;\nconst archetypeAccuracy = (archetypeCorrect / totalJourneys) * 100;\n\n// Multi-turn consistency\nconst multiTurnTests = results.filter(r => r.json.turn_2_result).length;\nconst multiTurnPassed = results.filter(r => \n  r.json.turn_2_result?.consistency_maintained).length;\nconst multiTurnConsistency = multiTurnTests > 0 ? \n  (multiTurnPassed / multiTurnTests) * 100 : 100;\n\n// Edge case handling\nconst edgeCases = results.filter(r => \n  r.json.journey_id?.includes('edge_case'));\nconst edgeCasesPassed = edgeCases.filter(r => r.json.journey_passed).length;\nconst edgeCaseSuccessRate = edgeCases.length > 0 ?\n  (edgeCasesPassed / edgeCases.length) * 100 : 100;\n\n// Collect all errors\nconst allErrors = results\n  .filter(r => r.json.errors && r.json.errors.length > 0)\n  .map(r => ({\n    journey_id: r.json.journey_id,\n    errors: r.json.errors\n  }));\n\nconst alertRequired = successRate < 85 || dbConsistencyRate < 90;\n\nreturn {\n  timestamp: new Date().toISOString(),\n  total_journeys: totalJourneys,\n  passed_journeys: passedJourneys,\n  failed_journeys: failedJourneys,\n  success_rate: successRate.toFixed(2),\n  average_response_time_ms: avgResponseTime.toFixed(0),\n  database_consistency_rate: dbConsistencyRate.toFixed(2),\n  archetype_accuracy: archetypeAccuracy.toFixed(2),\n  multi_turn_consistency: multiTurnConsistency.toFixed(2),\n  edge_case_success_rate: edgeCaseSuccessRate.toFixed(2),\n  failed_journeys_details: allErrors,\n  alert_required: alertRequired,\n  individual_results: results.map(r => ({\n    journey_id: r.json.journey_id,\n    passed: r.json.journey_passed,\n    response_time: r.json.total_response_time_ms\n  }))\n};"
+      },
+      "name": "Calculate E2E Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "user_journey_tests",
+        "columns": "timestamp, total_journeys, passed_journeys, failed_journeys, success_rate, average_response_time_ms, database_consistency_rate, archetype_accuracy, multi_turn_consistency, edge_case_success_rate, failed_journeys_details, alert_required",
+        "options": {}
+      },
+      "name": "Log E2E Results",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [2050, 400],
+      "credentials": {
+        "postgres": {
+          "id": "SUPABASE_CREDENTIALS_ID",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.alert_required }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Alert if E2E Failed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2250, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@commcoach-ai.app",
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "⚠️ CommCoach AI - E2E User Journey Failures",
+        "emailType": "text",
+        "message": "=⚠️ End-to-End User Journey Alert\n\n**Test Performance Below Threshold**\n**Time:** {{ $json.timestamp }}\n\n**Metrics:**\n- Success Rate: {{ $json.success_rate }}% (Expected: >85%)\n- Database Consistency: {{ $json.database_consistency_rate }}%\n- Archetype Accuracy: {{ $json.archetype_accuracy }}%\n- Multi-Turn Consistency: {{ $json.multi_turn_consistency }}%\n- Edge Case Handling: {{ $json.edge_case_success_rate }}%\n- Average Response Time: {{ $json.average_response_time_ms }}ms\n\n**Failed Journeys:** {{ $json.failed_journeys }}/{{ $json.total_journeys }}\n\n**Failure Details:**\n{{ JSON.stringify($json.failed_journeys_details, null, 2) }}\n\n**Action Required:** Investigate failing user journey scenarios.\n\n---\nView logs: Supabase → user_journey_tests table"
+      },
+      "name": "Send E2E Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2450, 400],
+      "credentials": {
+        "smtp": {
+          "id": "EMAIL_CREDENTIALS_ID",
+          "name": "SMTP Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 2 Hours": {
+      "main": [
+        [
+          {
+            "node": "Generate Journey Scenarios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Journey Scenarios": {
+      "main": [
+        [
+          {
+            "node": "Initialize Journey State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Journey State": {
+      "main": [
+        [
+          {
+            "node": "Call Backend API - Turn 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Backend API - Turn 1": {
+      "main": [
+        [
+          {
+            "node": "Validate Turn 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Turn 1": {
+      "main": [
+        [
+          {
+            "node": "Has More Turns?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check DB Session Persistence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has More Turns?": {
+      "main": [
+        [
+          {
+            "node": "Call Backend API - Turn 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Backend API - Turn 2": {
+      "main": [
+        [
+          {
+            "node": "Validate Multi-Turn Consistency",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DB Session Persistence": {
+      "main": [
+        [
+          {
+            "node": "Check DB Analyses Written",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DB Analyses Written": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Journey Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Journey Results": {
+      "main": [
+        [
+          {
+            "node": "Collect All Journeys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect All Journeys": {
+      "main": [
+        [
+          {
+            "node": "Calculate E2E Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate E2E Metrics": {
+      "main": [
+        [
+          {
+            "node": "Log E2E Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log E2E Results": {
+      "main": [
+        [
+          {
+            "node": "Alert if E2E Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert if E2E Failed": {
+      "main": [
+        [
+          {
+            "node": "Send E2E Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "pinData": {},
+  "versionId": "1"
+}
