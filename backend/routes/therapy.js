@@ -2,6 +2,9 @@ import express from 'express';
 import ArchetypeService from '../services/ArchetypeService.js';
 import TherapySafetyService from '../services/TherapySafetyService.js';
 import { strictLimiter } from '../middleware/rateLimiter.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { validate, schemas } from '../middleware/validation.js';
+import SessionRepository from '../repositories/SessionRepository.js';
 
 const router = express.Router();
 
@@ -9,7 +12,7 @@ const router = express.Router();
  * POST /api/therapy/analyze
  * Analyzes communication archetype and returns therapy advice
  */
-router.post('/analyze', strictLimiter, async (req, res) => {
+router.post('/analyze', authenticateToken(), validate(schemas.therapyAnalyze), strictLimiter, async (req, res) => {
     try {
         const { message, history } = req.body;
 
@@ -42,7 +45,22 @@ router.post('/analyze', strictLimiter, async (req, res) => {
             userContext
         );
 
-        // 5. Return Final Result
+        // 5. Log Session (Background)
+        SessionRepository.logTherapySession({
+            userId: req.user?.id,
+            message,
+            archetype: analysis.identified_archetype,
+            confidence: analysis.confidence_score,
+            response: safetyCheck.approved_response,
+            safety: {
+                safe: safetyCheck.safe,
+                risk_level: safetyCheck.risk_level
+            },
+            evidence: analysis.evidence,
+            history: history || []
+        }).catch(err => console.error('Background Logging Error:', err));
+
+        // 6. Return Final Result
         res.json({
             type: 'therapy',
             archetype: analysis.identified_archetype,

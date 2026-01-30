@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 export function useDashboardData() {
     const [data, setData] = useState<any>(null);
+    const [backendHealth, setBackendHealth] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -13,6 +14,17 @@ export function useDashboardData() {
     const fetchData = useCallback(async () => {
         try {
             setIsRefreshing(true);
+
+            // Fetch Backend Health
+            try {
+                const healthRes = await fetch('http://localhost:3001/health');
+                if (healthRes.ok) {
+                    const healthData = await healthRes.json();
+                    setBackendHealth(healthData);
+                }
+            } catch (err) {
+                console.warn("Backend health check failed:", err);
+            }
 
             // 1. Fetch Latest Results for Cards
             const [
@@ -132,5 +144,5 @@ export function useDashboardData() {
         return () => clearInterval(interval);
     }, [fetchData]);
 
-    return { data, isLoading, isRefreshing, error, lastUpdated, refresh: fetchData };
+    return { data, backendHealth, isLoading, isRefreshing, error, lastUpdated, refresh: fetchData };
 }

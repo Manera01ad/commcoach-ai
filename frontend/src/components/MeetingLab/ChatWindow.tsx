@@ -96,9 +96,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setAnalysisError(null);
     try {
       const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const token = localStorage.getItem('supabase.auth.token');
+      const accessToken = token ? JSON.parse(token).access_token : '';
+
       const response = await fetch(`${API_BASE}/api/antigravity/analyze-session`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
           transcript,
           userId: 'user_current',
@@ -166,9 +172,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     try {
+      const token = localStorage.getItem('supabase.auth.token');
+      const accessToken = token ? JSON.parse(token).access_token : '';
+
       const response = await fetch(`${API_BASE}/api/therapy/analyze`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
           message: text,
           history: messages.slice(-5)

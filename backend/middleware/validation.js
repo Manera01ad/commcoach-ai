@@ -53,6 +53,14 @@ export const schemas = {
         })
     }),
 
+    // Therapy analysis request
+    therapyAnalyze: z.object({
+        body: z.object({
+            message: z.string().min(1, 'Message is required'),
+            history: z.array(z.any()).optional()
+        })
+    }),
+
     // Antigravity analysis request
     antigravityAnalyze: z.object({
         body: z.object({

@@ -1,5 +1,8 @@
 import express from 'express';
 import geminiService from '../services/geminiService.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { validate, schemas } from '../middleware/validation.js';
+import SessionRepository from '../repositories/SessionRepository.js';
 
 const router = express.Router();
 
@@ -7,7 +10,7 @@ const router = express.Router();
  * POST /api/gemini/generate
  * Proxy endpoint for Gemini API calls (keeps API key server-side)
  */
-router.post('/generate', async (req, res) => {
+router.post('/generate', authenticateToken(), validate(schemas.geminiGenerate), async (req, res) => {
     try {
         const { model, prompt, config } = req.body;
 
@@ -40,7 +43,7 @@ router.post('/generate', async (req, res) => {
  * POST /api/gemini/structured
  * Generate structured JSON output
  */
-router.post('/structured', async (req, res) => {
+router.post('/structured', authenticateToken(), async (req, res) => {
     try {
         const { model, prompt, schema } = req.body;
 

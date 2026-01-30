@@ -26,12 +26,13 @@ import assessmentRoutes from './routes/assessment.js';
 import aiRoutes from './routes/ai.js';
 import therapyRoutes from './routes/therapy.js';
 import { supabaseAdmin } from './config/supabase.js';
+import { initSentry, sentryErrorHandler } from './config/sentry.js';
 
 
 // Security Middleware
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter.js';
 import { authenticateToken } from './middleware/auth.js';
-// import { validate, schemas } from './middleware/validation.js'; // Commented out if not used yet
+import { validate, schemas } from './middleware/validation.js';
 
 // ES Module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -39,6 +40,7 @@ const __dirname = dirname(__filename);
 
 // Initialize Express app
 const app = express();
+initSentry(app); // Sentry initialization and request handlers
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
 
@@ -53,11 +55,18 @@ app.set('trust proxy', 1);
 // ========================================
 
 // 1. CORS Configuration (MUST BE FIRST)
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    callback(null, true);
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
   },
-
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -106,6 +115,16 @@ app.get('/health', async (req, res) => {
     } else {
       healthData.database = 'not initialized';
     }
+
+    // 3. System Info
+    healthData.system = {
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+        unit: 'MB'
+      },
+      cpu: process.cpuUsage()
+    };
 
     res.status(healthData.database === 'connected' ? 200 : 503).json(healthData);
   } catch (error) {
@@ -160,6 +179,9 @@ app.get('/api', (req, res) => {
 // ERROR HANDLING
 // ========================================
 
+// Sentry Error Handler (must be before other error handlers)
+sentryErrorHandler(app);
+
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
@@ -169,6 +191,9 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
+
+  // Sentry captures exceptions automatically via middleware
+
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })

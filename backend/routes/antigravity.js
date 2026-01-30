@@ -1,5 +1,7 @@
 import express from 'express';
 import geminiService from '../services/geminiService.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { validate, schemas } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -7,27 +9,15 @@ const router = express.Router();
  * POST /api/antigravity/analyze-session
  * Analyze communication transcript and return structured insights
  */
-router.post('/analyze-session', async (req, res) => {
+router.post('/analyze-session', authenticateToken(), validate(schemas.antigravityAnalyze), async (req, res) => {
     try {
         const { transcript, userId, timestamp } = req.body;
 
-        // Validation
-        if (!transcript || typeof transcript !== 'string') {
-            return res.status(400).json({
-                error: 'Invalid request',
-                message: 'Transcript is required and must be a string'
-            });
-        }
+        // Validated by Zod middleware: transcript is required, userId is optional/injected
 
-        if (!userId) {
-            return res.status(400).json({
-                error: 'Invalid request',
-                message: 'userId is required'
-            });
-        }
 
-        console.log(`[Antigravity] Analyzing session for user: ${userId}`);
-        console.log(`[Antigravity] Transcript length: ${transcript.length} characters`);
+        // Analysis logic continues...
+        // Sentry captures performance automatically via tracingHandler
 
         // Call Gemini service for analysis
         const analysis = await geminiService.analyzeTranscript(transcript, userId);
@@ -40,7 +30,7 @@ router.post('/analyze-session', async (req, res) => {
             transcriptLength: transcript.length
         };
 
-        console.log(`[Antigravity] Analysis complete for user: ${userId}`);
+        // Analysis complete
 
         res.json(response);
 
