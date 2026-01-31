@@ -15,15 +15,50 @@ export function useDashboardData() {
         try {
             setIsRefreshing(true);
 
-            // Fetch Backend Health
+            // Fetch Backend Health (Resilient)
             try {
-                const healthRes = await fetch('http://localhost:3001/health');
+                const prodUrl = 'https://commcoach-ai-production.up.railway.app';
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || prodUrl;
+
+                console.log(`[Dashboard] Checking health at: ${apiUrl}/health`);
+
+                let healthRes;
+                try {
+                    healthRes = await fetch(`${apiUrl}/health`, {
+                        signal: AbortSignal.timeout(5000),
+                        mode: 'cors',
+                        credentials: 'omit'
+                    });
+                } catch (e) {
+                    console.warn(`[Dashboard] Primary fetch failed for ${apiUrl}, trying production fallback...`);
+                    healthRes = await fetch(`${prodUrl}/health`, {
+                        signal: AbortSignal.timeout(5000),
+                        mode: 'cors',
+                        credentials: 'omit'
+                    });
+                }
+
                 if (healthRes.ok) {
                     const healthData = await healthRes.json();
+                    console.log('[Dashboard] Backend health:', healthData);
                     setBackendHealth(healthData);
+                } else {
+                    console.error(`[Dashboard] Health check returned status: ${healthRes.status}`);
+                    // Set a fallback status
+                    setBackendHealth({
+                        status: 'degraded',
+                        database: 'unknown',
+                        system: { memory: { used: 0, total: 0 } }
+                    });
                 }
             } catch (err) {
-                console.warn("Backend health check failed:", err);
+                console.error("[Dashboard] All health check attempts failed:", err);
+                // Set a fallback status when completely unreachable
+                setBackendHealth({
+                    status: 'unreachable',
+                    database: 'unknown',
+                    system: { memory: { used: 0, total: 0 } }
+                });
             }
 
             // 1. Fetch Latest Results for Cards
@@ -38,15 +73,15 @@ export function useDashboardData() {
                 { data: quality },
                 { data: analytics }
             ] = await Promise.all([
-                supabase.from('test_results').select('*').order('timestamp', { ascending: false }).limit(1).single(),
-                supabase.from('therapy_logic_tests').select('*').order('timestamp', { ascending: false }).limit(1).single(),
-                supabase.from('user_journey_tests').select('*').order('timestamp', { ascending: false }).limit(1).single(),
-                supabase.from('performance_tests').select('*').order('timestamp', { ascending: false }).limit(1).single(),
-                supabase.from('security_tests').select('*').order('timestamp', { ascending: false }).limit(1).single(),
-                supabase.from('safety_validation_tests').select('*').order('timestamp', { ascending: false }).limit(1).single(),
-                supabase.from('bias_audit_tests').select('*').order('timestamp', { ascending: false }).limit(1).single(),
-                supabase.from('conversation_quality_tests').select('*').order('timestamp', { ascending: false }).limit(1).single(),
-                supabase.from('ai_analytics_reports').select('*').order('timestamp', { ascending: false }).limit(1).single()
+                supabase.from('test_results').select('*').order('timestamp', { ascending: false }).limit(1).single() as any,
+                supabase.from('therapy_logic_tests').select('*').order('timestamp', { ascending: false }).limit(1).single() as any,
+                supabase.from('user_journey_tests').select('*').order('timestamp', { ascending: false }).limit(1).single() as any,
+                supabase.from('performance_tests').select('*').order('timestamp', { ascending: false }).limit(1).single() as any,
+                supabase.from('security_tests').select('*').order('timestamp', { ascending: false }).limit(1).single() as any,
+                supabase.from('safety_validation_tests').select('*').order('timestamp', { ascending: false }).limit(1).single() as any,
+                supabase.from('bias_audit_tests').select('*').order('timestamp', { ascending: false }).limit(1).single() as any,
+                supabase.from('conversation_quality_tests').select('*').order('timestamp', { ascending: false }).limit(1).single() as any,
+                supabase.from('ai_analytics_reports').select('*').order('timestamp', { ascending: false }).limit(1).single() as any
             ]);
 
             // 2. Fetch Trends (last 7 days)
@@ -82,7 +117,7 @@ export function useDashboardData() {
                 .gt('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
                 .limit(5);
 
-            const alerts = (infraAlerts || []).map(a => ({
+            const alerts = ((infraAlerts as any[]) || []).map(a => ({
                 id: a.id,
                 message: `Infrastructure failure detected at ${new Date(a.timestamp).toLocaleTimeString()}`,
                 type: 'critical' as const,

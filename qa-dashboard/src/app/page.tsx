@@ -2,7 +2,7 @@
 
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Header } from "@/components/Dashboard/Header";
-import { AlertsSection } from "@/components/Dashboard/Alerts";
+import { AlertsSidebar } from "@/components/Dashboard/AlertsSidebar";
 import { HealthCard } from "@/components/Dashboard/HealthCard";
 import { TrendsChart } from "@/components/Dashboard/TrendsChart";
 import { SummaryList } from "@/components/Dashboard/SummaryList";
@@ -53,106 +53,129 @@ export default function DashboardPage() {
   const { infra, therapy, journey, performance, security, safety, bias, quality, trends, alerts, overallScore, summaries, recommendations } = data;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <Header
         overallScore={overallScore || 0}
         lastUpdated={lastUpdated}
         isRefreshing={isRefreshing}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Errors / Alerts */}
-        <AlertsSection alerts={alerts} />
+      <div className="flex-1 flex overflow-hidden">
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-[1400px] mx-auto">
+            {/* Live Monitoring Section */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-6 bg-blue-600 rounded-full" />
+                <h2 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Priority 1: Live Monitoring</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <HealthCard
+                  title="System Core"
+                  icon={Server}
+                  score={backendHealth?.status === 'healthy' ? 100 : 0}
+                  status={backendHealth?.status === 'healthy' ? "Online" : "Offline"}
+                  metric={backendHealth ? `RAM: ${backendHealth.system.memory.used}MB / DB: ${backendHealth.database}` : 'Connecting...'}
+                  isLoading={isLoading && !backendHealth}
+                />
+                <HealthCard
+                  title="Infrastructure"
+                  icon={ShieldCheck}
+                  score={infra?.is_healthy ? 100 : 0}
+                  status={infra?.is_healthy ? "Healthy" : "Critical"}
+                  metric={`${infra?.frontend_response_time_ms}ms / ${infra?.backend_response_time_ms}ms`}
+                  isLoading={isLoading}
+                />
+                <HealthCard
+                  title="Security"
+                  icon={Lock}
+                  score={security?.total_security_score || 0}
+                  status={security?.total_security_score >= 95 ? "Hardened" : "Vulnerable"}
+                  metric={`${security?.critical_issues_count || 0} critical findings`}
+                  isLoading={isLoading}
+                />
+                <HealthCard
+                  title="User Journeys"
+                  icon={UserSquare2}
+                  score={journey?.success_rate || 0}
+                  status={journey?.success_rate >= 85 ? "Stable" : "Regression"}
+                  metric={`${journey?.passed_journeys}/${journey?.total_journeys} completed`}
+                  isLoading={isLoading}
+                />
+                <HealthCard
+                  title="Safety"
+                  icon={ShieldAlert}
+                  score={safety?.prescription_safety_score || 0}
+                  status={safety?.prescription_safety_score >= 90 ? "Protected" : "Violation"}
+                  metric={safety?.boundary_maintained ? "Boundaries maintained" : "Issues detected"}
+                  isLoading={isLoading}
+                />
+                <HealthCard
+                  title="Bias & Fairness"
+                  icon={Scale}
+                  score={bias?.overall_fairness_score || 0}
+                  status={bias?.overall_fairness_score >= 90 ? "Equitable" : "Biased"}
+                  metric={`${bias?.gender_fairness_score}% gender, ${bias?.age_fairness_score}% age`}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
 
-        {/* Health Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          <HealthCard
-            title="System Core"
-            icon={Server}
-            score={backendHealth?.status === 'healthy' ? 100 : 0}
-            status={backendHealth?.status === 'healthy' ? "Online" : "Offline"}
-            metric={backendHealth ? `RAM: ${backendHealth.system.memory.used}MB / DB: ${backendHealth.database}` : 'Connecting...'}
-            isLoading={isLoading && !backendHealth}
-          />
-          <HealthCard
-            title="Infrastructure"
-            icon={ShieldCheck}
-            score={infra?.is_healthy ? 100 : 0}
-            status={infra?.is_healthy ? "Healthy" : "Critical"}
-            metric={`${infra?.frontend_response_time_ms}ms / ${infra?.backend_response_time_ms}ms`}
-            isLoading={isLoading}
-          />
-          <HealthCard
-            title="Therapy Logic"
-            icon={Brain}
-            score={therapy?.archetype_accuracy || 0}
-            status={therapy?.archetype_accuracy >= 80 ? "Accurate" : "Investigation"}
-            metric={`${therapy?.passed_tests}/${therapy?.total_tests} passed`}
-            isLoading={isLoading}
-          />
-          <HealthCard
-            title="User Journeys"
-            icon={UserSquare2}
-            score={journey?.success_rate || 0}
-            status={journey?.success_rate >= 85 ? "Stable" : "Regression"}
-            metric={`${journey?.passed_journeys}/${journey?.total_journeys} completed`}
-            isLoading={isLoading}
-          />
-          <HealthCard
-            title="Performance"
-            icon={Zap}
-            score={performance?.performance_score || 0}
-            status={performance?.performance_score >= 80 ? "Fast" : "Latency"}
-            metric={`${performance?.avg_response_time_ms}ms average`}
-            isLoading={isLoading}
-          />
-          <HealthCard
-            title="Security"
-            icon={Lock}
-            score={security?.total_security_score || 0}
-            status={security?.total_security_score >= 95 ? "Hardened" : "Vulnerable"}
-            metric={`${security?.critical_issues_count || 0} critical findings`}
-            isLoading={isLoading}
-          />
-          <HealthCard
-            title="Safety"
-            icon={ShieldAlert}
-            score={safety?.prescription_safety_score || 0}
-            status={safety?.prescription_safety_score >= 90 ? "Protected" : "Violation"}
-            metric={safety?.boundary_maintained ? "Boundaries maintained" : "Issues detected"}
-            isLoading={isLoading}
-          />
-          <HealthCard
-            title="Bias & Fairness"
-            icon={Scale}
-            score={bias?.overall_fairness_score || 0}
-            status={bias?.overall_fairness_score >= 90 ? "Equitable" : "Biased"}
-            metric={`${bias?.gender_fairness_score}% gender, ${bias?.age_fairness_score}% age`}
-            isLoading={isLoading}
-          />
-          <HealthCard
-            title="Conversation Quality"
-            icon={MessageSquare}
-            score={quality?.overall_quality_score || 0}
-            status={quality?.overall_quality_score >= 80 ? "Elite" : "Sub-par"}
-            metric={`${quality?.empathy_score}% empathy, ${quality?.clarity_score}% clarity`}
-            isLoading={isLoading}
-          />
-        </div>
+            {/* Secondary / WIP Section */}
+            <div className="mb-8 opacity-70 grayscale-[0.3]">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-6 bg-slate-400 rounded-full" />
+                <h2 className="text-lg font-bold text-slate-500 uppercase tracking-tight">Priority 2: System Calibration (WIP)</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <HealthCard
+                  title="Therapy Logic"
+                  icon={Brain}
+                  score={therapy?.archetype_accuracy || 0}
+                  status={therapy?.archetype_accuracy > 0 ? (therapy?.archetype_accuracy >= 80 ? "Accurate" : "Investigation") : "Calibrating"}
+                  metric={therapy?.total_tests ? `${therapy?.passed_tests}/${therapy?.total_tests} passed` : "Pending Logic Freeze"}
+                  isLoading={isLoading}
+                />
+                <HealthCard
+                  title="Performance"
+                  icon={Zap}
+                  score={performance?.performance_score || 0}
+                  status={performance?.performance_score > 0 ? (performance?.performance_score >= 80 ? "Fast" : "Latency") : "Sampling"}
+                  metric={performance?.avg_response_time_ms ? `${performance?.avg_response_time_ms}ms average` : "Optimizing Infra"}
+                  isLoading={isLoading}
+                />
+                <HealthCard
+                  title="Conversation Quality"
+                  icon={MessageSquare}
+                  score={quality?.overall_quality_score || 0}
+                  status={quality?.overall_quality_score > 0 ? (quality?.overall_quality_score >= 80 ? "Elite" : "Sub-par") : "Training"}
+                  metric={quality?.empathy_score ? `${quality?.empathy_score}% empathy, ${quality?.clarity_score}% clarity` : "Refining NLP"}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
 
-        {/* Trends */}
-        <TrendsChart data={trends} isLoading={isLoading} />
+            {/* Trends */}
+            <TrendsChart data={trends} isLoading={isLoading} />
 
-        {/* Bottom Section */}
-        <div className="flex flex-col lg:flex-row gap-8 items-stretch">
-          <SummaryList summaries={summaries} isLoading={isLoading} />
-          <AIRecommendations recommendations={recommendations} isLoading={isLoading} />
-        </div>
-      </main>
+            {/* Bottom Section */}
+            <div className="flex flex-col lg:flex-row gap-8 items-stretch mt-8">
+              <SummaryList summaries={summaries} isLoading={isLoading} />
+              <AIRecommendations recommendations={recommendations} isLoading={isLoading} />
+            </div>
 
-      <footer className="max-w-7xl mx-auto px-6 py-12 text-center text-slate-400 text-sm">
-        &copy; 2026 CommCoach AI Quality Assurance Intelligence. All rights reserved.
-      </footer>
+            <footer className="py-12 text-center text-slate-400 text-sm">
+              &copy; 2026 CommCoach AI Quality Assurance Intelligence. All rights reserved.
+            </footer>
+          </div>
+        </main>
+
+        {/* Sidebar for Alerts */}
+        <aside className="w-80 shrink-0 hidden xl:block shadow-2xl z-10 transition-all border-l border-slate-200">
+          <AlertsSidebar alerts={alerts || []} />
+        </aside>
+      </div>
     </div>
   );
 }

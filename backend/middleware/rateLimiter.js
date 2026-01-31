@@ -23,6 +23,20 @@ export const defaultLimiter = rateLimit({
 // API rate limiter for authenticated requests
 export const apiLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
+    skip: (req) => {
+        // Skip rate limiting in development mode
+        if (process.env.NODE_ENV === 'development') {
+            return true;
+        }
+
+        // Skip rate limiting for n8n workflows (check user agent)
+        const userAgent = req.get('user-agent') || '';
+        if (userAgent.includes('n8n')) {
+            return true;
+        }
+
+        return false;
+    },
     max: async (req) => {
         // Check user's subscription tier from req.user (set by auth middleware)
         const user = req.user;
@@ -56,6 +70,20 @@ export const apiLimiter = rateLimit({
 // Strict rate limiter for expensive operations (AI generation, voice synthesis)
 export const strictLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
+    skip: (req) => {
+        // Skip rate limiting in development mode
+        if (process.env.NODE_ENV === 'development') {
+            return true;
+        }
+
+        // Skip rate limiting for n8n workflows
+        const userAgent = req.get('user-agent') || '';
+        if (userAgent.includes('n8n')) {
+            return true;
+        }
+
+        return false;
+    },
     max: async (req) => {
         const user = req.user;
 
