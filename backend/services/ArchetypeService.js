@@ -6,25 +6,77 @@ import GeminiService from './geminiService.js';
 class ArchetypeService {
     constructor() {
         this.archetypes = {
+            // Tier 1: Problematic Patterns (Diagnosis)
             FORTRESS: {
+                tier: 1,
                 name: "The Fortress",
+                icon: "🏰",
                 traits: ["defensive", "silent", "withdrawn", "guarded"],
-                description: "Uses silence as protection and resists opening up."
+                description: "Uses silence as protection and resists opening up.",
+                growthPath: "BUILDER"
             },
             PROSECUTOR: {
+                tier: 1,
                 name: "The Prosecutor",
+                icon: "⚖️",
                 traits: ["aggressive", "logic-driven", "confrontational", "winning"],
-                description: "Seeks to 'win' the argument at the cost of connection."
+                description: "Seeks to 'win' the argument at the cost of connection.",
+                growthPath: "WARRIOR"
             },
             PLEASER: {
+                tier: 1,
                 name: "The Pleaser",
+                icon: "🕊️",
                 traits: ["passive", "self-sacrificing", "avoiding conflict", "apologetic"],
-                description: "Sacrifices own needs to keep the peace."
+                description: "Sacrifices own needs to keep the peace.",
+                growthPath: "LISTENER"
             },
             SOLVER: {
+                tier: 1,
                 name: "The Solver",
+                icon: "🔧",
                 traits: ["dismissive of emotions", "solution-focused", "impatient"],
-                description: "Jumps to fixes without acknowledging emotional weight."
+                description: "Jumps to fixes without acknowledging emotional weight.",
+                growthPath: "BUILDER"
+            },
+
+            // Tier 2: Healthy Growth (Unlockable)
+            BUILDER: {
+                tier: 2,
+                name: "The Builder",
+                icon: "🏗️",
+                traits: ["constructive", "collaborative", "patient", "solution-oriented"],
+                description: "Builds bridges through structured problem-solving.",
+                unlockRequirements: { requiredArchetypes: ["FORTRESS"], minSessions: 10 }
+            },
+            LISTENER: {
+                tier: 2,
+                name: "The Listener",
+                icon: "👂",
+                traits: ["empathetic", "reflective", "curious", "non-judgmental"],
+                description: "Creates space for others through active listening.",
+                unlockRequirements: { requiredArchetypes: ["PLEASER"], minSessions: 10 }
+            },
+            WARRIOR: {
+                tier: 2,
+                name: "The Warrior",
+                icon: "⚔️",
+                traits: ["assertive", "confident", "direct", "protective"],
+                description: "Stands firm in truth while respecting others.",
+                unlockRequirements: { requiredArchetypes: ["PROSECUTOR"], minSessions: 10 }
+            },
+
+            // Tier 3: Mastery
+            SAGE: {
+                tier: 3,
+                name: "The Sage",
+                icon: "🧙",
+                traits: ["wise", "balanced", "adaptive", "integrative"],
+                description: "Synthesizes all communication styles with wisdom.",
+                unlockRequirements: {
+                    requiredArchetypes: ["BUILDER", "LISTENER", "WARRIOR"],
+                    allMustBeMastered: true
+                }
             }
         };
     }

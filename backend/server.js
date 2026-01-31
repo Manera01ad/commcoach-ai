@@ -25,6 +25,7 @@ import gamificationRoutes from './routes/gamification.js';
 import assessmentRoutes from './routes/assessment.js';
 import aiRoutes from './routes/ai.js';
 import therapyRoutes from './routes/therapy.js';
+import archetypeRoutes from './routes/archetypes.js';
 import { supabaseAdmin } from './config/supabase.js';
 import { initSentry, sentryErrorHandler } from './config/sentry.js';
 
@@ -151,6 +152,7 @@ app.use('/api/founders', foundersRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/assessment', assessmentRoutes);
 app.use('/api/therapy', therapyRoutes);
+app.use('/api/archetypes', archetypeRoutes);
 
 app.get('/api', (req, res) => {
   res.json({
@@ -170,7 +172,8 @@ app.get('/api', (req, res) => {
       founders: '/api/founders',
       gamification: '/api/gamification',
       assessment: '/api/assessment',
-      therapy: '/api/therapy'
+      therapy: '/api/therapy',
+      archetypes: '/api/archetypes'
     }
   });
 });

@@ -1,5 +1,6 @@
 import express from 'express';
 import ArchetypeService from '../services/ArchetypeService.js';
+import ArchetypeProgressionService from '../services/ArchetypeProgressionService.js';
 import TherapySafetyService from '../services/TherapySafetyService.js';
 import { strictLimiter } from '../middleware/rateLimiter.js';
 import { authenticateToken } from '../middleware/auth.js';
@@ -46,7 +47,7 @@ router.post('/analyze', authenticateToken(), validate(schemas.therapyAnalyze), s
         );
 
         // 5. Log Session (Background)
-        SessionRepository.logTherapySession({
+        const sessionLog = await SessionRepository.logTherapySession({
             userId: req.user?.id,
             message,
             archetype: analysis.identified_archetype,
@@ -58,9 +59,48 @@ router.post('/analyze', authenticateToken(), validate(schemas.therapyAnalyze), s
             },
             evidence: analysis.evidence,
             history: history || []
-        }).catch(err => console.error('Background Logging Error:', err));
+        }).catch(err => {
+            console.error('Background Logging Error:', err);
+            return null;
+        });
 
-        // 6. Return Final Result
+        // 6. Track Archetype Progression (NEW!)
+        let archetypeProgress = null;
+        if (req.user?.id && analysis.identified_archetype) {
+            try {
+                // Calculate quality score based on confidence and safety
+                const qualityScore = Math.min(100,
+                    (analysis.confidence_score * 0.7) +
+                    (safetyCheck.safe ? 30 : 0)
+                );
+
+                // Track the session for archetype progression
+                const progressResult = await ArchetypeProgressionService.trackSession(
+                    req.user.id,
+                    analysis.identified_archetype,
+                    sessionLog?.id || null,
+                    qualityScore
+                );
+
+                if (progressResult.success) {
+                    archetypeProgress = {
+                        sessionsCompleted: progressResult.sessionData?.sessions_completed,
+                        isMastered: progressResult.sessionData?.is_mastered,
+                        newlyUnlocked: progressResult.newlyUnlocked || []
+                    };
+
+                    // Log unlock achievements
+                    if (progressResult.newlyUnlocked?.length > 0) {
+                        console.log(`🎉 User ${req.user.id} unlocked:`, progressResult.newlyUnlocked);
+                    }
+                }
+            } catch (err) {
+                console.error('Archetype Progression Error:', err);
+                // Don't fail the request if progression tracking fails
+            }
+        }
+
+        // 7. Return Final Result
         res.json({
             type: 'therapy',
             archetype: analysis.identified_archetype,
@@ -71,7 +111,9 @@ router.post('/analyze', authenticateToken(), validate(schemas.therapyAnalyze), s
                 risk_level: safetyCheck.risk_level
             },
             evidence: analysis.evidence,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            // Include archetype progression data
+            progression: archetypeProgress
         });
 
     } catch (error) {

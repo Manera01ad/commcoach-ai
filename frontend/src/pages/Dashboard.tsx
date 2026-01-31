@@ -13,7 +13,8 @@ import MeetingAgent from '../components/MeetingLab/MeetingAgent';
 import AuraChat from '../components/AuraChat';
 import Leaderboard from '../components/Leaderboard';
 import SettingsPage from './Settings';
-import { LayoutDashboard, Target, Users, Settings, LogOut, Menu, X, BookOpen, Crown, BrainCircuit } from 'lucide-react';
+import ArchetypeSkillTree from '../components/ArchetypeSkillTree';
+import { LayoutDashboard, Target, Users, Settings, LogOut, Menu, X, BookOpen, Crown, BrainCircuit, TreePine } from 'lucide-react';
 
 // Context
 import { useAuth } from '../contexts/AuthContext';
@@ -21,7 +22,7 @@ import { useAuth } from '../contexts/AuthContext';
 const Dashboard: React.FC = () => {
     const { user, logout } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'overview' | 'missions' | 'founders' | 'settings' | 'library' | 'community' | 'meetings' | 'profile' | 'neural'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'missions' | 'founders' | 'settings' | 'library' | 'community' | 'meetings' | 'profile' | 'neural' | 'archetypes'>('overview');
     const [dnaProfile, setDnaProfile] = useState<any>(null);
     const [isAssessmentActive, setIsAssessmentActive] = useState(false);
     const [isAuraOpen, setIsAuraOpen] = useState(false);
@@ -191,6 +192,13 @@ const Dashboard: React.FC = () => {
                                 label="Neural Architecture"
                                 active={activeTab === 'neural'}
                                 onClick={() => { setActiveTab('neural'); setSidebarOpen(false); }}
+                            />
+                            <MenuLink
+                                id="archetypes"
+                                icon={TreePine}
+                                label="Archetype Mastery"
+                                active={activeTab === 'archetypes'}
+                                onClick={() => { setActiveTab('archetypes'); setSidebarOpen(false); }}
                             />
                             <MenuLink
                                 id="missions"
@@ -406,6 +414,12 @@ const Dashboard: React.FC = () => {
                                     </button>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {activeTab === 'archetypes' && (
+                        <div className="max-w-7xl mx-auto">
+                            <ArchetypeSkillTree />
                         </div>
                     )}
 
