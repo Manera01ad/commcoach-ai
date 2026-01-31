@@ -1,8 +1,8 @@
 {
- "projectId": "e2fba524-bdf6-40e0-aefe-e8b91fc3f44f",
- "createdAt": 1769860361271,
- "startupCommands": [
-   "cd backend && bun run dev",
-   "cd frontend && bun run dev"
- ]
+  "projectId": "e2fba524-bdf6-40e0-aefe-e8b91fc3f44f",
+  "createdAt": 1769860361271,
+  "startupCommands": [
+    "cd backend; bun run dev",
+    "cd frontend; bun run dev"
+  ]
 }
