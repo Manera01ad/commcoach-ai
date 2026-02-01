@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Header } from "@/components/Dashboard/Header";
 import { AlertsSidebar } from "@/components/Dashboard/AlertsSidebar";
@@ -18,7 +19,8 @@ import {
   MessageSquare,
   AlertCircle,
   Loader2,
-  Server
+  Server,
+  LayoutDashboard
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -64,6 +66,16 @@ export default function DashboardPage() {
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-[1400px] mx-auto">
+            {/* SaaS Admin Shortcut */}
+            <div className="mb-6 flex justify-end">
+              <Link 
+                href="/saas-admin"
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 group"
+              >
+                <LayoutDashboard className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                Go to SaaS Control Plane
+              </Link>
+            </div>
             {/* Live Monitoring Section */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
