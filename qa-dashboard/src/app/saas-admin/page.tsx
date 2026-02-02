@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Header } from "@/components/Dashboard/Header";
+import Link from "next/link";
+import { useSaasMetrics } from "@/hooks/useSaasMetrics";
 import { HealthCard } from "@/components/Dashboard/HealthCard";
 import { TrendsChart } from "@/components/Dashboard/TrendsChart";
 import { SummaryList } from "@/components/Dashboard/SummaryList";
@@ -12,69 +12,57 @@ import {
   Users,
   Coins,
   Ticket,
-  ShieldBan,
   TrendingUp,
   Activity,
   ArrowUpRight,
-  ArrowDownRight,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from "lucide-react";
 
 export default function SaasAdminDashboard() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const { data, isLoading, isRefreshing, error, lastUpdated } = useSaasMetrics();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
+  if (isLoading && !data) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
         <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
         <h2 className="text-2xl font-bold text-slate-800">Loading SaaS Control Plane</h2>
-        <p className="text-slate-500 mt-2">Aggregating revenue and usage metrics...</p>
+        <p className="text-slate-500 mt-2">Connecting to Supabase and aggregating metrics...</p>
       </div>
     );
   }
 
-  // Mock SaaS Data
-  const saasData = {
-    mrr: 12400,
-    mrrGrowth: 12.5,
-    activeUsers: 1054,
-    totalUsers: 1240,
-    tokenSpend: 1140,
-    revenuePerToken: 10.8,
-    openTickets: 12,
-    bannedUsers: 5,
-    overallHealth: 94.2,
-    trends: [
-      { date: "Jan 26", infrastructure: 8200, therapy: 850, journey: 900, performance: 750, security: 92 },
-      { date: "Jan 27", infrastructure: 8400, therapy: 880, journey: 910, performance: 780, security: 93 },
-      { date: "Jan 28", infrastructure: 8900, therapy: 920, journey: 930, performance: 810, security: 91 },
-      { date: "Jan 29", infrastructure: 9500, therapy: 950, journey: 950, performance: 850, security: 94 },
-      { date: "Jan 30", infrastructure: 10200, therapy: 1050, journey: 980, performance: 890, security: 95 },
-      { date: "Jan 31", infrastructure: 11500, therapy: 1100, journey: 1020, performance: 920, security: 96 },
-      { date: "Feb 01", infrastructure: 12400, therapy: 1140, journey: 1054, performance: 950, security: 97 }
-    ],
-    alerts: [
-      { id: "1", message: "New Enterprise signup: Acme Corp ($2,500/mo)", type: "success" as const, timestamp: new Date().toISOString() },
-      { id: "2", message: "High token usage warning: User #405 (85% limit)", type: "warning" as const, timestamp: new Date(Date.now() - 3600000).toISOString() },
-      { id: "3", message: "Failed payment: Organization 'StartupX'", type: "critical" as const, timestamp: new Date(Date.now() - 7200000).toISOString() }
-    ],
-    summaries: [
-      { type: 'Pro Plan', count: 850, passRate: 12, lastRun: new Date().toISOString() },
-      { type: 'Enterprise', count: 42, passRate: 25, lastRun: new Date().toISOString() },
-      { type: 'Free Tier', count: 348, passRate: 5, lastRun: new Date().toISOString() }
-    ],
-    recommendations: [
-      { priority: 'High', action: 'Upsell Acme Corp', rationale: 'Usage consistently hitting 95% of current plan limits' },
-      { priority: 'Medium', action: 'Review Churn Risk: StartupX', rationale: 'Three failed payment attempts in the last 48 hours' },
-      { priority: 'Low', action: 'Optimize Token Cost', rationale: 'Switching to GPT-4o-mini for summaries could save $200/mo' }
-    ]
+  if (error && !data) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="w-16 h-16 text-rose-500 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-800">Failed to Load SaaS Metrics</h2>
+        <p className="text-slate-500 mt-2 max-w-md">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+        >
+          Retry Connection
+        </button>
+      </div>
+    );
+  }
+
+  const saasData = data || {
+    mrr: 0,
+    mrrGrowth: 0,
+    activeUsers: 0,
+    totalUsers: 0,
+    tokenSpend: 0,
+    revenuePerToken: 0,
+    openTickets: 0,
+    bannedUsers: 0,
+    overallHealth: 0,
+    trends: [],
+    alerts: [],
+    summaries: [],
+    recommendations: []
   };
 
   return (
@@ -82,13 +70,23 @@ export default function SaasAdminDashboard() {
       {/* SaaS Custom Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-6 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-              SaaS Control Plane
-            </h1>
-            <p className="text-gray-500 flex items-center gap-2">
-              Platform Viability & Unit Economics <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
-            </p>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-medium">Back to QA Dashboard</span>
+            </Link>
+            <div className="h-8 w-px bg-slate-200" />
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                SaaS Control Plane
+              </h1>
+              <p className="text-gray-500 flex items-center gap-2">
+                Platform Viability & Unit Economics <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-6">
@@ -96,7 +94,9 @@ export default function SaasAdminDashboard() {
               <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">Viability Score</div>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-black text-gray-900">{saasData.overallHealth.toFixed(1)}</span>
-                <span className="text-lg font-bold text-emerald-500">Healthy</span>
+                <span className="text-lg font-bold text-emerald-500">
+                  {saasData.overallHealth >= 80 ? 'Healthy' : saasData.overallHealth >= 60 ? 'Stable' : 'At Risk'}
+                </span>
               </div>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function SaasAdminDashboard() {
       <div className="flex-1 flex overflow-hidden">
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-[1400px] mx-auto">
-            
+
             {/* SaaS Metrics Section */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
@@ -186,7 +186,7 @@ export default function SaasAdminDashboard() {
         </main>
 
         <aside className="w-80 shrink-0 hidden xl:block shadow-2xl z-10 border-l border-slate-200">
-          <AlertsSidebar alerts={saasData.alerts as any} title="Sales & Risk Feed" />
+          <AlertsSidebar alerts={saasData.alerts} />
         </aside>
       </div>
     </div>
