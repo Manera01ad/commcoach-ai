@@ -37,6 +37,11 @@ frontend/dist/
 backend/dist/
 .vercel/
 .railway/
+.next/
+.next-saas/
+.turbo/
+qa-dashboard/.next/
+qa-dashboard/.next-saas/
 
 # Logs
 logs
