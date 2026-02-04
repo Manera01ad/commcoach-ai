@@ -296,6 +296,20 @@
     color: #ffffff;
   }
 
+  .gradient-text {
+    font-size: 5.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #667eea 0%, #00d2a0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    border: none;
+    padding: 0;
+  }
+
   .hero-description {
     font-family: 'Poppins', sans-serif;
     font-weight: 400;
@@ -365,9 +379,19 @@
   }
 
   /* Responsive Font Sizes */
+  @media (max-width: 1024px) {
+    .gradient-text {
+      font-size: 4rem;
+    }
+  }
+
   @media (max-width: 768px) {
     h1, .hero-heading {
       font-size: 2rem !important;
+    }
+    
+    .gradient-text {
+      font-size: 2.5rem;
     }
     
     h2 {
@@ -386,6 +410,10 @@
   @media (max-width: 480px) {
     h1, .hero-heading {
       font-size: 1.75rem !important;
+    }
+
+    .gradient-text {
+      font-size: 2rem;
     }
   }
 }

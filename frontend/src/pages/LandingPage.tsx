@@ -284,7 +284,7 @@ const LandingPage: React.FC = () => {
                         className="hero-heading mx-auto mb-8 text-center"
                     >
                         Speak Like It's Your{' '}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-500">Native Language</span>
+                        <span className="gradient-text">Native Language</span>
                         —Naturally, Without Second-Guessing
                     </motion.h1>
 
