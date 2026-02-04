@@ -263,192 +263,190 @@ const LandingPage: React.FC = () => {
             </nav>
 
             {/* Hero Section */}
-            <section className="relative pt-48 pb-24 overflow-hidden mesh-gradient">
+            <section className="relative pt-48 pb-24 overflow-hidden mesh-gradient min-h-[90vh]">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid lg:grid-cols-2 gap-16 items-start">
-                        {/* Left Column - Content */}
-                        <div className="text-left">
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8`}
-                            >
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                                </span>
-                                <span className="text-[12px] font-black uppercase tracking-wider text-indigo-600">Real-time sentiment v2.4</span>
-                            </motion.div>
+                    {/* Left Column - Content */}
+                    <div className="max-w-2xl">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8`}
+                        >
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                            </span>
+                            <span className="text-[12px] font-black uppercase tracking-wider text-indigo-600">Real-time sentiment v2.4</span>
+                        </motion.div>
 
-                            <motion.h1
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1 }}
-                                className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.2]"
-                            >
-                                Speak Like It's Your{' '}
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-500">Native Language</span>
-                                —Naturally, Without Second-Guessing
-                            </motion.h1>
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.2]"
+                        >
+                            Speak Like It's Your{' '}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-500">Native Language</span>
+                            —Naturally, Without Second-Guessing
+                        </motion.h1>
 
-                            <motion.p
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-xl leading-relaxed font-medium"
-                            >
-                                Empower your professional growth with AI-driven communication coaching.
-                                Feel confident, charismatic, and happy about your progress.
-                            </motion.p>
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-xl leading-relaxed font-medium"
+                        >
+                            Empower your professional growth with AI-driven communication coaching.
+                            Feel confident, charismatic, and happy about your progress.
+                        </motion.p>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3 }}
-                                className="flex flex-col sm:flex-row items-center gap-6"
-                            >
-                                {isAuthenticated ? (
-                                    <button
-                                        onClick={() => navigate('/dashboard')}
-                                        className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-                                    >
-                                        Enter Dashboard <ArrowRight className="w-6 h-6" />
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={() => navigate('/login')}
-                                        className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-                                    >
-                                        Start Free Trial <ArrowRight className="w-6 h-6" />
-                                    </button>
-                                )}
-                                <button className="flex items-center gap-3 text-slate-900 dark:text-white font-black hover:text-indigo-600 transition-colors group">
-                                    <div className="w-14 h-14 rounded-full border-2 border-slate-200 dark:border-white/10 flex items-center justify-center group-hover:bg-indigo-50/50 transition-all">
-                                        <Play className="w-5 h-5 fill-current" />
-                                    </div>
-                                    Watch Demo
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="flex flex-col sm:flex-row items-center gap-6"
+                        >
+                            {isAuthenticated ? (
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                                >
+                                    Enter Dashboard <ArrowRight className="w-6 h-6" />
                                 </button>
-                            </motion.div>
-                        </div>
-
-                        {/* Right Column - Vertical Card System */}
-                        <div className="flex justify-center items-center">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.6 }}
-                                className="relative flex flex-col items-center gap-6"
-                                onMouseMove={handleHeroMouseMove}
-                                onMouseLeave={() => setRotate({ x: 0, y: 0 })}
-                                ref={heroCardRef}
-                            >
-                                {/* Confidence Card - Top */}
-                                <motion.div
-                                    animate={{ y: [0, -8, 0] }}
-                                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                    className="relative z-10 p-5 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl shadow-emerald-500/10 border border-emerald-100 dark:border-emerald-900/30 transform-gpu transition-transform duration-200"
-                                    style={{
-                                        transform: `rotateX(${rotate.x * 0.2}deg) rotateY(${rotate.y * 0.2}deg)`
-                                    }}
+                            ) : (
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/50 dark:to-emerald-800/50 flex items-center justify-center shadow-inner">
-                                            <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-                                        </div>
-                                        <div>
-                                            <p className="font-black text-xl text-emerald-600 dark:text-emerald-400">+24%</p>
-                                            <p className="font-bold text-sm text-slate-500 dark:text-slate-400 uppercase tracking-wider">Confidence</p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-
-                                {/* Visual Connector */}
-                                <div className="relative flex flex-col items-center h-24">
-                                    {/* Top Dot */}
-                                    <motion.div
-                                        animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
-                                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                        className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 shadow-lg shadow-indigo-400/30"
-                                    />
-                                    
-                                    {/* Gradient Line */}
-                                    <div className="relative w-1 flex-1 bg-gradient-to-b from-emerald-400 via-indigo-400 to-pink-400 rounded-full overflow-hidden">
-                                        {/* Pulsing Animation */}
-                                        <motion.div
-                                            animate={{ y: ['-100%', '200%'] }}
-                                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                            className="absolute inset-x-0 h-8 bg-gradient-to-b from-transparent via-white/80 to-transparent"
-                                        />
-                                    </div>
-                                    
-                                    {/* Bottom Dot */}
-                                    <motion.div
-                                        animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
-                                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                                        className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-400 to-pink-400 shadow-lg shadow-pink-400/30"
-                                    />
-                                    
-                                    {/* Flow Arrow Icon */}
-                                    <motion.div
-                                        animate={{ y: [0, 4, 0], opacity: [0.5, 1, 0.5] }}
-                                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                        className="absolute top-1/2 -translate-y-1/2 -right-6"
-                                    >
-                                        <ChevronRight className="w-4 h-4 text-indigo-400" />
-                                    </motion.div>
+                                    Start Free Trial <ArrowRight className="w-6 h-6" />
+                                </button>
+                            )}
+                            <button className="flex items-center gap-3 text-slate-900 dark:text-white font-black hover:text-indigo-600 transition-colors group">
+                                <div className="w-14 h-14 rounded-full border-2 border-slate-200 dark:border-white/10 flex items-center justify-center group-hover:bg-indigo-50/50 transition-all">
+                                    <Play className="w-5 h-5 fill-current" />
                                 </div>
+                                Watch Demo
+                            </button>
+                        </motion.div>
+                    </div>
+                </div>
 
-                                {/* Happiness Loop Card - Bottom */}
-                                <motion.div
-                                    animate={{ y: [0, 8, 0] }}
-                                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                    className="relative z-10 p-5 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl shadow-pink-500/10 border border-pink-100 dark:border-pink-900/30 transform-gpu transition-transform duration-200"
-                                    style={{
-                                        transform: `rotateX(${rotate.x * 0.2}deg) rotateY(${rotate.y * 0.2}deg)`
-                                    }}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900/50 dark:to-pink-800/50 flex items-center justify-center shadow-inner">
-                                            <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400 fill-pink-600/20" />
-                                        </div>
-                                        <div>
-                                            <p className="font-black text-lg text-pink-600 dark:text-pink-400">Happiness</p>
-                                            <p className="font-bold text-sm text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
-                                        </div>
-                                    </div>
-                                </motion.div>
+                {/* Floating Cards - Absolute Positioned */}
+                <div className="hidden lg:block absolute right-[10%] top-1/2 -translate-y-1/2">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.6 }}
+                        className="relative flex flex-col items-center gap-6"
+                        onMouseMove={handleHeroMouseMove}
+                        onMouseLeave={() => setRotate({ x: 0, y: 0 })}
+                        ref={heroCardRef}
+                    >
+                        {/* Confidence Card - Top */}
+                        <motion.div
+                            animate={{ y: [0, -8, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                            className="relative z-10 p-5 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl shadow-emerald-500/10 border border-emerald-100 dark:border-emerald-900/30 transform-gpu transition-transform duration-200"
+                            style={{
+                                transform: `rotateX(${rotate.x * 0.2}deg) rotateY(${rotate.y * 0.2}deg)`
+                            }}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/50 dark:to-emerald-800/50 flex items-center justify-center shadow-inner">
+                                    <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                <div>
+                                    <p className="font-black text-xl text-emerald-600 dark:text-emerald-400">+24%</p>
+                                    <p className="font-bold text-sm text-slate-500 dark:text-slate-400 uppercase tracking-wider">Confidence</p>
+                                </div>
+                            </div>
+                        </motion.div>
 
-                                {/* Floating particles */}
+                        {/* Visual Connector */}
+                        <div className="relative flex flex-col items-center h-24">
+                            {/* Top Dot */}
+                            <motion.div
+                                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 shadow-lg shadow-indigo-400/30"
+                            />
+                            
+                            {/* Gradient Line */}
+                            <div className="relative w-1 flex-1 bg-gradient-to-b from-emerald-400 via-indigo-400 to-pink-400 rounded-full overflow-hidden">
+                                {/* Pulsing Animation */}
                                 <motion.div
-                                    animate={{
-                                        x: [0, 20, 0],
-                                        y: [0, -30, 0],
-                                        opacity: [0.2, 0.5, 0.2]
-                                    }}
-                                    transition={{ duration: 4, repeat: Infinity }}
-                                    className="absolute -top-4 -right-8 w-3 h-3 bg-indigo-400/50 rounded-full blur-sm"
+                                    animate={{ y: ['-100%', '200%'] }}
+                                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                    className="absolute inset-x-0 h-8 bg-gradient-to-b from-transparent via-white/80 to-transparent"
                                 />
-                                <motion.div
-                                    animate={{
-                                        x: [0, -15, 0],
-                                        y: [0, 20, 0],
-                                        opacity: [0.3, 0.6, 0.3]
-                                    }}
-                                    transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
-                                    className="absolute -bottom-4 -left-6 w-2.5 h-2.5 bg-pink-400/50 rounded-full blur-sm"
-                                />
-                                <motion.div
-                                    animate={{
-                                        x: [0, 10, 0],
-                                        y: [0, -15, 0],
-                                        opacity: [0.2, 0.4, 0.2]
-                                    }}
-                                    transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-                                    className="absolute top-1/2 -left-10 w-2 h-2 bg-emerald-400/50 rounded-full blur-sm"
-                                />
+                            </div>
+                            
+                            {/* Bottom Dot */}
+                            <motion.div
+                                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                                className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-400 to-pink-400 shadow-lg shadow-pink-400/30"
+                            />
+                            
+                            {/* Flow Arrow Icon */}
+                            <motion.div
+                                animate={{ y: [0, 4, 0], opacity: [0.5, 1, 0.5] }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                className="absolute top-1/2 -translate-y-1/2 -right-6"
+                            >
+                                <ChevronRight className="w-4 h-4 text-indigo-400" />
                             </motion.div>
                         </div>
-                    </div>
+
+                        {/* Happiness Loop Card - Bottom */}
+                        <motion.div
+                            animate={{ y: [0, 8, 0] }}
+                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                            className="relative z-10 p-5 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl shadow-pink-500/10 border border-pink-100 dark:border-pink-900/30 transform-gpu transition-transform duration-200"
+                            style={{
+                                transform: `rotateX(${rotate.x * 0.2}deg) rotateY(${rotate.y * 0.2}deg)`
+                            }}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900/50 dark:to-pink-800/50 flex items-center justify-center shadow-inner">
+                                    <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400 fill-pink-600/20" />
+                                </div>
+                                <div>
+                                    <p className="font-black text-lg text-pink-600 dark:text-pink-400">Happiness</p>
+                                    <p className="font-bold text-sm text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Floating particles */}
+                        <motion.div
+                            animate={{
+                                x: [0, 20, 0],
+                                y: [0, -30, 0],
+                                opacity: [0.2, 0.5, 0.2]
+                            }}
+                            transition={{ duration: 4, repeat: Infinity }}
+                            className="absolute -top-4 -right-8 w-3 h-3 bg-indigo-400/50 rounded-full blur-sm"
+                        />
+                        <motion.div
+                            animate={{
+                                x: [0, -15, 0],
+                                y: [0, 20, 0],
+                                opacity: [0.3, 0.6, 0.3]
+                            }}
+                            transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
+                            className="absolute -bottom-4 -left-6 w-2.5 h-2.5 bg-pink-400/50 rounded-full blur-sm"
+                        />
+                        <motion.div
+                            animate={{
+                                x: [0, 10, 0],
+                                y: [0, -15, 0],
+                                opacity: [0.2, 0.4, 0.2]
+                            }}
+                            transition={{ duration: 6, repeat: Infinity, delay: 1 }}
+                            className="absolute top-1/2 -left-10 w-2 h-2 bg-emerald-400/50 rounded-full blur-sm"
+                        />
+                    </motion.div>
                 </div>
             </section>
 
