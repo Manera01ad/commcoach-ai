@@ -41,7 +41,7 @@ const AuthRouter: React.FC = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <img src="/commsage-logo.png?v=2" alt="CommSage" className="h-20 object-contain" />
+            <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-28 object-contain bg-white rounded-xl p-2 shadow-sm" />
             <div className="px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 tracking-wider">
               BETA
             </div>
@@ -77,7 +77,7 @@ const AuthRouter: React.FC = () => {
       {/* Right Panel - Auth Forms */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
         <div className="lg:hidden flex items-center gap-2 mb-8">
-          <img src="/commsage-logo.png?v=2" alt="CommSage" className="h-18 object-contain" />
+          <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-24 object-contain bg-white rounded-xl p-2 shadow-sm" />
         </div>
 
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
