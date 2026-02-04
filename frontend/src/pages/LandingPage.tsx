@@ -285,7 +285,7 @@ const LandingPage: React.FC = () => {
                     >
                         Speak Like It's Your{' '}
                         <span className="gradient-text">Native Language</span>
-                        {' '}Naturally, Without Second-Guessing
+                        {' '}Naturally, Without Second Guessing
                     </motion.h1>
 
                     <motion.p
