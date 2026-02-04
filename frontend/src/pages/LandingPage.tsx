@@ -444,19 +444,19 @@ const LandingPage: React.FC = () => {
                     </motion.div>
                 </div>
 
-                {/* Mobile Cards (Stacked Vertically) */}
-                <div className="flex lg:hidden flex-col items-center gap-6 mt-16 px-6">
+                {/* Mobile Cards (Horizontal Layout) */}
+                <div className="flex lg:hidden flex-row items-center justify-center gap-4 mt-16 px-4 overflow-x-auto">
                     {/* Happiness Card */}
                     <motion.div
                         animate={{ y: [0, -10, 0] }}
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                        className="py-5 px-6 rounded-[20px] bg-white dark:bg-slate-800 w-full max-w-[320px] flex items-center gap-4"
+                        className="py-4 px-5 rounded-[16px] bg-white dark:bg-slate-800 flex items-center gap-3 flex-shrink-0"
                         style={{
                             boxShadow: "0 10px 40px rgba(0, 0, 0, 0.1)"
                         }}
                     >
                         <div 
-                            className="w-[45px] h-[45px] rounded-[12px] flex items-center justify-center flex-shrink-0"
+                            className="w-[40px] h-[40px] rounded-[10px] flex items-center justify-center flex-shrink-0"
                             style={{
                                 background: "linear-gradient(135deg, #ffd4e5 0%, #ffb8d2 100%)"
                             }}
@@ -464,36 +464,36 @@ const LandingPage: React.FC = () => {
                             <Heart className="w-5 h-5 text-pink-600 fill-pink-600/30" />
                         </div>
                         <div className="flex flex-col gap-0.5">
-                            <h3 className="text-lg font-bold uppercase tracking-[1px]" style={{ color: "#e91e63" }}>
+                            <h3 className="text-sm font-bold uppercase tracking-[1px]" style={{ color: "#e91e63" }}>
                                 Happiness
                             </h3>
-                            <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loop Active</p>
+                            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Loop Active</p>
                         </div>
                     </motion.div>
 
-                    {/* Vertical Connector */}
+                    {/* Horizontal Connector */}
                     <motion.div
-                        className="flex flex-col items-center gap-0"
-                        animate={{ opacity: [0.6, 1, 0.6], scaleY: [1, 1.1, 1] }}
+                        className="flex items-center gap-0"
+                        animate={{ opacity: [0.6, 1, 0.6], scaleX: [1, 1.1, 1] }}
                         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     >
-                        <div className="w-3 h-3 rounded-full bg-white border-2 border-pink-500 shadow-lg" />
-                        <div className="w-1 h-[80px] rounded-[10px]" style={{ background: "linear-gradient(180deg, #ff69b4 0%, #00d2a0 100%)" }} />
-                        <div className="w-3 h-3 rounded-full bg-white border-2 border-emerald-500 shadow-lg" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-pink-500 shadow-lg" />
+                        <div className="h-1 w-[50px] rounded-[10px]" style={{ background: "linear-gradient(90deg, #ff69b4 0%, #00d2a0 100%)" }} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-emerald-500 shadow-lg" />
                     </motion.div>
 
                     {/* Confidence Card */}
                     <motion.div
                         animate={{ y: [0, -10, 0] }}
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                        className="py-5 px-6 rounded-[20px] bg-white dark:bg-slate-800 w-full max-w-[320px]"
+                        className="py-4 px-5 rounded-[16px] bg-white dark:bg-slate-800 flex-shrink-0"
                         style={{
                             boxShadow: "0 10px 40px rgba(0, 0, 0, 0.1)"
                         }}
                     >
-                        <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center gap-3 mb-2">
                             <div 
-                                className="w-[45px] h-[45px] rounded-[12px] flex items-center justify-center flex-shrink-0"
+                                className="w-[40px] h-[40px] rounded-[10px] flex items-center justify-center flex-shrink-0"
                                 style={{
                                     background: "linear-gradient(135deg, #d4f4dd 0%, #b8f4c8 100%)"
                                 }}
@@ -501,16 +501,16 @@ const LandingPage: React.FC = () => {
                                 <TrendingUp className="w-5 h-5 text-emerald-600" />
                             </div>
                             <div className="flex flex-col gap-0.5">
-                                <h3 className="text-lg font-bold uppercase tracking-[1px]" style={{ color: "#00b894" }}>
+                                <h3 className="text-sm font-bold uppercase tracking-[1px]" style={{ color: "#00b894" }}>
                                     Confidence
                                 </h3>
-                                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-                                    <span className="text-xl font-black" style={{ color: "#00b894" }}>+24%</span> Improved
+                                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    <span className="text-base font-black" style={{ color: "#00b894" }}>+24%</span> Improved
                                 </p>
                             </div>
                         </div>
                         <div 
-                            className="relative w-full h-2 rounded-full overflow-hidden"
+                            className="relative w-full h-1.5 rounded-full overflow-hidden"
                             style={{
                                 background: "#e0e0e0",
                                 boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.1)"
