@@ -384,42 +384,20 @@ const LandingPage: React.FC = () => {
                                 <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-lg shadow-cyan-400/50" />
                             </motion.div>
 
-                            {/* CARD 2 - Confidence Card with 3D Progress Bar (RIGHT) */}
+                            {/* CARD 2 - Confidence Card (RIGHT) */}
                             <motion.div
                                 animate={{ y: [0, -10, 0] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                 className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64"
                             >
-                                <div className="flex items-start gap-4 mb-4">
-                                    <div className="p-3 bg-emerald-500/20 rounded-xl flex-shrink-0">
-                                        <TrendingUp className="text-emerald-500 w-6 h-6" />
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                        <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                     </div>
                                     <div>
-                                        <p className="font-black text-base text-emerald-600 dark:text-emerald-400">+24%</p>
-                                        <p className="font-black text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Improved</p>
+                                        <p className="font-black text-base text-emerald-600 dark:text-emerald-400">Confidence</p>
+                                        <p className="font-black text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">+24% Improved</p>
                                     </div>
-                                </div>
-
-                                {/* 3D Progress Bar */}
-                                <div className="relative w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
-                                    <motion.div
-                                        initial={{ width: 0 }}
-                                        animate={{ width: "75%" }}
-                                        transition={{ delay: 0.5, duration: 1.5, ease: "easeOut" }}
-                                        className="relative h-full rounded-full"
-                                        style={{
-                                            background: "linear-gradient(90deg, #00b894 0%, #00d2a0 100%)",
-                                            boxShadow: "0 2px 4px rgba(0, 184, 148, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)"
-                                        }}
-                                    >
-                                        {/* Glossy highlight effect */}
-                                        <div
-                                            className="absolute top-0 left-0 right-0 h-[40%] rounded-t-full"
-                                            style={{
-                                                background: "linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)"
-                                            }}
-                                        />
-                                    </motion.div>
                                 </div>
                             </motion.div>
                         </div>
