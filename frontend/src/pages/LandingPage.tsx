@@ -280,112 +280,6 @@ const LandingPage: React.FC = () => {
                                 <span className="text-[12px] font-black uppercase tracking-wider text-indigo-600">Real-time sentiment v2.4</span>
                             </motion.div>
 
-                            {/* 3D Animated Image Above Headline */}
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.8, rotateY: -15 }}
-                                animate={{
-                                    opacity: 1,
-                                    scale: 1,
-                                    rotateY: 0,
-                                    y: [0, -10, 0]
-                                }}
-                                transition={{
-                                    opacity: { duration: 0.6 },
-                                    scale: { duration: 0.6 },
-                                    rotateY: { duration: 0.6 },
-                                    y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
-                                }}
-                                className="mb-6 perspective-[1000px] max-w-md relative"
-                                onMouseMove={handleHeroMouseMove}
-                                onMouseLeave={() => setRotate({ x: 0, y: 0 })}
-                                ref={heroCardRef}
-                            >
-                                <div
-                                    className="relative transform-gpu transition-transform duration-200"
-                                    style={{
-                                        transform: `rotateX(${rotate.x * 0.3}deg) rotateY(${rotate.y * 0.3}deg)`
-                                    }}
-                                >
-                                    <div className="relative p-3 rounded-2xl glass-card shadow-xl border border-white/20 backdrop-blur-xl">
-                                        <img
-                                            src="https://images.unsplash.com/photo-1551288049-bbbda5366392?auto=format&fit=crop&q=80&w=500"
-                                            alt="AI Communication"
-                                            className="rounded-xl w-full shadow-lg"
-                                        />
-
-                                        {/* Happiness Loop Card - Top Left */}
-                                        <motion.div
-                                            animate={{ y: [0, 10, 0] }}
-                                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                            className="absolute -top-6 -left-6 p-4 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl border border-indigo-100"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
-                                                    <Heart className="w-5 h-5 text-pink-600 fill-pink-600/20" />
-                                                </div>
-                                                <p className="font-black text-sm text-slate-700 dark:text-slate-200 uppercase tracking-wider">Happiness Loop</p>
-                                            </div>
-                                        </motion.div>
-
-                                        {/* Confidence Card - Bottom Right */}
-                                        <motion.div
-                                            animate={{ y: [0, -10, 0] }}
-                                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                            className="absolute -bottom-6 -right-4 p-4 rounded-[1.5rem] glass-card shadow-2xl border border-white/30 backdrop-blur-2xl"
-                                        >
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="p-2 bg-emerald-500/20 rounded-xl">
-                                                    <TrendingUp className="text-emerald-500 w-5 h-5" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Confidence</p>
-                                                    <p className="text-lg font-black text-slate-900 dark:text-white">+24% Improved</p>
-                                                </div>
-                                            </div>
-                                            <div className="h-2 w-40 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: "85%" }}
-                                                    transition={{ delay: 1, duration: 1.5 }}
-                                                    className="h-full bg-emerald-500"
-                                                />
-                                            </div>
-                                        </motion.div>
-
-                                        {/* Floating particles effect */}
-                                        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-                                            <motion.div
-                                                animate={{
-                                                    x: [0, 50, 0],
-                                                    y: [0, -30, 0],
-                                                    opacity: [0.3, 0.6, 0.3]
-                                                }}
-                                                transition={{ duration: 4, repeat: Infinity }}
-                                                className="absolute top-1/4 left-1/4 w-1.5 h-1.5 bg-indigo-400 rounded-full blur-sm"
-                                            />
-                                            <motion.div
-                                                animate={{
-                                                    x: [0, -40, 0],
-                                                    y: [0, 40, 0],
-                                                    opacity: [0.4, 0.7, 0.4]
-                                                }}
-                                                transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
-                                                className="absolute top-1/2 right-1/4 w-2 h-2 bg-cyan-400 rounded-full blur-sm"
-                                            />
-                                            <motion.div
-                                                animate={{
-                                                    x: [0, 30, 0],
-                                                    y: [0, -25, 0],
-                                                    opacity: [0.3, 0.5, 0.3]
-                                                }}
-                                                transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-                                                className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-purple-400 rounded-full blur-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-
                             <motion.h1
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -434,6 +328,103 @@ const LandingPage: React.FC = () => {
                                     </div>
                                     Watch Demo
                                 </button>
+                            </motion.div>
+                        </div>
+
+                        {/* Right Column - 3D Animated Image */}
+                        <div className="hidden lg:flex justify-end">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8, rotateY: -15 }}
+                                animate={{
+                                    opacity: 1,
+                                    scale: 1,
+                                    rotateY: 0,
+                                    y: [0, -10, 0]
+                                }}
+                                transition={{
+                                    opacity: { duration: 0.6 },
+                                    scale: { duration: 0.6 },
+                                    rotateY: { duration: 0.6 },
+                                    y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                                }}
+                                className="perspective-[1000px] max-w-lg relative"
+                                onMouseMove={handleHeroMouseMove}
+                                onMouseLeave={() => setRotate({ x: 0, y: 0 })}
+                                ref={heroCardRef}
+                            >
+                                <div
+                                    className="relative transform-gpu transition-transform duration-200"
+                                    style={{
+                                        transform: `rotateX(${rotate.x * 0.3}deg) rotateY(${rotate.y * 0.3}deg)`
+                                    }}
+                                >
+                                    <div className="relative p-3 rounded-2xl glass-card shadow-xl border border-white/20 backdrop-blur-xl">
+                                        <img
+                                            src="https://images.unsplash.com/photo-1551288049-bbbda5366392?auto=format&fit=crop&q=80&w=500"
+                                            alt="AI Communication"
+                                            className="rounded-xl w-full shadow-lg"
+                                        />
+
+                                        {/* Happiness Loop Card - Top Left */}
+                                        <motion.div
+                                            animate={{ y: [0, 10, 0] }}
+                                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                            className="absolute -top-6 -left-6 p-4 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl border border-indigo-100"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
+                                                    <Heart className="w-5 h-5 text-pink-600 fill-pink-600/20" />
+                                                </div>
+                                                <p className="font-black text-sm text-slate-700 dark:text-slate-200 uppercase tracking-wider">Happiness Loop</p>
+                                            </div>
+                                        </motion.div>
+
+                                        {/* Confidence Card - Bottom Right */}
+                                        <motion.div
+                                            animate={{ y: [0, -10, 0] }}
+                                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                            className="absolute -bottom-6 -right-6 p-4 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl border border-emerald-100"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                                    <TrendingUp className="w-5 h-5 text-emerald-600" />
+                                                </div>
+                                                <p className="font-black text-sm text-slate-700 dark:text-slate-200 uppercase tracking-wider">+24% Confidence</p>
+                                            </div>
+                                        </motion.div>
+
+                                        {/* Floating particles effect */}
+                                        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+                                            <motion.div
+                                                animate={{
+                                                    x: [0, 50, 0],
+                                                    y: [0, -30, 0],
+                                                    opacity: [0.3, 0.6, 0.3]
+                                                }}
+                                                transition={{ duration: 4, repeat: Infinity }}
+                                                className="absolute top-1/4 left-1/4 w-1.5 h-1.5 bg-indigo-400 rounded-full blur-sm"
+                                            />
+                                            <motion.div
+                                                animate={{
+                                                    x: [0, -40, 0],
+                                                    y: [0, 40, 0],
+                                                    opacity: [0.4, 0.7, 0.4]
+                                                }}
+                                                transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
+                                                className="absolute top-1/2 right-1/4 w-2 h-2 bg-cyan-400 rounded-full blur-sm"
+                                            />
+                                            <motion.div
+                                                animate={{
+                                                    x: [0, 30, 0],
+                                                    y: [0, -25, 0],
+                                                    opacity: [0.3, 0.5, 0.3]
+                                                }}
+                                                transition={{ duration: 6, repeat: Infinity, delay: 1 }}
+                                                className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-purple-400 rounded-full blur-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </motion.div>
                         </div>
                     </div>
