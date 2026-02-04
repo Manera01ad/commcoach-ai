@@ -394,9 +394,9 @@ const LandingPage: React.FC = () => {
                                     <div className="p-3 bg-emerald-500/20 rounded-xl flex-shrink-0">
                                         <TrendingUp className="text-emerald-500 w-6 h-6" />
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
-                                        <p className="text-2xl font-black text-slate-900 dark:text-white">+24% Improved</p>
+                                    <div>
+                                        <p className="font-black text-base text-emerald-600 dark:text-emerald-400">+24%</p>
+                                        <p className="font-black text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Improved</p>
                                     </div>
                                 </div>
 
