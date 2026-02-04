@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
             {/* Mobile Header */}
             <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-30">
                 <div className="flex items-center gap-2">
-                    <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-24 object-contain bg-white rounded-xl p-2 shadow-sm" />
+                    <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-32 object-contain" />
                 </div>
                 <button onClick={toggleSidebar} className="p-2">
                     {sidebarOpen ? <X /> : <Menu />}
@@ -159,7 +159,7 @@ const Dashboard: React.FC = () => {
                 `}>
                     <div>
                         <div className="hidden lg:flex items-center gap-3 mb-10 px-2">
-                            <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-32 object-contain bg-white rounded-xl p-2 shadow-sm" />
+                            <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-32 object-contain" />
                         </div>
                         <div className="mb-6 px-2">
                             <p className="text-xs text-neutral-500 font-medium tracking-wider">AI TRAINING DECK</p>
