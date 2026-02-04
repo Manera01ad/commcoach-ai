@@ -358,9 +358,6 @@ const LandingPage: React.FC = () => {
                                         transform: `rotateX(${rotate.x * 0.3}deg) rotateY(${rotate.y * 0.3}deg)`
                                     }}
                                 >
-                                    {/* Empty White Floating Card - Background */}
-                                    <div className="w-72 h-64 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700" />
-
                                     {/* Happiness Loop Card - Top Center */}
                                     <motion.div
                                         animate={{ y: [0, 8, 0] }}
