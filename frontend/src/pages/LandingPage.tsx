@@ -265,7 +265,7 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="relative pt-48 pb-24 overflow-hidden mesh-gradient">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                    <div className="grid lg:grid-cols-2 gap-16 items-start">
                         {/* Left Column - Content */}
                         <div className="text-left">
                             <motion.div
@@ -332,7 +332,7 @@ const LandingPage: React.FC = () => {
                         </div>
 
                         {/* Right Column - 3D Animated Image */}
-                        <div className="hidden lg:flex justify-end">
+                        <div className="flex justify-end items-start">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.8, rotateY: -15 }}
                                 animate={{
