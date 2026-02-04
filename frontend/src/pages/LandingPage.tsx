@@ -333,7 +333,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Right Column - Horizontal Card Layout */}
-                    <div className="relative hidden lg:flex items-center justify-center">
+                    <div className="relative hidden lg:flex items-center justify-center mt-16">
                         <div className="flex flex-row items-center gap-6">
                             {/* CARD 1 - Happiness Loop Card (LEFT) */}
                             <motion.div
