@@ -297,8 +297,7 @@ const LandingPage: React.FC = () => {
                                 transition={{ delay: 0.2 }}
                                 className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-xl leading-relaxed font-medium"
                             >
-                                Empower your professional growth with AI-driven communication coaching.
-                                Feel confident, charismatic, and happy about your progress.
+                                Remember when you stopped translating in your head and just spoke in your native language? That's what confident communication feels like. CommSage helps you break the anxious patterns that make every conversation feel like a performance—so you can finally speak without fear of judgment.
                             </motion.p>
 
                             <motion.div
