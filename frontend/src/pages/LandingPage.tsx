@@ -365,11 +365,11 @@ const LandingPage: React.FC = () => {
                                             className="rounded-xl w-full shadow-lg"
                                         />
 
-                                        {/* Happiness Loop Card - Top Left */}
+                                        {/* Happiness Loop Card - Top */}
                                         <motion.div
                                             animate={{ y: [0, 10, 0] }}
                                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                            className="absolute -top-6 -left-6 p-4 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl border border-indigo-100"
+                                            className="absolute -top-10 left-1/2 -translate-x-1/2 p-4 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl border border-indigo-100 z-10"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
@@ -379,11 +379,11 @@ const LandingPage: React.FC = () => {
                                             </div>
                                         </motion.div>
 
-                                        {/* Confidence Card - Bottom Right */}
+                                        {/* Confidence Card - Below Happiness Loop */}
                                         <motion.div
                                             animate={{ y: [0, -10, 0] }}
                                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                            className="absolute -bottom-6 -right-6 p-4 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl border border-emerald-100"
+                                            className="absolute top-16 left-1/2 -translate-x-1/2 p-4 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl border border-emerald-100 z-10"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
