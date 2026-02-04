@@ -263,7 +263,7 @@ const LandingPage: React.FC = () => {
             </nav>
 
             {/* Hero Section */}
-            <section className="relative pt-48 pb-24 overflow-hidden mesh-gradient min-h-[90vh]">
+            <section className="relative pt-32 pb-24 overflow-hidden mesh-gradient min-h-[90vh]">
                 <div className="max-w-4xl mx-auto px-6 text-center flex flex-col items-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
