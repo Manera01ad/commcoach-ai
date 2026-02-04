@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import Logo from '../components/Logo';
 import {
     Sparkles,
     Brain,
@@ -222,11 +223,7 @@ const LandingPage: React.FC = () => {
             <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-black/5 dark:border-white/10 py-3' : 'bg-transparent py-6'}`}>
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     <div className="flex items-center gap-2.5 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                        <img
-                            src="/commsage-logo.png?v=3"
-                            alt="CommSage"
-                            className="h-32 object-contain"
-                        />
+                        <Logo className="h-16 w-auto object-contain self-center" />
                     </div>
 
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 dark:text-slate-400">
@@ -266,7 +263,7 @@ const LandingPage: React.FC = () => {
             </nav>
 
             {/* Hero Section */}
-            <section className="relative pt-40 pb-24 overflow-hidden mesh-gradient">
+            <section className="relative pt-48 pb-24 overflow-hidden mesh-gradient">
                 <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
                     <div className="text-left">
                         <motion.div
@@ -594,7 +591,7 @@ const LandingPage: React.FC = () => {
             <footer className="py-12 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-2.5">
-                        <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-32 object-contain" />
+                        <Logo className="h-10" />
                     </div>
                     <p className="text-slate-400 text-sm font-bold tracking-wider">© 2026 MADE WITH ❤️ BY GOOGLE DEEPMIND TEAM</p>
                     <div className="flex gap-6 text-sm font-bold text-slate-400">

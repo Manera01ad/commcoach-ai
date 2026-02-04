@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Login from './Login';
 import Signup from './Signup';
+import Logo from '../../components/Logo';
 import { Sparkles, Brain } from 'lucide-react';
 
 import loginVideo from '../../assets/login_bg.mp4';
@@ -41,7 +42,7 @@ const AuthRouter: React.FC = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-32 object-contain" />
+            <Logo className="h-20" />
             <div className="px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 tracking-wider">
               BETA
             </div>
@@ -77,7 +78,7 @@ const AuthRouter: React.FC = () => {
       {/* Right Panel - Auth Forms */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
         <div className="lg:hidden flex items-center gap-2 mb-8">
-          <img src="/commsage-logo.png?v=3" alt="CommSage" className="h-32 object-contain" />
+          <Logo className="h-12" />
         </div>
 
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
