@@ -342,7 +342,7 @@ const LandingPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-black leading-none mb-1 text-pink-600 dark:text-pink-400">Happiness</h3>
-                                    <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] opacity-70">Loop Active</p>
+                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
                                 </div>
                             </div>
                         </motion.div>
@@ -385,7 +385,7 @@ const LandingPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-black leading-none mb-1 text-emerald-600 dark:text-emerald-400">Confidence</h3>
-                                    <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] opacity-70">+24% Improved</p>
+                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">+24% Improved</p>
                                 </div>
                             </div>
 
