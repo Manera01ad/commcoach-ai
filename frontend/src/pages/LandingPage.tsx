@@ -341,7 +341,7 @@ const LandingPage: React.FC = () => {
                                     <Heart className="w-5 h-5 text-pink-600 dark:text-pink-400 fill-pink-600/20 dark:fill-pink-400/20" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black leading-none mb-1 text-pink-600 dark:text-pink-400">Happiness</h3>
+                                    <h3 className="text-3xl font-black leading-none mb-2 text-pink-600 dark:text-pink-400">Happiness</h3>
                                     <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
                                 </div>
                             </div>
@@ -384,7 +384,7 @@ const LandingPage: React.FC = () => {
                                     <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black leading-none mb-1 text-emerald-600 dark:text-emerald-400">Confidence</h3>
+                                    <h3 className="text-3xl font-black leading-none mb-2 text-emerald-600 dark:text-emerald-400">Confidence</h3>
                                     <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">+24% Improved</p>
                                 </div>
                             </div>
