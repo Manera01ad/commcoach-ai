@@ -65,7 +65,7 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
         <div className="w-full max-w-md p-8 md:p-10 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-neutral-100 flex flex-col items-center">
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-black text-blue-600 mb-2">Create Account</h1>
-                <p className="text-neutral-400 font-medium text-sm">Join CommCoach AI today</p>
+                <p className="text-neutral-400 font-medium text-sm">Join CommSage today</p>
             </div>
 
             {/* Google Signup - Now Activated */}

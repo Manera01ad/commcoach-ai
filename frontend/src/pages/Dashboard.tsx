@@ -133,11 +133,8 @@ const Dashboard: React.FC = () => {
 
             {/* Mobile Header */}
             <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-30">
-                <div className="font-bold text-xl tracking-tight flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white">
-                        <Crown className="w-5 h-5" />
-                    </div>
-                    CommCoach
+                <div className="flex items-center gap-2">
+                    <img src="/commsage-logo.png?v=2" alt="CommSage" className="h-20 object-contain" />
                 </div>
                 <button onClick={toggleSidebar} className="p-2">
                     {sidebarOpen ? <X /> : <Menu />}
@@ -162,13 +159,10 @@ const Dashboard: React.FC = () => {
                 `}>
                     <div>
                         <div className="hidden lg:flex items-center gap-3 mb-10 px-2">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/20 flex items-center justify-center text-white">
-                                <Crown className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h1 className="font-bold text-xl tracking-tight">CommCoach</h1>
-                                <p className="text-xs text-neutral-500 font-medium tracking-wider">AI TRAINING DECK</p>
-                            </div>
+                            <img src="/commsage-logo.png?v=2" alt="CommSage" className="h-24 object-contain" />
+                        </div>
+                        <div className="mb-6 px-2">
+                            <p className="text-xs text-neutral-500 font-medium tracking-wider">AI TRAINING DECK</p>
                         </div>
 
                         <nav className="space-y-2">

@@ -41,12 +41,7 @@ const AuthRouter: React.FC = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white tracking-tight">
-              CommCoach AI
-            </span>
+            <img src="/commsage-logo.png?v=2" alt="CommSage" className="h-20 object-contain" />
             <div className="px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 tracking-wider">
               BETA
             </div>
@@ -75,18 +70,14 @@ const AuthRouter: React.FC = () => {
         </div>
 
         <div className="relative z-10 text-sm font-medium text-neutral-600">
-          © 2026 CommCoach AI. All rights reserved.
+          © 2026 CommSage. All rights reserved.
         </div>
       </div>
 
       {/* Right Panel - Auth Forms */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-        {/* Mobile Branding (Visible only on small screens) */}
         <div className="lg:hidden flex items-center gap-2 mb-8">
-          <div className="bg-blue-600 p-2 rounded-lg">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-bold text-neutral-900 dark:text-white">CommCoach AI</span>
+          <img src="/commsage-logo.png?v=2" alt="CommSage" className="h-18 object-contain" />
         </div>
 
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">

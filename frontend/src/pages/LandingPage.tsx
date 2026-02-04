@@ -157,7 +157,7 @@ const LandingPage: React.FC = () => {
         {
             name: "Sarah Chen",
             role: "VP of Product, TechScale",
-            content: "CommCoach AI changed how I deliver board presentations. The real-time pace analysis is a game-changer.",
+            content: "CommSage changed how I deliver board presentations. The real-time pace analysis is a game-changer.",
             avatar: "https://i.pravatar.cc/150?u=sarah"
         },
         {
@@ -222,10 +222,11 @@ const LandingPage: React.FC = () => {
             <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-black/5 dark:border-white/10 py-3' : 'bg-transparent py-6'}`}>
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     <div className="flex items-center gap-2.5 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                        <div className={`bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-all duration-500`}>
-                            <Mic className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">CommCoach <span className="text-indigo-600">AI</span></span>
+                        <img
+                            src="/commsage-logo.png?v=2"
+                            alt="CommSage"
+                            className="h-24 object-contain"
+                        />
                     </div>
 
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 dark:text-slate-400">
@@ -419,7 +420,7 @@ const LandingPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-6 text-center">
                     <div className="mb-20">
                         <h2 className="text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tighter">Designed for Daily Growth</h2>
-                        <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium">Why thousands of leaders choose CommCoach AI to start their day.</p>
+                        <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium">Why thousands of leaders choose CommSage to start their day.</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -585,7 +586,7 @@ const LandingPage: React.FC = () => {
                         onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
                         className="px-12 py-6 bg-indigo-600 text-white rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-indigo-600/30 hover:scale-105 active:scale-95 transition-all"
                     >
-                        {isAuthenticated ? 'Go to Dashboard' : 'Join CommCoach Now — Free.'}
+                        {isAuthenticated ? 'Go to Dashboard' : 'Join CommSage Now — Free.'}
                     </button>
                 </div>
             </section>
@@ -593,10 +594,7 @@ const LandingPage: React.FC = () => {
             <footer className="py-12 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-2.5">
-                        <div className="bg-slate-900 p-2 rounded-xl">
-                            <Mic className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">CommCoach AI</span>
+                        <img src="/commsage-logo.png?v=2" alt="CommSage" className="h-20 object-contain" />
                     </div>
                     <p className="text-slate-400 text-sm font-bold tracking-wider">© 2026 MADE WITH ❤️ BY GOOGLE DEEPMIND TEAM</p>
                     <div className="flex gap-6 text-sm font-bold text-slate-400">
