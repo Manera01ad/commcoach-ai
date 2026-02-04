@@ -327,89 +327,207 @@ const LandingPage: React.FC = () => {
                     </motion.div>
                 </div>
 
-                {/* Auxiliary Cards below Hero Content */}
-                <div className="flex items-center justify-center mt-16 px-6">
-                    <div className="flex flex-row items-center gap-6 overflow-x-auto pb-4">
-                        {/* CARD 1 - Happiness Loop Card (LEFT) */}
-                        <motion.div
-                            animate={{ y: [0, 10, 0] }}
-                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                            className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64 flex-shrink-0 floating-card"
+                {/* Floating Cards System - Positioned Right */}
+                <div className="hidden lg:flex items-center gap-8 absolute right-[15%] top-1/2 -translate-y-1/2">
+                    {/* CARD 1 - Happiness Loop Card (LEFT) */}
+                    <motion.div
+                        animate={{ y: [0, -15, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                        className="py-6 px-8 rounded-[20px] bg-white dark:bg-slate-800 min-w-[280px] flex items-center gap-4 hover:-translate-y-0.5 transition-transform"
+                        style={{
+                            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.1)"
+                        }}
+                    >
+                        {/* Icon Circle */}
+                        <div 
+                            className="w-[50px] h-[50px] rounded-[15px] flex items-center justify-center flex-shrink-0"
+                            style={{
+                                background: "linear-gradient(135deg, #ffd4e5 0%, #ffb8d2 100%)"
+                            }}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center flex-shrink-0">
-                                    <Heart className="w-5 h-5 text-pink-600 dark:text-pink-400 fill-pink-600/20 dark:fill-pink-400/20" />
-                                </div>
-                                <div>
-                                    <h3 className="text-3xl font-black leading-none mb-2 text-pink-600 dark:text-pink-400">Happiness</h3>
-                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
-                                </div>
-                            </div>
-                        </motion.div>
+                            <Heart className="w-6 h-6 text-pink-600 fill-pink-600/30" />
+                        </div>
+                        {/* Text Content */}
+                        <div className="flex flex-col gap-1">
+                            <h3 
+                                className="text-[1.3rem] font-bold uppercase tracking-[1px]"
+                                style={{ color: "#e91e63" }}
+                            >
+                                Happiness
+                            </h3>
+                            <p className="text-base font-semibold text-slate-600 dark:text-slate-400 leading-tight">
+                                Loop Active
+                            </p>
+                        </div>
+                    </motion.div>
 
-                        {/* CONNECTOR - Gradient Line with Dots */}
-                        <motion.div
-                            className="hidden sm:flex items-center gap-0 relative"
-                            animate={{ scale: [1, 1.05, 1] }}
-                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                        >
-                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg shadow-pink-400/50" />
-                            <div
-                                className="h-1 w-12 sm:w-20 relative"
+                    {/* CONNECTOR - Gradient Line with Dots */}
+                    <motion.div
+                        className="flex items-center gap-0 relative"
+                        animate={{ opacity: [0.6, 1, 0.6], scaleX: [1, 1.1, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        {/* Left dot */}
+                        <div className="w-3 h-3 rounded-full bg-white border-2 border-pink-500 shadow-lg" />
+                        {/* Gradient line */}
+                        <div
+                            className="h-1 w-[100px] rounded-[10px]"
+                            style={{
+                                background: "linear-gradient(90deg, #ff69b4 0%, #00d2a0 100%)"
+                            }}
+                        />
+                        {/* Right dot */}
+                        <div className="w-3 h-3 rounded-full bg-white border-2 border-emerald-500 shadow-lg" />
+                    </motion.div>
+
+                    {/* CARD 2 - Confidence Card (RIGHT) */}
+                    <motion.div
+                        animate={{ y: [0, -15, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        className="py-6 px-8 rounded-[20px] bg-white dark:bg-slate-800 min-w-[280px] hover:-translate-y-0.5 transition-transform"
+                        style={{
+                            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.1)"
+                        }}
+                    >
+                        <div className="flex items-center gap-4 mb-4">
+                            {/* Icon Circle */}
+                            <div 
+                                className="w-[50px] h-[50px] rounded-[15px] flex items-center justify-center flex-shrink-0"
                                 style={{
-                                    background: "linear-gradient(90deg, #ec4899 0%, #22d3ee 100%)"
+                                    background: "linear-gradient(135deg, #d4f4dd 0%, #b8f4c8 100%)"
                                 }}
                             >
-                                <motion.div
-                                    className="absolute inset-0"
-                                    animate={{ opacity: [0.5, 1, 0.5] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
+                                <TrendingUp className="w-6 h-6 text-emerald-600" />
+                            </div>
+                            {/* Text Content */}
+                            <div className="flex flex-col gap-1">
+                                <h3 
+                                    className="text-[1.3rem] font-bold uppercase tracking-[1px]"
+                                    style={{ color: "#00b894" }}
+                                >
+                                    Confidence
+                                </h3>
+                                <p className="text-base font-semibold text-slate-600 dark:text-slate-400 leading-tight">
+                                    <span className="text-[1.6rem] font-black" style={{ color: "#00b894" }}>+24%</span>{" "}
+                                    <span>Improved</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* 3D Progress Bar */}
+                        <div 
+                            className="relative w-full h-[10px] rounded-[10px] overflow-hidden"
+                            style={{
+                                background: "#e0e0e0",
+                                boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.1)"
+                            }}
+                        >
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: "75%" }}
+                                transition={{ delay: 0.5, duration: 1.5, ease: "easeOut" }}
+                                className="relative h-full rounded-[10px]"
+                                style={{
+                                    background: "linear-gradient(90deg, #00b894 0%, #00d2a0 100%)",
+                                    boxShadow: "0 2px 4px rgba(0, 184, 148, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)"
+                                }}
+                            >
+                                {/* 3D Glossy highlight */}
+                                <div
+                                    className="absolute top-0 left-0 right-0 h-[40%] rounded-t-[10px]"
                                     style={{
-                                        background: "linear-gradient(90deg, rgba(236, 72, 153, 0.5) 0%, rgba(34, 211, 238, 0.5) 100%)",
-                                        filter: "blur(4px)"
+                                        background: "linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)"
                                     }}
                                 />
-                            </div>
-                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-lg shadow-cyan-400/50" />
-                        </motion.div>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                </div>
 
-                        {/* CARD 2 - Confidence Card (RIGHT) */}
-                        <motion.div
-                            animate={{ y: [0, -10, 0] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                            className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64 flex-shrink-0 floating-card"
+                {/* Mobile Cards (Stacked Vertically) */}
+                <div className="flex lg:hidden flex-col items-center gap-6 mt-16 px-6">
+                    {/* Happiness Card */}
+                    <motion.div
+                        animate={{ y: [0, -10, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                        className="py-5 px-6 rounded-[20px] bg-white dark:bg-slate-800 w-full max-w-[320px] flex items-center gap-4"
+                        style={{
+                            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.1)"
+                        }}
+                    >
+                        <div 
+                            className="w-[45px] h-[45px] rounded-[12px] flex items-center justify-center flex-shrink-0"
+                            style={{
+                                background: "linear-gradient(135deg, #ffd4e5 0%, #ffb8d2 100%)"
+                            }}
                         >
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                                    <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                                </div>
-                                <div>
-                                    <h3 className="text-3xl font-black leading-none mb-2 text-emerald-600 dark:text-emerald-400">Confidence</h3>
-                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">+24% Improved</p>
-                                </div>
-                            </div>
+                            <Heart className="w-5 h-5 text-pink-600 fill-pink-600/30" />
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                            <h3 className="text-lg font-bold uppercase tracking-[1px]" style={{ color: "#e91e63" }}>
+                                Happiness
+                            </h3>
+                            <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loop Active</p>
+                        </div>
+                    </motion.div>
 
-                            <div className="relative w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: "75%" }}
-                                    transition={{ delay: 0.5, duration: 1.5, ease: "easeOut" }}
-                                    className="relative h-full rounded-full"
-                                    style={{
-                                        background: "linear-gradient(90deg, #00b894 0%, #00d2a0 100%)",
-                                        boxShadow: "0 2px 4px rgba(0, 184, 148, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)"
-                                    }}
-                                >
-                                    <div
-                                        className="absolute top-0 left-0 right-0 h-[40%] rounded-t-full"
-                                        style={{
-                                            background: "linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)"
-                                        }}
-                                    />
-                                </motion.div>
+                    {/* Vertical Connector */}
+                    <motion.div
+                        className="flex flex-col items-center gap-0"
+                        animate={{ opacity: [0.6, 1, 0.6], scaleY: [1, 1.1, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        <div className="w-3 h-3 rounded-full bg-white border-2 border-pink-500 shadow-lg" />
+                        <div className="w-1 h-[80px] rounded-[10px]" style={{ background: "linear-gradient(180deg, #ff69b4 0%, #00d2a0 100%)" }} />
+                        <div className="w-3 h-3 rounded-full bg-white border-2 border-emerald-500 shadow-lg" />
+                    </motion.div>
+
+                    {/* Confidence Card */}
+                    <motion.div
+                        animate={{ y: [0, -10, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        className="py-5 px-6 rounded-[20px] bg-white dark:bg-slate-800 w-full max-w-[320px]"
+                        style={{
+                            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.1)"
+                        }}
+                    >
+                        <div className="flex items-center gap-4 mb-3">
+                            <div 
+                                className="w-[45px] h-[45px] rounded-[12px] flex items-center justify-center flex-shrink-0"
+                                style={{
+                                    background: "linear-gradient(135deg, #d4f4dd 0%, #b8f4c8 100%)"
+                                }}
+                            >
+                                <TrendingUp className="w-5 h-5 text-emerald-600" />
                             </div>
-                        </motion.div>
-                    </div>
+                            <div className="flex flex-col gap-0.5">
+                                <h3 className="text-lg font-bold uppercase tracking-[1px]" style={{ color: "#00b894" }}>
+                                    Confidence
+                                </h3>
+                                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                                    <span className="text-xl font-black" style={{ color: "#00b894" }}>+24%</span> Improved
+                                </p>
+                            </div>
+                        </div>
+                        <div 
+                            className="relative w-full h-2 rounded-full overflow-hidden"
+                            style={{
+                                background: "#e0e0e0",
+                                boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.1)"
+                            }}
+                        >
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: "75%" }}
+                                transition={{ delay: 0.5, duration: 1.5, ease: "easeOut" }}
+                                className="h-full rounded-full"
+                                style={{
+                                    background: "linear-gradient(90deg, #00b894 0%, #00d2a0 100%)",
+                                    boxShadow: "0 2px 4px rgba(0, 184, 148, 0.3)"
+                                }}
+                            />
+                        </div>
+                    </motion.div>
                 </div>
             </section>
 
