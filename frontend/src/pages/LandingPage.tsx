@@ -327,8 +327,8 @@ const LandingPage: React.FC = () => {
                     </motion.div>
                 </div>
 
-                {/* Floating Cards System - Positioned Right */}
-                <div className="hidden lg:flex items-center gap-8 absolute right-[15%] top-1/2 -translate-y-1/2">
+                {/* Floating Cards System - Below CTA */}
+                <div className="hidden lg:flex items-center justify-center gap-8 mt-16">
                     {/* CARD 1 - Happiness Loop Card (LEFT) */}
                     <motion.div
                         animate={{ y: [0, -15, 0] }}
