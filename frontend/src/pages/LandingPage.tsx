@@ -281,7 +281,7 @@ const LandingPage: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.2]"
+                        className="hero-heading mx-auto mb-8 text-center"
                     >
                         Speak Like It's Your{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-500">Native Language</span>
@@ -292,7 +292,7 @@ const LandingPage: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-xl text-[#6b7280] dark:text-slate-400 mt-8 mb-12 max-w-[650px] mx-auto text-center leading-[1.7] font-medium"
+                        className="hero-description mt-8 mb-12 max-w-[650px] mx-auto text-center"
                     >
                         Remember when you stopped translating in your head and just spoke in your native language? That's what confident communication feels like. CommSage helps you break the anxious patterns that make every conversation feel like a performance—so you can finally speak without fear of judgment.
                     </motion.p>
@@ -334,15 +334,15 @@ const LandingPage: React.FC = () => {
                         <motion.div
                             animate={{ y: [0, 10, 0] }}
                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                            className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64 flex-shrink-0"
+                            className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64 flex-shrink-0 floating-card"
                         >
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center flex-shrink-0">
                                     <Heart className="w-5 h-5 text-pink-600 dark:text-pink-400 fill-pink-600/20 dark:fill-pink-400/20" />
                                 </div>
                                 <div>
-                                    <p className="font-black text-base text-pink-600 dark:text-pink-400">Happiness</p>
-                                    <p className="font-black text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
+                                    <h3 className="text-pink-600 dark:text-pink-400">Happiness</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
                                 </div>
                             </div>
                         </motion.div>
@@ -377,15 +377,15 @@ const LandingPage: React.FC = () => {
                         <motion.div
                             animate={{ y: [0, -10, 0] }}
                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                            className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64 flex-shrink-0"
+                            className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64 flex-shrink-0 floating-card"
                         >
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                                     <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 </div>
                                 <div>
-                                    <p className="font-black text-base text-emerald-600 dark:text-emerald-400">Confidence</p>
-                                    <p className="font-black text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">+24% Improved</p>
+                                    <h3 className="text-emerald-600 dark:text-emerald-400">Confidence</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 uppercase tracking-wider">+24% Improved</p>
                                 </div>
                             </div>
 
@@ -450,8 +450,8 @@ const LandingPage: React.FC = () => {
                                 <div className="mb-8 p-4 rounded-3xl bg-slate-50 dark:bg-slate-800 shadow-inner inline-block group-hover:scale-110 transition-transform">
                                     {feature.icon}
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">{feature.title}</h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-[15px] leading-relaxed font-medium">{feature.description}</p>
+                                <h3 className="feature-title mb-4">{feature.title}</h3>
+                                <p className="feature-text">{feature.description}</p>
                             </motion.div>
                         ))}
                     </div>
