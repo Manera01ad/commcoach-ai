@@ -265,188 +265,165 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="relative pt-48 pb-24 overflow-hidden mesh-gradient min-h-[90vh]">
                 <div className="max-w-7xl mx-auto px-6">
-                    {/* Left Column - Content */}
-                    <div className="max-w-2xl">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8`}
-                        >
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                            </span>
-                            <span className="text-[12px] font-black uppercase tracking-wider text-indigo-600">Real-time sentiment v2.4</span>
-                        </motion.div>
-
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.2]"
-                        >
-                            Speak Like It's Your{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-500">Native Language</span>
-                            —Naturally, Without Second-Guessing
-                        </motion.h1>
-
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-xl leading-relaxed font-medium"
-                        >
-                            Empower your professional growth with AI-driven communication coaching.
-                            Feel confident, charismatic, and happy about your progress.
-                        </motion.p>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="flex flex-col sm:flex-row items-center gap-6"
-                        >
-                            {isAuthenticated ? (
-                                <button
-                                    onClick={() => navigate('/dashboard')}
-                                    className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-                                >
-                                    Enter Dashboard <ArrowRight className="w-6 h-6" />
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => navigate('/login')}
-                                    className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-                                >
-                                    Start Free Trial <ArrowRight className="w-6 h-6" />
-                                </button>
-                            )}
-                            <button className="flex items-center gap-3 text-slate-900 dark:text-white font-black hover:text-indigo-600 transition-colors group">
-                                <div className="w-14 h-14 rounded-full border-2 border-slate-200 dark:border-white/10 flex items-center justify-center group-hover:bg-indigo-50/50 transition-all">
-                                    <Play className="w-5 h-5 fill-current" />
-                                </div>
-                                Watch Demo
-                            </button>
-                        </motion.div>
-                    </div>
-                </div>
-
-                {/* Floating Cards - Absolute Positioned */}
-                <div className="hidden lg:block absolute right-[10%] top-1/2 -translate-y-1/2">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.6 }}
-                        className="relative flex flex-col items-center gap-6"
-                        onMouseMove={handleHeroMouseMove}
-                        onMouseLeave={() => setRotate({ x: 0, y: 0 })}
-                        ref={heroCardRef}
-                    >
-                        {/* Confidence Card - Top */}
-                        <motion.div
-                            animate={{ y: [0, -8, 0] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                            className="relative z-10 p-5 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl shadow-emerald-500/10 border border-emerald-100 dark:border-emerald-900/30 transform-gpu transition-transform duration-200"
-                            style={{
-                                transform: `rotateX(${rotate.x * 0.2}deg) rotateY(${rotate.y * 0.2}deg)`
-                            }}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/50 dark:to-emerald-800/50 flex items-center justify-center shadow-inner">
-                                    <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-                                </div>
-                                <div>
-                                    <p className="font-black text-xl text-emerald-600 dark:text-emerald-400">+24%</p>
-                                    <p className="font-bold text-sm text-slate-500 dark:text-slate-400 uppercase tracking-wider">Confidence</p>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Visual Connector */}
-                        <div className="relative flex flex-col items-center h-24">
-                            {/* Top Dot */}
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        {/* Left Column - Content */}
+                        <div className="max-w-2xl">
                             <motion.div
-                                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
-                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 shadow-lg shadow-indigo-400/30"
-                            />
-                            
-                            {/* Gradient Line */}
-                            <div className="relative w-1 flex-1 bg-gradient-to-b from-emerald-400 via-indigo-400 to-pink-400 rounded-full overflow-hidden">
-                                {/* Pulsing Animation */}
-                                <motion.div
-                                    animate={{ y: ['-100%', '200%'] }}
-                                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                    className="absolute inset-x-0 h-8 bg-gradient-to-b from-transparent via-white/80 to-transparent"
-                                />
-                            </div>
-                            
-                            {/* Bottom Dot */}
-                            <motion.div
-                                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
-                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                                className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-400 to-pink-400 shadow-lg shadow-pink-400/30"
-                            />
-                            
-                            {/* Flow Arrow Icon */}
-                            <motion.div
-                                animate={{ y: [0, 4, 0], opacity: [0.5, 1, 0.5] }}
-                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute top-1/2 -translate-y-1/2 -right-6"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-8`}
                             >
-                                <ChevronRight className="w-4 h-4 text-indigo-400" />
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                                </span>
+                                <span className="text-[12px] font-black uppercase tracking-wider text-indigo-600">Real-time sentiment v2.4</span>
+                            </motion.div>
+
+                            <motion.h1
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.2]"
+                            >
+                                Speak Like It's Your{' '}
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-500">Native Language</span>
+                                —Naturally, Without Second-Guessing
+                            </motion.h1>
+
+                            <motion.p
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-xl leading-relaxed font-medium"
+                            >
+                                Empower your professional growth with AI-driven communication coaching.
+                                Feel confident, charismatic, and happy about your progress.
+                            </motion.p>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="flex flex-col sm:flex-row items-center gap-6"
+                            >
+                                {isAuthenticated ? (
+                                    <button
+                                        onClick={() => navigate('/dashboard')}
+                                        className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                                    >
+                                        Enter Dashboard <ArrowRight className="w-6 h-6" />
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => navigate('/login')}
+                                        className="w-full sm:w-auto px-10 py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-2xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                                    >
+                                        Start Free Trial <ArrowRight className="w-6 h-6" />
+                                    </button>
+                                )}
+                                <button className="flex items-center gap-3 text-slate-900 dark:text-white font-black hover:text-indigo-600 transition-colors group">
+                                    <div className="w-14 h-14 rounded-full border-2 border-slate-200 dark:border-white/10 flex items-center justify-center group-hover:bg-indigo-50/50 transition-all">
+                                        <Play className="w-5 h-5 fill-current" />
+                                    </div>
+                                    Watch Demo
+                                </button>
                             </motion.div>
                         </div>
+                    </div>
 
-                        {/* Happiness Loop Card - Bottom */}
-                        <motion.div
-                            animate={{ y: [0, 8, 0] }}
-                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                            className="relative z-10 p-5 rounded-[2rem] bg-white dark:bg-slate-800 shadow-2xl shadow-pink-500/10 border border-pink-100 dark:border-pink-900/30 transform-gpu transition-transform duration-200"
-                            style={{
-                                transform: `rotateX(${rotate.x * 0.2}deg) rotateY(${rotate.y * 0.2}deg)`
-                            }}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900/50 dark:to-pink-800/50 flex items-center justify-center shadow-inner">
-                                    <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400 fill-pink-600/20" />
+                    {/* Right Column - Horizontal Card Layout */}
+                    <div className="relative hidden lg:flex items-center justify-center">
+                        <div className="flex flex-row items-center gap-6">
+                            {/* CARD 1 - Happiness Loop Card (LEFT) */}
+                            <motion.div
+                                animate={{ y: [0, 10, 0] }}
+                                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center flex-shrink-0">
+                                        <Heart className="w-5 h-5 text-pink-600 dark:text-pink-400 fill-pink-600/20 dark:fill-pink-400/20" />
+                                    </div>
+                                    <div>
+                                        <p className="font-black text-base text-pink-600 dark:text-pink-400">Happiness</p>
+                                        <p className="font-black text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-black text-lg text-pink-600 dark:text-pink-400">Happiness</p>
-                                    <p className="font-bold text-sm text-slate-500 dark:text-slate-400 uppercase tracking-wider">Loop Active</p>
-                                </div>
-                            </div>
-                        </motion.div>
+                            </motion.div>
 
-                        {/* Floating particles */}
-                        <motion.div
-                            animate={{
-                                x: [0, 20, 0],
-                                y: [0, -30, 0],
-                                opacity: [0.2, 0.5, 0.2]
-                            }}
-                            transition={{ duration: 4, repeat: Infinity }}
-                            className="absolute -top-4 -right-8 w-3 h-3 bg-indigo-400/50 rounded-full blur-sm"
-                        />
-                        <motion.div
-                            animate={{
-                                x: [0, -15, 0],
-                                y: [0, 20, 0],
-                                opacity: [0.3, 0.6, 0.3]
-                            }}
-                            transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
-                            className="absolute -bottom-4 -left-6 w-2.5 h-2.5 bg-pink-400/50 rounded-full blur-sm"
-                        />
-                        <motion.div
-                            animate={{
-                                x: [0, 10, 0],
-                                y: [0, -15, 0],
-                                opacity: [0.2, 0.4, 0.2]
-                            }}
-                            transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-                            className="absolute top-1/2 -left-10 w-2 h-2 bg-emerald-400/50 rounded-full blur-sm"
-                        />
-                    </motion.div>
+                            {/* CONNECTOR - Gradient Line with Dots */}
+                            <motion.div
+                                className="flex items-center gap-0 relative"
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                                {/* Left dot */}
+                                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg shadow-pink-400/50" />
+
+                                {/* Gradient line */}
+                                <div
+                                    className="h-1 w-20 relative"
+                                    style={{
+                                        background: "linear-gradient(90deg, #ec4899 0%, #22d3ee 100%)"
+                                    }}
+                                >
+                                    {/* Animated pulse */}
+                                    <motion.div
+                                        className="absolute inset-0"
+                                        animate={{ opacity: [0.5, 1, 0.5] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                        style={{
+                                            background: "linear-gradient(90deg, rgba(236, 72, 153, 0.5) 0%, rgba(34, 211, 238, 0.5) 100%)",
+                                            filter: "blur(4px)"
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Right dot */}
+                                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-lg shadow-cyan-400/50" />
+                            </motion.div>
+
+                            {/* CARD 2 - Confidence Card with 3D Progress Bar (RIGHT) */}
+                            <motion.div
+                                animate={{ y: [0, -10, 0] }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                className="p-6 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 w-64"
+                            >
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="p-3 bg-emerald-500/20 rounded-xl flex-shrink-0">
+                                        <TrendingUp className="text-emerald-500 w-6 h-6" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
+                                        <p className="text-2xl font-black text-slate-900 dark:text-white">+24% Improved</p>
+                                    </div>
+                                </div>
+
+                                {/* 3D Progress Bar */}
+                                <div className="relative w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: "75%" }}
+                                        transition={{ delay: 0.5, duration: 1.5, ease: "easeOut" }}
+                                        className="relative h-full rounded-full"
+                                        style={{
+                                            background: "linear-gradient(90deg, #00b894 0%, #00d2a0 100%)",
+                                            boxShadow: "0 2px 4px rgba(0, 184, 148, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)"
+                                        }}
+                                    >
+                                        {/* Glossy highlight effect */}
+                                        <div
+                                            className="absolute top-0 left-0 right-0 h-[40%] rounded-t-full"
+                                            style={{
+                                                background: "linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)"
+                                            }}
+                                        />
+                                    </motion.div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
