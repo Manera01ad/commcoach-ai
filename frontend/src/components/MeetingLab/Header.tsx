@@ -71,6 +71,8 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
         <div className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
+            aria-label="User menu"
+            aria-expanded={showUserMenu}
             className={`group flex items-center space-x-2 lg:space-x-3 p-1.5 lg:p-2 rounded-xl lg:rounded-2xl transition-all ${phase === SessionPhase.PROFILE || showUserMenu
               ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800'
               : 'hover:bg-neutral-50 dark:hover:bg-neutral-800 border border-transparent'
@@ -114,7 +116,7 @@ const Header: React.FC<HeaderProps> = ({ phase, isVoiceMode, onReset, onSwitchPh
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
-                      // TODO: Open settings modal
+                      onSwitchPhase(SessionPhase.SETTINGS);
                     }}
                     className="w-full px-4 py-2 text-left text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 flex items-center gap-3 transition-colors"
                   >

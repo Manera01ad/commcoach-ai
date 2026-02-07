@@ -55,6 +55,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                         onChange={e => setInput(e.target.value)}
                         placeholder={isAnalyzing ? "Synthesizing analysis..." : "Ask anything, @ for context"}
                         disabled={isAnalyzing}
+                        aria-label="Message input"
                         className="w-full bg-transparent py-4 px-6 text-sm font-medium outline-none disabled:opacity-50 text-slate-700 placeholder:text-slate-400"
                     />
 
@@ -118,7 +119,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                                 type="button"
                                 onClick={onStartVoiceSession}
                                 className={`p-2 rounded-xl transition-all ${isSessionActive ? 'bg-red-500 text-white animate-pulse' : 'bg-teal-600/90 text-white hover:bg-teal-700 shadow-sm'}`}
-                                title="Start Voice Conversation"
+                                aria-label={isSessionActive ? 'Stop voice conversation' : 'Start voice conversation'}
                             >
                                 {isSessionActive ? <StopCircle className="w-5 h-5" /> : <AudioLines className="w-5 h-5" />}
                             </button>
@@ -126,6 +127,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                             <button
                                 type="submit"
                                 disabled={!input.trim() || isAnalyzing}
+                                aria-label="Send message"
                                 className="bg-slate-900 text-white p-2.5 rounded-xl hover:bg-black disabled:opacity-20 transition-all shadow-lg shadow-black/10"
                             >
                                 <Send className="w-5 h-5" />

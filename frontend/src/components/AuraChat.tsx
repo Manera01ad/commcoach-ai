@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Loader2, X, Sparkles, MessageSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { marked } from 'marked';
+import { renderMarkdown } from '../lib/sanitize';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -112,7 +112,7 @@ const AuraChat: React.FC<AuraChatProps> = ({ dnaProfile, isOpen, onClose }) => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[#f8fafc] dark:bg-neutral-950">
+            <div role="log" aria-live="polite" aria-label="Therapy chat messages" className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[#f8fafc] dark:bg-neutral-950">
                 {messages.map((msg, idx) => (
                     <motion.div
                         key={idx}
@@ -126,7 +126,7 @@ const AuraChat: React.FC<AuraChatProps> = ({ dnaProfile, isOpen, onClose }) => {
                             }`}>
                             <div
                                 className="prose prose-sm dark:prose-invert max-w-none font-medium"
-                                dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}
+                                dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
                             />
                         </div>
                     </motion.div>
@@ -150,11 +150,13 @@ const AuraChat: React.FC<AuraChatProps> = ({ dnaProfile, isOpen, onClose }) => {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Project your message..."
+                        aria-label="Therapy message input"
                         className="w-full bg-neutral-50 dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-2xl py-4 px-6 pr-14 text-sm font-medium outline-none focus:border-indigo-600 transition-all"
                     />
                     <button
                         type="submit"
                         disabled={!input.trim() || loading}
+                        aria-label="Send message"
                         className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-900 dark:bg-indigo-600 text-white rounded-xl flex items-center justify-center disabled:opacity-30 hover:scale-105 transition-all shadow-lg shadow-indigo-600/20"
                     >
                         <Send className="w-4 h-4" />

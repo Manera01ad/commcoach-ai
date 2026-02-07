@@ -8,7 +8,8 @@ export enum SessionPhase {
   MENTORS = 'MENTORS',
   AGENT = 'AGENT',
   PROFILE = 'PROFILE',
-  THERAPY_DASHBOARD = 'THERAPY_DASHBOARD'
+  THERAPY_DASHBOARD = 'THERAPY_DASHBOARD',
+  SETTINGS = 'SETTINGS'
 }
 
 export interface AvatarCloneConfig {

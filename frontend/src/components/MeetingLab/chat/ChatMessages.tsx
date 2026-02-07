@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Brain, Volume2, Youtube, ExternalLink, BarChart2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Message, SessionPhase } from '../../../types';
-import { marked } from 'marked';
+import { renderMarkdown } from '../../../lib/sanitize';
 import { ArchetypeBadge } from '../../Aura/ArchetypeBadge';
 import { TherapyMessage } from '../../Aura/TherapyMessage';
 import { ConfidenceMeter } from '../../Aura/ConfidenceMeter';
@@ -61,7 +61,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     }, [messages, appIsThinking, isAnalyzing, analysisResult]);
 
     return (
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 scroll-smooth custom-scrollbar">
+        <div ref={scrollRef} role="log" aria-live="polite" aria-label="Chat messages" className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 scroll-smooth custom-scrollbar">
             <div className="max-w-5xl mx-auto w-full pb-24">
                 {messages.map((msg) => (
                     <div key={msg.id} className="mb-12">
@@ -98,15 +98,16 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                                                 <ConfidenceMeter score={msg.metadata.therapyResult.confidence} />
                                             </>
                                         ) : (
-                                            <div className="prose-sm" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} />
+                                            <div className="prose-sm" dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="prose-sm" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} />
+                                    <div className="prose-sm" dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
                                 )}
                                 {msg.role === 'assistant' && (
                                     <button
                                         onClick={() => onTts(msg.content, msg.id)}
+                                        aria-label={isPlayingAudio === msg.id ? 'Stop reading aloud' : 'Read aloud'}
                                         className={`absolute -bottom-10 right-0 p-2 rounded-lg transition-all ${isPlayingAudio === msg.id ? 'text-indigo-600' : 'text-slate-300 hover:text-slate-600'}`}
                                     >
                                         <Volume2 className={`w-4 h-4 ${isPlayingAudio === msg.id ? 'animate-pulse' : ''}`} />

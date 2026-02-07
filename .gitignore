@@ -7,9 +7,12 @@ backend/node_modules/
 .env
 .env.local
 .env.*.local
+.env.production
+**/.env.production
 *.env
 frontend/.env
 frontend/.env.local
+frontend/.env.production
 backend/.env
 backend/.env.local
 

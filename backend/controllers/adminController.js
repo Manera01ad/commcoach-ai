@@ -1,4 +1,5 @@
-import { getPendingUsers, updateUserStatus } from '../config/supabase.js';
+import { getPendingUsers, updateUserStatus, getUserById } from '../config/supabase.js';
+import { sendApprovalEmail, sendRejectionEmail } from '../services/EmailService.js';
 
 /**
  * Get all pending users
@@ -10,7 +11,7 @@ export const getPendingList = async (req, res) => {
         res.status(200).json({ users });
     } catch (error) {
         console.error('Admin Get Pending Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to fetch pending users' });
     }
 };
 
@@ -25,7 +26,11 @@ export const approveUser = async (req, res) => {
 
         const updatedUser = await updateUserStatus(id, 'active', adminId);
 
-        // TODO: Send approval email (Phase 2 extension)
+        // Send approval email (non-blocking)
+        const profile = await getUserById(id).catch(() => null);
+        if (profile?.email) {
+            sendApprovalEmail(profile.email, profile.full_name).catch(() => {});
+        }
 
         res.status(200).json({
             message: 'User approved successfully',
@@ -33,7 +38,7 @@ export const approveUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Admin Approve Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to approve user' });
     }
 };
 
@@ -48,7 +53,11 @@ export const rejectUser = async (req, res) => {
 
         const updatedUser = await updateUserStatus(id, 'rejected', adminId);
 
-        // TODO: Send rejection email
+        // Send rejection email (non-blocking)
+        const profile = await getUserById(id).catch(() => null);
+        if (profile?.email) {
+            sendRejectionEmail(profile.email, profile.full_name).catch(() => {});
+        }
 
         res.status(200).json({
             message: 'User rejected',
@@ -56,6 +65,6 @@ export const rejectUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Admin Reject Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Failed to reject user' });
     }
 };

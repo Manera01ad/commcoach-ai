@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
     },
     plugins: [react()],
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
     css: {
       postcss: {
         plugins: [
@@ -23,6 +26,17 @@ export default defineConfig(({ mode }) => {
     define: {
       // 'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY), // REMOVED FOR SECURITY
       // 'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY) // REMOVED FOR SECURITY
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            supabase: ['@supabase/supabase-js'],
+            ui: ['framer-motion', 'lucide-react'],
+          },
+        },
+      },
     },
     resolve: {
       alias: {

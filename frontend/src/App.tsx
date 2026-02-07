@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-import AuthRouter from './pages/auth/AuthRouter';
 import ProtectedRoute from './components/ProtectedRoute';
 import { SessionPhase, Message, SessionState, UserProfile } from './types';
-import ChatWindow from './components/MeetingLab/ChatWindow';
 import Header from './components/MeetingLab/Header';
-import RecapScreen from './components/MeetingLab/RecapScreen';
-import MentorsLab from './components/MeetingLab/MentorsLab';
-import MeetingAgent from './components/MeetingLab/MeetingAgent';
-import ProfileDashboard from './components/MeetingLab/ProfileDashboard';
 import BrowserWindow from './components/AgentBrowser/BrowserWindow';
 import { getGenerativeModelProxy } from './services/apiClient';
-import Dashboard from './pages/Dashboard';
-import TherapyDashboard from './pages/TherapyDashboard';
 import { SYSTEM_INSTRUCTION, ASSESSMENT_QUESTIONS } from './constants';
-import LandingPage from './pages/LandingPage';
+
+// Lazy-loaded page components for code splitting
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const AuthRouter = React.lazy(() => import('./pages/auth/AuthRouter'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const TherapyDashboard = React.lazy(() => import('./pages/TherapyDashboard'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const ChatWindow = React.lazy(() => import('./components/MeetingLab/ChatWindow'));
+const RecapScreen = React.lazy(() => import('./components/MeetingLab/RecapScreen'));
+const MentorsLab = React.lazy(() => import('./components/MeetingLab/MentorsLab'));
+const MeetingAgent = React.lazy(() => import('./components/MeetingLab/MeetingAgent'));
+const ProfileDashboard = React.lazy(() => import('./components/MeetingLab/ProfileDashboard'));
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-full w-full">
+    <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+  </div>
+);
 
 
 // Adapter for legacy geminiApi usage
@@ -235,6 +244,7 @@ const MainApp: React.FC = () => {
       />
       <div className="flex flex-1 min-h-0 overflow-hidden relative">
         <main className="flex-1 flex flex-col min-h-0 relative h-full">
+          <Suspense fallback={<PageLoader />}>
           {session.phase === SessionPhase.RECAP && (
             <RecapScreen session={session} onDone={() => switchPhase(SessionPhase.CHAT)} />
           )}
@@ -255,6 +265,9 @@ const MainApp: React.FC = () => {
           {session.phase === (SessionPhase as any).THERAPY_DASHBOARD && (
             <TherapyDashboard />
           )}
+          {session.phase === SessionPhase.SETTINGS && (
+            <Settings />
+          )}
           {(session.phase === SessionPhase.CHAT || session.phase === SessionPhase.ASSESSMENT) && (
             <ChatWindow
               messages={session.messages}
@@ -270,6 +283,7 @@ const MainApp: React.FC = () => {
             />
           )}
 
+          </Suspense>
           <BrowserWindow
             isVisible={showBrowser}
             onClose={() => setShowBrowser(false)}
@@ -290,21 +304,23 @@ const MainApp: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<AuthRouter />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<AuthRouter />} />
 
-        {/* Protected Routes - Require Authentication */}
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <MainApp />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          {/* Protected Routes - Require Authentication */}
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <MainApp />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Suspense>
     </Router>
   );
 };
