@@ -45,7 +45,7 @@ router.post('/verify-razorpay', authenticateToken, async (req, res) => {
         }
     } catch (error) {
         console.error('Error verifying payment:', error);
-        res.status(500).json({ error: 'Failed to verify payment', details: error.message });
+        res.status(500).json({ error: 'Failed to verify payment' });
     }
 });
 

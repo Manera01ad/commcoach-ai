@@ -6,6 +6,7 @@ console.log('--- BACKEND STARTING ---');
 import express from 'express';
 // Forced restart to load new .env: 2026-01-19T13:46:00
 import cors from 'cors';
+import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import http from 'http';
@@ -56,13 +57,18 @@ app.set('trust proxy', 1);
 // ========================================
 
 // 1. CORS Configuration (MUST BE FIRST)
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : [];
+const isDev = process.env.NODE_ENV === 'development';
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    // Allow requests with no origin only in development (curl, mobile apps)
+    if (!origin) {
+      return callback(null, isDev);
+    }
+    if (allowedOrigins.indexOf(origin) !== -1 || isDev) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -75,6 +81,7 @@ const corsOptions = {
 
 
 app.use(cors(corsOptions));
+app.use(helmet());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -197,9 +204,10 @@ app.use((err, req, res, next) => {
 
   // Sentry captures exceptions automatically via middleware
 
+  const isProduction = process.env.NODE_ENV === 'production';
   res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    error: isProduction ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
+    ...(!isProduction && { stack: err.stack })
   });
 });
 

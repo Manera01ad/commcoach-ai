@@ -7,9 +7,13 @@ class VoiceService {
     }
 
     init(server) {
+        const allowedOrigins = process.env.ALLOWED_ORIGINS
+            ? process.env.ALLOWED_ORIGINS.split(',')
+            : ['http://localhost:5173', 'http://localhost:3000'];
+
         this.io = new Server(server, {
             cors: {
-                origin: '*', // In production, restrict this
+                origin: allowedOrigins,
                 methods: ['GET', 'POST']
             }
         });

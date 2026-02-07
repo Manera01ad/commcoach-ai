@@ -8,7 +8,7 @@ export const signup = async (req, res) => {
     try {
         const { email, password, fullName } = req.body;
 
-        console.log('[SIGNUP] Request received:', { email, fullName });
+        console.log('[SIGNUP] Request received');
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
@@ -71,7 +71,7 @@ export const signup = async (req, res) => {
 
     } catch (error) {
         console.error('[SIGNUP] Error:', error);
-        res.status(500).json({ error: error.message || 'Database error saving new user' });
+        res.status(500).json({ error: 'Registration failed. Please try again or contact support.' });
     }
 };
 
@@ -125,7 +125,7 @@ export const signin = async (req, res) => {
 
     } catch (error) {
         console.error('Signin Error:', error);
-        res.status(401).json({ error: error.message });
+        res.status(401).json({ error: 'Invalid email or password' });
     }
 };
 
@@ -142,7 +142,8 @@ export const signout = async (req, res) => {
 
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Signout Error:', error);
+        res.status(500).json({ error: 'Logout failed. Please try again.' });
     }
 };
 

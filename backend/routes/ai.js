@@ -78,7 +78,7 @@ router.post('/structured', strictLimiter, async (req, res) => {
 
         res.status(500).json({
             error: 'Structured generation failed',
-            message: error.message
+            ...(process.env.NODE_ENV === 'development' && { message: error.message })
         });
     }
 });
@@ -100,7 +100,7 @@ router.get('/status', defaultLimiter, (req, res) => {
     } catch (error) {
         res.status(500).json({
             error: 'Failed to get status',
-            message: error.message
+            ...(process.env.NODE_ENV === 'development' && { message: error.message })
         });
     }
 });
@@ -148,7 +148,7 @@ router.get('/providers', defaultLimiter, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             error: 'Failed to get providers',
-            message: error.message
+            ...(process.env.NODE_ENV === 'development' && { message: error.message })
         });
     }
 });
@@ -180,7 +180,7 @@ router.get('/costs', defaultLimiter, (req, res) => {
     } catch (error) {
         res.status(500).json({
             error: 'Failed to get costs',
-            message: error.message
+            ...(process.env.NODE_ENV === 'development' && { message: error.message })
         });
     }
 });
@@ -200,7 +200,7 @@ router.post('/reset', (req, res) => {
     } catch (error) {
         res.status(500).json({
             error: 'Failed to reset',
-            message: error.message
+            ...(process.env.NODE_ENV === 'development' && { message: error.message })
         });
     }
 });

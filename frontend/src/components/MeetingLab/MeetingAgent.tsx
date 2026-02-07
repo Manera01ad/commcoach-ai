@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MeetingSpeaker } from '../../types';
 import { geminiApi } from '../../services/api';
 import { decode, decodeAudioData, createPcmBlob } from '../../audioUtils';
-import { marked } from 'marked';
+import { renderMarkdown } from '../../lib/sanitize';
 import {
   Zap,
   Shield,
@@ -334,7 +334,7 @@ const MeetingAgent: React.FC = () => {
               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Synthesizing Final Markers...</p>
             </div>
           ) : (
-            <div className="prose prose-slate max-w-none bg-slate-50 p-10 rounded-[3rem] border border-slate-100 shadow-sm" dangerouslySetInnerHTML={{ __html: marked.parse(finalJson || "No data captured.") }} />
+            <div className="prose prose-slate max-w-none bg-slate-50 p-10 rounded-[3rem] border border-slate-100 shadow-sm" dangerouslySetInnerHTML={{ __html: renderMarkdown(finalJson || "No data captured.") }} />
           )}
         </div>
       </div>
@@ -411,8 +411,8 @@ const MeetingAgent: React.FC = () => {
             <div className="space-y-12">
               {actionPlan ? (
                 <>
-                  <div className="space-y-6"><h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-indigo-600 flex items-center gap-4"><ClipboardCheck className="w-6 h-6" /> Action Plan</h4><div className="bg-white p-12 rounded-[3.5rem] prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium shadow-sm border border-indigo-100" dangerouslySetInnerHTML={{ __html: marked.parse(actionPlan) }} /></div>
-                  <div className="space-y-6"><h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-emerald-600 flex items-center gap-4"><Activity className="w-6 h-6" /> Behavior</h4><div className="bg-white p-12 rounded-[3.5rem] prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium shadow-sm border border-emerald-100" dangerouslySetInnerHTML={{ __html: marked.parse(improvementPlan || "") }} /></div>
+                  <div className="space-y-6"><h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-indigo-600 flex items-center gap-4"><ClipboardCheck className="w-6 h-6" /> Action Plan</h4><div className="bg-white p-12 rounded-[3.5rem] prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium shadow-sm border border-indigo-100" dangerouslySetInnerHTML={{ __html: renderMarkdown(actionPlan) }} /></div>
+                  <div className="space-y-6"><h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-emerald-600 flex items-center gap-4"><Activity className="w-6 h-6" /> Behavior</h4><div className="bg-white p-12 rounded-[3.5rem] prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium shadow-sm border border-emerald-100" dangerouslySetInnerHTML={{ __html: renderMarkdown(improvementPlan || "") }} /></div>
                 </>
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-center py-32 opacity-30">
@@ -445,7 +445,7 @@ const MeetingAgent: React.FC = () => {
               )}
               {qaHistory.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`p-10 rounded-[3rem] text-sm shadow-xl ${msg.role === 'user' ? 'bg-slate-900 text-white' : 'bg-white text-slate-800 border border-slate-100'}`}><div className="prose prose-sm max-w-none font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }} /></div>
+                  <div className={`p-10 rounded-[3rem] text-sm shadow-xl ${msg.role === 'user' ? 'bg-slate-900 text-white' : 'bg-white text-slate-800 border border-slate-100'}`}><div className="prose prose-sm max-w-none font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.text) }} /></div>
                 </div>
               ))}
               <div ref={qaEndRef} />

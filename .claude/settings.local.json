@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rm:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vitest run)",
+      "Bash(npx vite build)",
+      "Bash(git add:*)"
+    ]
+  }
+}

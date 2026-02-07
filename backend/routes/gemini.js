@@ -34,7 +34,7 @@ router.post('/generate', authenticateToken(), validate(schemas.geminiGenerate), 
 
         res.status(500).json({
             error: 'Generation failed',
-            message: error.message
+            ...(process.env.NODE_ENV === 'development' && { message: error.message })
         });
     }
 });
@@ -65,7 +65,7 @@ router.post('/structured', authenticateToken(), async (req, res) => {
 
         res.status(500).json({
             error: 'Structured generation failed',
-            message: error.message
+            ...(process.env.NODE_ENV === 'development' && { message: error.message })
         });
     }
 });

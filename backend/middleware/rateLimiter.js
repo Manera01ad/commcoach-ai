@@ -29,12 +29,6 @@ export const apiLimiter = rateLimit({
             return true;
         }
 
-        // Skip rate limiting for n8n workflows (check user agent)
-        const userAgent = req.get('user-agent') || '';
-        if (userAgent.includes('n8n')) {
-            return true;
-        }
-
         return false;
     },
     max: async (req) => {
@@ -73,12 +67,6 @@ export const strictLimiter = rateLimit({
     skip: (req) => {
         // Skip rate limiting in development mode
         if (process.env.NODE_ENV === 'development') {
-            return true;
-        }
-
-        // Skip rate limiting for n8n workflows
-        const userAgent = req.get('user-agent') || '';
-        if (userAgent.includes('n8n')) {
             return true;
         }
 

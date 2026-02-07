@@ -39,25 +39,23 @@ router.post('/analyze-session', authenticateToken(), validate(schemas.antigravit
 
         res.status(500).json({
             error: 'Analysis failed',
-            message: error.message,
-            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            ...(process.env.NODE_ENV === 'development' && { message: error.message, details: error.stack })
         });
     }
 });
 
-/**
- * GET /api/antigravity/test
- * Test endpoint to verify Antigravity route is working
- */
-router.get('/test', (req, res) => {
-    res.json({
-        status: 'ok',
-        service: 'Antigravity Analysis Engine',
-        version: '1.0.0',
-        endpoints: {
-            analyzeSession: 'POST /api/antigravity/analyze-session'
-        }
+// Test endpoint - only available in development
+if (process.env.NODE_ENV !== 'production') {
+    router.get('/test', (req, res) => {
+        res.json({
+            status: 'ok',
+            service: 'Antigravity Analysis Engine',
+            version: '1.0.0',
+            endpoints: {
+                analyzeSession: 'POST /api/antigravity/analyze-session'
+            }
+        });
     });
-});
+}
 
 export default router;

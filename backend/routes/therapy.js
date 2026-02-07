@@ -119,8 +119,7 @@ router.post('/analyze', authenticateToken(), validate(schemas.therapyAnalyze), s
     } catch (error) {
         console.error('Therapy Analysis Error:', error);
         res.status(500).json({
-            error: 'Failed to analyze therapy request',
-            details: error.message
+            error: 'Failed to analyze therapy request'
         });
     }
 });
